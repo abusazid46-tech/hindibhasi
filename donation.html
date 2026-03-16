@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Support Our Cause</h1>
+        <div class="breadcrumb">
+            <a href="index.html">Home</a> / <span>Donate</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="donation-container">
+            <div class="donation-info">
+                <h2>Your Donation Makes a Difference</h2>
+                <p>Your generous contributions help us serve the community better through various initiatives:</p>
+                
+                <div class="impact-stats">
+                    <div class="impact-card">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h4>Education</h4>
+                        <p>Providing scholarships to meritorious students</p>
+                    </div>
+                    <div class="impact-card">
+                        <i class="fas fa-utensils"></i>
+                        <h4>Food Distribution</h4>
+                        <p>Regular annadaan to the needy</p>
+                    </div>
+                    <div class="impact-card">
+                        <i class="fas fa-hand-holding-medical"></i>
+                        <h4>Medical Aid</h4>
+                        <p>Support for medical treatments</p>
+                    </div>
+                    <div class="impact-card">
+                        <i class="fas fa-temple"></i>
+                        <h4>Temple Maintenance</h4>
+                        <p>Preservation of cultural heritage</p>
+                    </div>
+                </div>
+
+                <div class="donation-progress">
+                    <h3>Annual Target 2026</h3>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 65%"></div>
+                    </div>
+                    <p>₹32,50,000 raised of ₹50,00,000 target</p>
+                </div>
+            </div>
+
+            <div class="donation-form-container">
+                <h2>Make a Donation</h2>
+                
+                <div class="quick-amounts">
+                    <button class="amount-btn" onclick="setAmount(500)">₹500</button>
+                    <button class="amount-btn" onclick="setAmount(1000)">₹1,000</button>
+                    <button class="amount-btn" onclick="setAmount(2100)">₹2,100</button>
+                    <button class="amount-btn" onclick="setAmount(5000)">₹5,000</button>
+                    <button class="amount-btn" onclick="setAmount(11000)">₹11,000</button>
+                    <button class="amount-btn" onclick="setAmount(21000)">₹21,000</button>
+                </div>
+
+                <form id="donationForm" onsubmit="event.preventDefault(); processDonation()">
+                    <div class="form-group">
+                        <label for="donorName">Full Name *</label>
+                        <input type="text" id="donorName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="donorPhone">Phone Number *</label>
+                        <input type="tel" id="donorPhone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="donorEmail">Email</label>
+                        <input type="email" id="donorEmail">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="donationAmount">Donation Amount (₹) *</label>
+                        <input type="number" id="donationAmount" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="donationPurpose">Purpose (Optional)</label>
+                        <select id="donationPurpose">
+                            <option value="">General Donation</option>
+                            <option value="education">Education Fund</option>
+                            <option value="annadaan">Annadaan</option>
+                            <option value="medical">Medical Aid</option>
+                            <option value="temple">Temple Maintenance</option>
+                            <option value="disaster">Disaster Relief</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="taxBenefit"> 
+                            I want 80G tax benefit certificate
+                        </label>
+                    </div>
+
+                    <div class="payment-methods">
+                        <h4>Select Payment Method</h4>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="card" checked>
+                                <i class="fas fa-credit-card"></i> Card
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="upi">
+                                <i class="fas fa-mobile-alt"></i> UPI
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="netbanking">
+                                <i class="fas fa-university"></i> NetBanking
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-large">Proceed to Pay</button>
+                </form>
+
+                <div class="secure-badge">
+                    <i class="fas fa-lock"></i> Secure payment powered by Razorpay
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tax Benefits Section -->
+    <section class="section bg-light">
+        <h2>Tax Benefits</h2>
+        <div class="tax-info">
+            <div class="tax-card">
+                <i class="fas fa-file-invoice"></i>
+                <h3>80G Certificate</h3>
+                <p>All donations to Asom Hindi Bhasi Brahman Mahasabha are eligible for tax exemption under Section 80G of the Income Tax Act.</p>
+                <p><strong>PAN:</strong> AAATA1234F</p>
+                <p><strong>80G Registration:</strong> DIT(E)/80G/123/2025</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donors Wall -->
+    <section class="section">
+        <h2>Our Generous Donors</h2>
+        <div class="donors-wall" id="donorsWall">
+            <!-- Recent donors will be loaded here -->
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        function setAmount(amount) {
+            document.getElementById('donationAmount').value = amount;
+        }
+
+        async function processDonation() {
+            const name = document.getElementById('donorName').value;
+            const phone = document.getElementById('donorPhone').value;
+            const email = document.getElementById('donorEmail').value;
+            const amount = document.getElementById('donationAmount').value;
+            const purpose = document.getElementById('donationPurpose').value;
+            const taxBenefit = document.getElementById('taxBenefit').checked;
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            if (!name || !phone || !amount) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            try {
+                // Save donation record
+                const donation = await DonationsAPI.create({
+                    donor_name: name,
+                    phone,
+                    email,
+                    amount,
+                    purpose,
+                    tax_benefit: taxBenefit,
+                    payment_method: paymentMethod,
+                    payment_status: 'pending'
+                });
+
+                // Initialize Razorpay
+                const options = {
+                    key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+                    amount: amount * 100,
+                    currency: 'INR',
+                    name: 'Asom Hindi Bhasi Brahman Mahasabha',
+                    description: purpose || 'Donation',
+                    image: 'assets/images/logo.png',
+                    handler: async function(response) {
+                        // Update donation with payment ID
+                        await supabase
+                            .from('donations')
+                            .update({ 
+                                payment_id: response.razorpay_payment_id,
+                                payment_status: 'completed' 
+                            })
+                            .eq('id', donation.id);
+
+                        alert(`Thank you for your donation of ₹${amount}! Payment successful.`);
+                        
+                        // Redirect to success page
+                        window.location.href = `donation-success.html?amount=${amount}&payment_id=${response.razorpay_payment_id}`;
+                    },
+                    prefill: {
+                        name: name,
+                        email: email,
+                        contact: phone
+                    },
+                    theme: {
+                        color: '#b3412e'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            // Update donation as failed
+                            supabase
+                                .from('donations')
+                                .update({ payment_status: 'failed' })
+                                .eq('id', donation.id);
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (error) {
+                alert('Error processing donation: ' + error.message);
+            }
+        }
+
+        // Load recent donors
+        async function loadRecentDonors() {
+            try {
+                const { data } = await supabase
+                    .from('donations')
+                    .select('donor_name, amount, created_at')
+                    .eq('payment_status', 'completed')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                const donorsWall = document.getElementById('donorsWall');
+                donorsWall.innerHTML = data.map(donor => `
+                    <div class="donor-item">
+                        <i class="fas fa-user-circle"></i>
+                        <div class="donor-info">
+                            <h4>${donor.donor_name}</h4>
+                            <p>₹${donor.amount} • ${new Date(donor.created_at).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading donors:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRecentDonors);
+    </script>
+</body>
+</html>
