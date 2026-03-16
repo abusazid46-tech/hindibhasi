@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p id="adminName"></p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="members.html"><i class="fas fa-users"></i> Members</a>
+                <a href="events.html" class="active"><i class="fas fa-calendar"></i> Events</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                <a href="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                <a href="donations.html"><i class="fas fa-hand-holding-heart"></i> Donations</a>
+                <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="contacts.html"><i class="fas fa-phone-alt"></i> Contacts</a>
+                <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1>Manage Events</h1>
+                <button class="btn" onclick="openEventModal()"><i class="fas fa-plus"></i> Add New Event</button>
+            </header>
+
+            <!-- Events Table -->
+            <table class="admin-table" id="eventsTable">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Venue</th>
+                        <th>Registrations</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Event</h2>
+                <span class="close-btn" onclick="closeEventModal()">&times;</span>
+            </div>
+            <form id="eventForm" onsubmit="event.preventDefault(); saveEvent()">
+                <input type="hidden" id="eventId">
+
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea id="eventDescription" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDate">Event Date *</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventTime">Event Time</label>
+                    <input type="time" id="eventTime">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventVenue">Venue</label>
+                    <input type="text" id="eventVenue">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventImage">Event Image</label>
+                    <input type="file" id="eventImage" accept="image/*">
+                    <div id="currentImage"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventCapacity">Capacity (Optional)</label>
+                    <input type="number" id="eventCapacity" min="1">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="eventRegistration">
+                        Enable Registration
+                    </label>
+                </div>
+
+                <button type="submit" class="btn">Save Event</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registrations Modal -->
+    <div id="registrationsModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Event Registrations</h2>
+                <span class="close-btn" onclick="closeRegModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="registrationsList">
+                <!-- Registrations will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 20;
+        let editingEventId = null;
+
+        async function loadEvents(page = 1) {
+            try {
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+
+                const { data, count, error } = await supabase
+                    .from('events')
+                    .select('*', { count: 'exact' })
+                    .order('event_date', { ascending: true })
+                    .range(from, to);
+
+                if (error) throw error;
+
+                // Get registration counts
+                const eventsWithRegs = await Promise.all(data.map(async (event) => {
+                    const { count } = await supabase
+                        .from('event_registrations')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('event_id', event.id);
+                    
+                    return { ...event, registrations: count };
+                }));
+
+                const tbody = document.getElementById('eventsTableBody');
+                tbody.innerHTML = eventsWithRegs.map(event => `
+                    <tr>
+                        <td>
+                            ${event.image_url ? 
+                                `<img src="${event.image_url}" alt="${event.title}" class="table-thumb">` : 
+                                `<i class="fas fa-calendar-alt fa-2x"></i>`
+                            }
+                        </td>
+                        <td>${event.title}</td>
+                        <td>${new Date(event.event_date).toLocaleDateString()}</td>
+                        <td>${event.venue || '-'}</td>
+                        <td>${event.registrations}</td>
+                        <td>
+                            <button class="btn-small" onclick="editEvent('${event.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-small info" onclick="viewRegistrations('${event.id}')">
+                                <i class="fas fa-users"></i>
+                            </button>
+                            <button class="btn-small danger" onclick="deleteEvent('${event.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update pagination
+                const totalPages = Math.ceil(count / limit);
+                renderPagination(page, totalPages);
+
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        function openEventModal() {
+            editingEventId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Event';
+            document.getElementById('eventForm').reset();
+            document.getElementById('currentImage').innerHTML = '';
+            document.getElementById('eventModal').classList.add('show');
+        }
+
+        async function editEvent(eventId) {
+            try {
+                const { data } = await supabase
+                    .from('events')
+                    .select('*')
+                    .eq('id', eventId)
+                    .single();
+
+                editingEventId = eventId;
+                document.getElementById('modalTitle').textContent = 'Edit Event';
+                document.getElementById('eventId').value = data.id;
+                document.getElementById('eventTitle').value = data.title;
+                document.getElementById('eventDescription').value = data.description || '';
+                document.getElementById('eventDate').value = data.event_date;
+                document.getElementById('eventTime').value = data.event_time || '';
+                document.getElementById('eventVenue').value = data.venue || '';
+                document.getElementById('eventCapacity').value = data.capacity || '';
+                document.getElementById('eventRegistration').checked = data.allow_registration || false;
+
+                if (data.image_url) {
+                    document.getElementById('currentImage').innerHTML = `
+                        <p>Current Image: <img src="${data.image_url}" style="max-width: 100px;"></p>
+                    `;
+                }
+
+                document.getElementById('eventModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading event:', error);
+            }
+        }
+
+        async function saveEvent() {
+            const eventData = {
+                title: document.getElementById('eventTitle').value,
+                description: document.getElementById('eventDescription').value,
+                event_date: document.getElementById('eventDate').value,
+                event_time: document.getElementById('eventTime').value,
+                venue: document.getElementById('eventVenue').value,
+                capacity: document.getElementById('eventCapacity').value || null,
+                allow_registration: document.getElementById('eventRegistration').checked
+            };
+
+            const imageFile = document.getElementById('eventImage').files[0];
+            const admin = JSON.parse(sessionStorage.getItem('admin'));
+
+            try {
+                if (editingEventId) {
+                    // Update existing event
+                    let imageUrl = null;
+                    if (imageFile) {
+                        imageUrl = await uploadFile(imageFile, 'events', 'images');
+                    }
+
+                    const updates = { ...eventData };
+                    if (imageUrl) updates.image_url = imageUrl;
+
+                    await supabase
+                        .from('events')
+                        .update(updates)
+                        .eq('id', editingEventId);
+                } else {
+                    // Create new event
+                    await EventsAPI.create({ ...eventData, created_by: admin.id }, imageFile);
+                }
+
+                alert('Event saved successfully!');
+                closeEventModal();
+                loadEvents(currentPage);
+            } catch (error) {
+                alert('Error saving event: ' + error.message);
+            }
+        }
+
+        async function deleteEvent(eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) return;
+
+            try {
+                await supabase.from('events').delete().eq('id', eventId);
+                alert('Event deleted successfully!');
+                loadEvents(currentPage);
+            } catch (error) {
+                alert('Error deleting event: ' + error.message);
+            }
+        }
+
+        async function viewRegistrations(eventId) {
+            try {
+                const { data } = await supabase
+                    .from('event_registrations')
+                    .select('*')
+                    .eq('event_id', eventId)
+                    .order('created_at', { ascending: false });
+
+                const list = document.getElementById('registrationsList');
+                list.innerHTML = `
+                    <h3>Total Registrations: ${data.length}</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Registered On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(reg => `
+                                <tr>
+                                    <td>${reg.name}</td>
+                                    <td>${reg.phone}</td>
+                                    <td>${reg.email || '-'}</td>
+                                    <td>${new Date(reg.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('registrationsModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading registrations:', error);
+            }
+        }
+
+        function renderPagination(current, total) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            if (current > 1) {
+                html += `<button class="page-btn" onclick="loadEvents(${current - 1})">Previous</button>`;
+            }
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="loadEvents(${i})">${i}</button>`;
+                }
+            }
+
+            if (current < total) {
+                html += `<button class="page-btn" onclick="loadEvents(${current + 1})">Next</button>`;
+            }
+
+            pagination.innerHTML = html;
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('show');
+        }
+
+        function closeRegModal() {
+            document.getElementById('registrationsModal').classList.remove('show');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const admin = checkAdminAuth();
+            if (admin) {
+                document.getElementById('adminName').textContent = admin.full_name;
+                loadEvents(1);
+            }
+        });
+    </script>
+</body>
+</html>
