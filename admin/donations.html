@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Reports - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .donation-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #b3412e;
+        }
+
+        .summary-card .count {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            height: 400px;
+        }
+
+        .date-range {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .date-range input {
+            padding: 8px 15px;
+            border: 1px solid #f3b28a;
+            border-radius: 30px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            padding: 8px 20px;
+            border: 2px solid #b3412e;
+            background: transparent;
+            color: #b3412e;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-btn:hover {
+            background: #b3412e;
+            color: white;
+        }
+
+        .donation-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .donation-table {
+            font-size: 0.9rem;
+        }
+
+        .donation-table th {
+            background: #f8f9fa;
+        }
+
+        .highlight-row {
+            background: #fff3cd;
+        }
+
+        @media (max-width: 768px) {
+            .donation-filters {
+                flex-direction: column;
+            }
+
+            .date-range {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .export-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p id="adminName"></p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="members.html"><i class="fas fa-users"></i> Members</a>
+                <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                <a href="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                <a href="donations.html" class="active"><i class="fas fa-hand-holding-heart"></i> Donations</a>
+                <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="contacts.html"><i class="fas fa-phone-alt"></i> Contacts</a>
+                <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>Donation Reports</h1>
+                    <p>Track and manage donations</p>
+                </div>
+            </header>
+
+            <!-- Donation Summary -->
+            <div class="donation-summary" id="donationSummary">
+                <div class="summary-card">
+                    <h3>Total Donations</h3>
+                    <div class="amount" id="totalAmount">₹0</div>
+                    <div class="count" id="totalCount">0 donations</div>
+                </div>
+                <div class="summary-card">
+                    <h3>This Month</h3>
+                    <div class="amount" id="monthAmount">₹0</div>
+                    <div class="count" id="monthCount">0 donations</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Average Donation</h3>
+                    <div class="amount" id="avgAmount">₹0</div>
+                    <div class="count">per donation</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Successful</h3>
+                    <div class="amount" id="successRate">0%</div>
+                    <div class="count" id="successCount">0 of 0</div>
+                </div>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="date-range">
+                <input type="date" id="startDate" onchange="filterDonations()">
+                <input type="date" id="endDate" onchange="filterDonations()">
+                <select id="datePreset" onchange="applyDatePreset()">
+                    <option value="">Select Period</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <button class="export-btn" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> PDF Report
+                </button>
+                <button class="export-btn" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button class="export-btn" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
+                <button class="export-btn" onclick="printReport()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-container">
+                <canvas id="donationChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="purposeChart"></canvas>
+            </div>
+
+            <!-- Filters -->
+            <div class="donation-filters">
+                <div class="filter-group">
+                    <select id="filterStatus" class="form-control" onchange="filterDonations()">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select id="filterPurpose" class="form-control" onchange="filterDonations()">
+                        <option value="">All Purposes</option>
+                        <option value="General">General</option>
+                        <option value="education">Education</option>
+                        <option value="annadaan">Annadaan</option>
+                        <option value="medical">Medical</option>
+                        <option value="temple">Temple</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input type="text" id="searchDonor" placeholder="Search donor..." class="form-control">
+                </div>
+                <button class="btn" onclick="searchDonations()"><i class="fas fa-search"></i> Search</button>
+            </div>
+
+            <!-- Donations Table -->
+            <table class="admin-table donation-table" id="donationsTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Donor</th>
+                        <th>Phone</th>
+                        <th>Amount</th>
+                        <th>Purpose</th>
+                        <th>Payment ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="donationsTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Donation Receipt</h2>
+                <span class="close-btn" onclick="closeReceiptModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="receiptContent">
+                <!-- Receipt will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="printReceipt()">Print Receipt</button>
+                <button class="btn" onclick="downloadReceipt()">Download PDF</button>
+                <button class="btn" onclick="emailReceipt()">Email Receipt</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 20;
+        let donationChart, purposeChart;
+        let currentFilters = {
+            status: '',
+            purpose: '',
+            search: '',
+            startDate: '',
+            endDate: ''
+        };
+
+        async function loadDonations(page = 1) {
+            try {
+                let query = supabase
+                    .from('donations')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false });
+
+                // Apply filters
+                if (currentFilters.status) {
+                    query = query.eq('payment_status', currentFilters.status);
+                }
+
+                if (currentFilters.purpose) {
+                    query = query.eq('purpose', currentFilters.purpose);
+                }
+
+                if (currentFilters.search) {
+                    query = query.or(`donor_name.ilike.%${currentFilters.search}%,phone.ilike.%${currentFilters.search}%`);
+                }
+
+                if (currentFilters.startDate) {
+                    query = query.gte('created_at', currentFilters.startDate);
+                }
+
+                if (currentFilters.endDate) {
+                    query = query.lte('created_at', currentFilters.endDate + 'T23:59:59');
+                }
+
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+
+                const { data, count, error } = await query.range(from, to);
+
+                if (error) throw error;
+
+                // Update summary
+                await updateDonationSummary();
+
+                const tbody = document.getElementById('donationsTableBody');
+                tbody.innerHTML = data.map(donation => `
+                    <tr class="${donation.payment_status === 'pending' ? 'highlight-row' : ''}">
+                        <td>${new Date(donation.created_at).toLocaleDateString()}</td>
+                        <td><strong>${donation.donor_name}</strong></td>
+                        <td>${donation.phone}</td>
+                        <td><strong>₹${donation.amount}</strong></td>
+                        <td>${donation.purpose || 'General'}</td>
+                        <td><small>${donation.payment_id || '-'}</small></td>
+                        <td>
+                            <span class="status-badge ${donation.payment_status}">
+                                ${donation.payment_status}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-small info" onclick="viewReceipt('${donation.id}')">
+                                    <i class="fas fa-receipt"></i>
+                                </button>
+                                <button class="btn-small" onclick="editDonation('${donation.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-small" onclick="sendReminder('${donation.id}')">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update pagination
+                const totalPages = Math.ceil(count / limit);
+                renderPagination(page, totalPages);
+
+                // Update charts
+                updateCharts();
+
+            } catch (error) {
+                console.error('Error loading donations:', error);
+            }
+        }
+
+        async function updateDonationSummary() {
+            try {
+                // Get all completed donations
+                const { data: completed } = await supabase
+                    .from('donations')
+                    .select('amount')
+                    .eq('payment_status', 'completed');
+
+                const total = completed?.reduce((sum, d) => sum + parseFloat(d.amount), 0) || 0;
+
+                // This month
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
+
+                const { data: monthly } = await supabase
+                    .from('donations')
+                    .select('amount')
+                    .eq('payment_status', 'completed')
+                    .gte('created_at', startOfMonth.toISOString());
+
+                const monthTotal = monthly?.reduce((sum, d) => sum + parseFloat(d.amount), 0) || 0;
+                const monthCount = monthly?.length || 0;
+
+                // Average
+                const avg = completed?.length ? total / completed.length : 0;
+
+                // Success rate
+                const { count: total_all } = await supabase
+                    .from('donations')
+                    .select('*', { count: 'exact', head: true });
+
+                const successRate = total_all ? ((completed?.length || 0) / total_all * 100).toFixed(1) : 0;
+
+                document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString();
+                document.getElementById('totalCount').textContent = (completed?.length || 0) + ' donations';
+                document.getElementById('monthAmount').textContent = '₹' + monthTotal.toLocaleString();
+                document.getElementById('monthCount').textContent = monthCount + ' donations';
+                document.getElementById('avgAmount').textContent = '₹' + avg.toFixed(2);
+                document.getElementById('successRate').textContent = successRate + '%';
+                document.getElementById('successCount').textContent = (completed?.length || 0) + ' of ' + (total_all || 0);
+
+            } catch (error) {
+                console.error('Error updating summary:', error);
+            }
+        }
+
+        async function updateCharts() {
+            try {
+                // Donation trend chart
+                const { data: donations } = await supabase
+                    .from('donations')
+                    .select('created_at, amount')
+                    .eq('payment_status', 'completed')
+                    .order('created_at', { ascending: true })
+                    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+                // Group by date
+                const dailyData = {};
+                donations?.forEach(d => {
+                    const date = new Date(d.created_at).toLocaleDateString();
+                    dailyData[date] = (dailyData[date] || 0) + parseFloat(d.amount);
+                });
+
+                const dates = Object.keys(dailyData);
+                const amounts = Object.values(dailyData);
+
+                if (donationChart) {
+                    donationChart.destroy();
+                }
+
+                const ctx1 = document.getElementById('donationChart').getContext('2d');
+                donationChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Daily Donations (₹)',
+                            data: amounts,
+                            borderColor: '#b3412e',
+                            backgroundColor: 'rgba(179, 65, 46, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Donation Trend (Last 30 Days)'
+                            }
+                        }
+                    }
+                });
+
+                // Purpose chart
+                const { data: purposeData } = await supabase
+                    .from('donations')
+                    .select('purpose, amount')
+                    .eq('payment_status', 'completed');
+
+                const purposeSummary = {};
+                purposeData?.forEach(d => {
+                    const purpose = d.purpose || 'General';
+                    purposeSummary[purpose] = (purposeSummary[purpose] || 0) + parseFloat(d.amount);
+                });
+
+                if (purposeChart) {
+                    purposeChart.destroy();
+                }
+
+                const ctx2 = document.getElementById('purposeChart').getContext('2d');
+                purposeChart = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(purposeSummary),
+                        datasets: [{
+                            data: Object.values(purposeSummary),
+                            backgroundColor: [
+                                '#b3412e',
+                                '#f28c38',
+                                '#2e7d32',
+                                '#1976d2',
+                                '#9c27b0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Donations by Purpose'
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        }
+
+        async function viewReceipt(donationId) {
+            try {
+                const { data } = await supabase
+                    .from('donations')
+                    .select('*')
+                    .eq('id', donationId)
+                    .single();
+
+                const receipt = document.getElementById('receiptContent');
+                receipt.innerHTML = `
+                    <div class="receipt">
+                        <div class="receipt-header">
+                            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+                            <p>Donation Receipt</p>
+                        </div>
+                        <div class="receipt-body">
+                            <p><strong>Receipt No:</strong> DON-${data.id.substring(0, 8)}</p>
+                            <p><strong>Date:</strong> ${new Date(data.created_at).toLocaleDateString()}</p>
+                            <p><strong>Donor Name:</strong> ${data.donor_name}</p>
+                            <p><strong>Phone:</strong> ${data.phone}</p>
+                            <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+                            <p><strong>Amount:</strong> ₹${data.amount}</p>
+                            <p><strong>Purpose:</strong> ${data.purpose || 'General Donation'}</p>
+                            <p><strong>Payment ID:</strong> ${data.payment_id || 'N/A'}</p>
+                            <p><strong>Status:</strong> ${data.payment_status}</p>
+                        </div>
+                        <div class="receipt-footer">
+                            <p>This is a computer generated receipt. Valid without signature.</p>
+                            <p>Donations are eligible for 80G tax exemption.</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('receiptModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading receipt:', error);
+            }
+        }
+
+        function applyDatePreset() {
+            const preset = document.getElementById('datePreset').value;
+            const today = new Date();
+            let startDate = new Date();
+
+            switch(preset) {
+                case 'today':
+                    startDate = today;
+                    break;
+                case 'week':
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case 'month':
+                    startDate.setMonth(today.getMonth() - 1);
+                    break;
+                case 'quarter':
+                    startDate.setMonth(today.getMonth() - 3);
+                    break;
+                case 'year':
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    break;
+                default:
+                    return;
+            }
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            currentFilters.startDate = startDate.toISOString().split('T')[0];
+            currentFilters.endDate = today.toISOString().split('T')[0];
+            
+            loadDonations(1);
+        }
+
+        function filterDonations() {
+            currentFilters.status = document.getElementById('filterStatus').value;
+            currentFilters.purpose = document.getElementById('filterPurpose').value;
+            currentFilters.startDate = document.getElementById('startDate').value;
+            currentFilters.endDate = document.getElementById('endDate').value;
+            currentPage = 1;
+            loadDonations(1);
+        }
+
+        function searchDonations() {
+            currentFilters.search = document.getElementById('searchDonor').value;
+            currentPage = 1;
+            loadDonations(1);
+        }
+
+        async function exportToPDF() {
+            try {
+                const { data } = await supabase
+                    .from('donations')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                const doc = new jspdf.jsPDF();
+                
+                // Title
+                doc.setFontSize(20);
+                doc.text('Donation Report', 105, 15, { align: 'center' });
+                
+                // Date
+                doc.setFontSize(10);
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, 25, { align: 'center' });
+
+                // Summary
+                const total = data.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+                doc.setFontSize(12);
+                doc.text(`Total Donations: ₹${total.toLocaleString()}`, 14, 40);
+                doc.text(`Total Transactions: ${data.length}`, 14, 50);
+
+                // Table
+                const tableData = data.map(d => [
+                    new Date(d.created_at).toLocaleDateString(),
+                    d.donor_name,
+                    d.phone,
+                    `₹${d.amount}`,
+                    d.purpose || 'General',
+                    d.payment_status
+                ]);
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [['Date', 'Donor', 'Phone', 'Amount', 'Purpose', 'Status']],
+                    body: tableData,
+                    theme: 'striped',
+                    styles: { fontSize: 8 }
+                });
+
+                doc.save('donation-report.pdf');
+
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+            }
+        }
+
+        function exportToCSV() {
+            // Similar to PDF but CSV format
+            alert('Export to CSV feature coming soon!');
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function renderPagination(current, total) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            if (current > 1) {
+                html += `<button class="page-btn" onclick="loadDonations(${current - 1})">Previous</button>`;
+            }
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="loadDonations(${i})">${i}</button>`;
+                }
+            }
+
+            if (current < total) {
+                html += `<button class="page-btn" onclick="loadDonations(${current + 1})">Next</button>`;
+            }
+
+            pagination.innerHTML = html;
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('show');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const admin = checkAdminAuth();
+            if (admin) {
+                document.getElementById('adminName').textContent = admin.full_name;
+                loadDonations(1);
+            }
+        });
+    </script>
+</body>
+</html>
