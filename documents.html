@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Documents & Resources</h1>
+        <div class="breadcrumb">
+            <a href="index.html">Home</a> / <span>Documents</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="documents-container">
+            <!-- Category Navigation -->
+            <div class="doc-categories">
+                <button class="category-btn active" onclick="filterDocuments('all')">All Documents</button>
+                <button class="category-btn" onclick="filterDocuments('constitution')">Constitution</button>
+                <button class="category-btn" onclick="filterDocuments('forms')">Membership Forms</button>
+                <button class="category-btn" onclick="filterDocuments('minutes')">Meeting Minutes</button>
+                <button class="category-btn" onclick="filterDocuments('reports')">Annual Reports</button>
+                <button class="category-btn" onclick="filterDocuments('certificates')">Certificates</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="doc-search">
+                <input type="text" id="searchDocs" placeholder="Search documents..." class="search-input">
+                <button class="btn" onclick="searchDocuments()"><i class="fas fa-search"></i> Search</button>
+            </div>
+
+            <!-- Documents Grid -->
+            <div class="documents-grid" id="documentsGrid">
+                <!-- Documents will be loaded here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </section>
+
+    <!-- Featured Document Section -->
+    <section class="section bg-light">
+        <h2>Featured Documents</h2>
+        <div class="featured-docs" id="featuredDocs">
+            <!-- Featured documents will be loaded here -->
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentPage = 1;
+        let currentCategory = 'all';
+        let searchTerm = '';
+        const limit = 12;
+
+        async function loadDocuments(page = 1) {
+            try {
+                let query = supabase
+                    .from('documents')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false });
+
+                if (currentCategory !== 'all') {
+                    query = query.eq('category', currentCategory);
+                }
+
+                if (searchTerm) {
+                    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+                }
+
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+
+                const { data, count, error } = await query.range(from, to);
+
+                if (error) throw error;
+
+                const grid = document.getElementById('documentsGrid');
+                grid.innerHTML = data.map(doc => `
+                    <div class="document-card">
+                        <div class="doc-icon">
+                            <i class="fas ${getFileIcon(doc.file_type)}"></i>
+                        </div>
+                        <div class="doc-details">
+                            <h3>${doc.title}</h3>
+                            <p>${doc.description || 'No description available'}</p>
+                            <div class="doc-meta">
+                                <span><i class="fas fa-calendar"></i> ${new Date(doc.created_at).toLocaleDateString()}</span>
+                                <span><i class="fas fa-file"></i> ${getFileType(doc.file_type)}</span>
+                            </div>
+                            <div class="doc-actions">
+                                <a href="${doc.file_url}" target="_blank" class="btn btn-small">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <button class="btn btn-small btn-outline" onclick="previewDocument('${doc.id}')">
+                                    <i class="fas fa-eye"></i> Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update pagination
+                const totalPages = Math.ceil(count / limit);
+                renderPagination(page, totalPages);
+
+            } catch (error) {
+                console.error('Error loading documents:', error);
+            }
+        }
+
+        function getFileIcon(fileType) {
+            if (fileType?.includes('pdf')) return 'fa-file-pdf';
+            if (fileType?.includes('word') || fileType?.includes('document')) return 'fa-file-word';
+            if (fileType?.includes('excel') || fileType?.includes('sheet')) return 'fa-file-excel';
+            if (fileType?.includes('image')) return 'fa-file-image';
+            return 'fa-file-alt';
+        }
+
+        function getFileType(fileType) {
+            if (fileType?.includes('pdf')) return 'PDF';
+            if (fileType?.includes('word')) return 'DOC';
+            if (fileType?.includes('excel')) return 'XLS';
+            return 'FILE';
+        }
+
+        function renderPagination(current, total) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            if (current > 1) {
+                html += `<button class="page-btn" onclick="loadDocuments(${current - 1})">Previous</button>`;
+            }
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="loadDocuments(${i})">${i}</button>`;
+                } else if (i === current - 3 || i === current + 3) {
+                    html += `<span class="page-dots">...</span>`;
+                }
+            }
+
+            if (current < total) {
+                html += `<button class="page-btn" onclick="loadDocuments(${current + 1})">Next</button>`;
+            }
+
+            pagination.innerHTML = html;
+        }
+
+        function filterDocuments(category) {
+            currentCategory = category;
+            currentPage = 1;
+            
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadDocuments(1);
+        }
+
+        function searchDocuments() {
+            searchTerm = document.getElementById('searchDocs').value;
+            currentPage = 1;
+            loadDocuments(1);
+        }
+
+        function previewDocument(docId) {
+            // Open document in new tab with preview
+            window.open(`document-preview.html?id=${docId}`, '_blank');
+        }
+
+        // Load featured documents
+        async function loadFeaturedDocs() {
+            try {
+                const { data } = await supabase
+                    .from('documents')
+                    .select('*')
+                    .in('category', ['constitution', 'reports'])
+                    .limit(3);
+
+                const featured = document.getElementById('featuredDocs');
+                featured.innerHTML = data.map(doc => `
+                    <div class="featured-doc-card">
+                        <i class="fas fa-star"></i>
+                        <h4>${doc.title}</h4>
+                        <a href="${doc.file_url}" target="_blank" class="btn btn-small">Download</a>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading featured docs:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDocuments(1);
+            loadFeaturedDocs();
+        });
+    </script>
+</body>
+</html>
