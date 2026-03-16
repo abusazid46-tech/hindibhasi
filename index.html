@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                    <a href="admin/login.html"><i class="fas fa-lock"></i> Admin</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1 id="heroTitle">Serving Dharma & Humanity</h1>
+        <p id="heroDesc">A Non-Profit Organization for Cultural & Social Welfare</p>
+        <div class="hero-buttons">
+            <a href="register.html" class="btn">Join Now</a>
+            <a href="donation.html" class="btn btn-outline">Donate</a>
+        </div>
+    </section>
+
+    <!-- Latest News Section -->
+    <section class="section">
+        <h2>Latest News</h2>
+        <div class="news-grid" id="latestNews">
+            <!-- Dynamically loaded -->
+        </div>
+        <a href="news.html" class="btn btn-secondary">View All News</a>
+    </section>
+
+    <!-- Upcoming Events Section -->
+    <section class="section bg-light">
+        <h2>Upcoming Events</h2>
+        <div class="events-grid" id="upcomingEvents">
+            <!-- Dynamically loaded -->
+        </div>
+        <a href="events.html" class="btn btn-secondary">View All Events</a>
+    </section>
+
+    <!-- Gallery Preview -->
+    <section class="section">
+        <h2>Photo Gallery</h2>
+        <div class="gallery-preview" id="galleryPreview">
+            <!-- Dynamically loaded -->
+        </div>
+        <a href="photo-gallery.html" class="btn btn-secondary">View Full Gallery</a>
+    </section>
+
+    <!-- Join & Donate CTA -->
+    <section class="section cta-section">
+        <div class="cta-container">
+            <div class="cta-card">
+                <h3>Become a Member</h3>
+                <p>Join our community and be part of our cultural and social initiatives.</p>
+                <a href="register.html" class="btn">Register Now</a>
+            </div>
+            <div class="cta-card">
+                <h3>Support Our Cause</h3>
+                <p>Your donations help us serve the community better.</p>
+                <a href="donation.html" class="btn">Donate Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <h2>Contact Us</h2>
+        <div class="contact-info">
+            <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+            <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+            <p><i class="fas fa-map-marker-alt"></i> Guwahati, Assam</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
