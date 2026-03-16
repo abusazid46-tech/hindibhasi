@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Gallery - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .gallery-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #f3b28a;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            background: #fff9f2;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #b3412e;
+            background: #fff3e6;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #b3412e;
+            margin-bottom: 15px;
+        }
+
+        .upload-area.dragover {
+            border-color: #2e7d32;
+            background: #e8f5e9;
+        }
+
+        .upload-progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #fde5d4;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f28c38, #b3412e);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .gallery-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #fde5d4;
+            padding-bottom: 10px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .gallery-item img,
+        .gallery-item video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .gallery-item-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .gallery-item:hover .gallery-item-overlay {
+            opacity: 1;
+        }
+
+        .gallery-item-overlay button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #b3412e;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item-overlay button:hover {
+            transform: scale(1.1);
+        }
+
+        .gallery-info {
+            padding: 10px;
+            background: white;
+        }
+
+        .gallery-info h4 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .gallery-info p {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .batch-upload {
+            margin-bottom: 20px;
+        }
+
+        .album-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .album-tag {
+            padding: 5px 15px;
+            background: #fde5d4;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .album-tag.active {
+            background: #b3412e;
+            color: white;
+        }
+
+        .album-tag:hover {
+            background: #f28c38;
+            color: white;
+        }
+
+        .image-editor {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            z-index: 1000;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .image-editor.show {
+            display: block;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p id="adminName"></p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="members.html"><i class="fas fa-users"></i> Members</a>
+                <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                <a href="gallery.html" class="active"><i class="fas fa-images"></i> Gallery</a>
+                <a href="donations.html"><i class="fas fa-hand-holding-heart"></i> Donations</a>
+                <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="contacts.html"><i class="fas fa-phone-alt"></i> Contacts</a>
+                <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-title">
+                    <h1>Gallery Management</h1>
+                    <p>Manage photos and videos</p>
+                </div>
+            </header>
+
+            <!-- Gallery Statistics -->
+            <div class="gallery-stats">
+                <div class="stat-card-small">
+                    <h4>Total Images</h4>
+                    <div class="stat-value" id="totalImages">0</div>
+                </div>
+                <div class="stat-card-small">
+                    <h4>Total Videos</h4>
+                    <div class="stat-value" id="totalVideos">0</div>
+                </div>
+                <div class="stat-card-small">
+                    <h4>Storage Used</h4>
+                    <div class="stat-value" id="storageUsed">0 MB</div>
+                </div>
+                <div class="stat-card-small">
+                    <h4>Albums</h4>
+                    <div class="stat-value" id="totalAlbums">0</div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Drag & Drop or Click to Upload</h3>
+                <p>Supported formats: JPG, PNG, GIF, MP4 (Max: 50MB)</p>
+                <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- Upload Progress -->
+            <div class="upload-progress" id="uploadProgress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">Uploading 0 of 0 files...</p>
+            </div>
+
+            <!-- Album Selector -->
+            <div class="album-selector">
+                <button class="album-tag active" onclick="filterAlbum('all')">All</button>
+                <button class="album-tag" onclick="filterAlbum('events')">Events</button>
+                <button class="album-tag" onclick="filterAlbum('meetings')">Meetings</button>
+                <button class="album-tag" onclick="filterAlbum('cultural')">Cultural</button>
+                <button class="album-tag" onclick="filterAlbum('charity')">Charity</button>
+                <button class="album-tag" onclick="filterAlbum('others')">Others</button>
+                <button class="btn btn-small" onclick="createAlbum()">+ New Album</button>
+            </div>
+
+            <!-- Gallery Tabs -->
+            <div class="gallery-tabs">
+                <button class="tab-btn active" onclick="switchGalleryTab('all')">All</button>
+                <button class="tab-btn" onclick="switchGalleryTab('images')">Images</button>
+                <button class="tab-btn" onclick="switchGalleryTab('videos')">Videos</button>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Items will be loaded here -->
+            </div>
+
+            <!-- Load More -->
+            <div class="load-more" id="loadMoreContainer">
+                <button class="btn" onclick="loadMore()" id="loadMoreBtn">Load More</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Image Editor Modal -->
+    <div id="imageEditor" class="image-editor">
+        <h2>Edit Image Details</h2>
+        <div class="image-preview" id="editImagePreview"></div>
+        
+        <div class="form-group">
+            <label for="editTitle">Title</label>
+            <input type="text" id="editTitle">
+        </div>
+
+        <div class="form-group">
+            <label for="editDescription">Description</label>
+            <textarea id="editDescription" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="editAlbum">Album</label>
+            <select id="editAlbum">
+                <option value="events">Events</option>
+                <option value="meetings">Meetings</option>
+                <option value="cultural">Cultural</option>
+                <option value="charity">Charity</option>
+                <option value="others">Others</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="editFeatured"> Feature in Gallery
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn" onclick="saveImageDetails()">Save Changes</button>
+            <button class="btn btn-outline" onclick="closeImageEditor()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Create Album Modal -->
+    <div id="albumModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Album</h2>
+                <span class="close-btn" onclick="closeAlbumModal()">&times;</span>
+            </div>
+            <form onsubmit="event.preventDefault(); saveAlbum()">
+                <div class="form-group">
+                    <label for="albumName">Album Name</label>
+                    <input type="text" id="albumName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="albumDescription">Description</label>
+                    <textarea id="albumDescription" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="albumCover">Cover Image</label>
+                    <input type="file" id="albumCover" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn">Create Album</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentPage = 1;
+        let currentType = 'all';
+        let currentAlbum = 'all';
+        const limit = 20;
+        let totalItems = 0;
+        let editingId = null;
+        let filesToUpload = [];
+
+        // Drag and drop handlers
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            handleFiles(files);
+        }
+
+        async function handleFiles(files) {
+            filesToUpload = files;
+            
+            // Show album selection dialog for batch upload
+            const album = prompt('Enter album name for these files (events, meetings, cultural, charity, others):', 'events');
+            if (album) {
+                await uploadFiles(files, album);
+            }
+        }
+
+        async function uploadFiles(files, album) {
+            const progress = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progress.style.display = 'block';
+            
+            let completed = 0;
+            const admin = JSON.parse(sessionStorage.getItem('admin') || localStorage.getItem('admin'));
+
+            for (const file of files) {
+                try {
+                    const type = file.type.startsWith('image/') ? 'image' : 'video';
+                    
+                    // Upload file to storage
+                    const fileUrl = await uploadFile(file, 'gallery', album);
+                    
+                    // Save to database
+                    await supabase
+                        .from('gallery')
+                        .insert([{
+                            title: file.name.split('.')[0],
+                            type: type,
+                            file_url: fileUrl,
+                            album: album,
+                            created_by: admin.id
+                        }]);
+
+                    completed++;
+                    const percent = (completed / files.length) * 100;
+                    progressFill.style.width = percent + '%';
+                    progressText.textContent = `Uploading ${completed} of ${files.length} files...`;
+
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                }
+            }
+
+            progress.style.display = 'none';
+            alert(`Successfully uploaded ${completed} files!`);
+            loadGallery(1);
+        }
+
+        async function loadGallery(page = 1) {
+            try {
+                let query = supabase
+                    .from('gallery')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false });
+
+                if (currentType !== 'all') {
+                    query = query.eq('type', currentType);
+                }
+
+                if (currentAlbum !== 'all') {
+                    query = query.eq('album', currentAlbum);
+                }
+
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+
+                const { data, count, error } = await query.range(from, to);
+
+                if (error) throw error;
+
+                totalItems = count;
+
+                const grid = document.getElementById('galleryGrid');
+                
+                if (page === 1) {
+                    grid.innerHTML = '';
+                }
+
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'gallery-item';
+                    div.innerHTML = `
+                        ${item.type === 'image' 
+                            ? `<img src="${item.file_url}" alt="${item.title}">`
+                            : `<video src="${item.file_url}"></video>`
+                        }
+                        <div class="gallery-item-overlay">
+                            <button onclick="editGalleryItem('${item.id}')"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i></button>
+                            <button onclick="copyUrl('${item.file_url}')"><i class="fas fa-link"></i></button>
+                        </div>
+                        <div class="gallery-info">
+                            <h4>${item.title}</h4>
+                            <p>${item.album || 'No album'} • ${new Date(item.created_at).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                    grid.appendChild(div);
+                });
+
+                // Update stats
+                await loadGalleryStats();
+
+                // Show/hide load more button
+                const loadMoreBtn = document.getElementById('loadMoreContainer');
+                if (page * limit >= count) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+            }
+        }
+
+        async function loadGalleryStats() {
+            try {
+                // Count images
+                const { count: images } = await supabase
+                    .from('gallery')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('type', 'image');
+
+                // Count videos
+                const { count: videos } = await supabase
+                    .from('gallery')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('type', 'video');
+
+                // Count albums
+                const { data: albums } = await supabase
+                    .from('gallery')
+                    .select('album')
+                    .not('album', 'is', null);
+
+                const uniqueAlbums = [...new Set(albums?.map(a => a.album) || [])];
+
+                // Calculate storage (approximate)
+                const { data: files } = await supabase
+                    .from('gallery')
+                    .select('file_url');
+
+                // This is approximate - you'd need file sizes from storage
+                const storageMB = Math.round((files?.length || 0) * 0.5); // Assuming 500KB per file avg
+
+                document.getElementById('totalImages').textContent = images || 0;
+                document.getElementById('totalVideos').textContent = videos || 0;
+                document.getElementById('storageUsed').textContent = storageMB + ' MB';
+                document.getElementById('totalAlbums').textContent = uniqueAlbums.length;
+
+            } catch (error) {
+                console.error('Error loading gallery stats:', error);
+            }
+        }
+
+        function switchGalleryTab(type) {
+            currentType = type;
+            currentPage = 1;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('galleryGrid').innerHTML = '';
+            loadGallery(1);
+        }
+
+        function filterAlbum(album) {
+            currentAlbum = album;
+            currentPage = 1;
+            
+            document.querySelectorAll('.album-tag').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('galleryGrid').innerHTML = '';
+            loadGallery(1);
+        }
+
+        function loadMore() {
+            currentPage++;
+            loadGallery(currentPage);
+        }
+
+        async function editGalleryItem(id) {
+            try {
+                const { data } = await supabase
+                    .from('gallery')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                editingId = id;
+                
+                document.getElementById('editTitle').value = data.title;
+                document.getElementById('editDescription').value = data.description || '';
+                document.getElementById('editAlbum').value = data.album || 'others';
+                document.getElementById('editFeatured').checked = data.featured || false;
+                
+                const preview = document.getElementById('editImagePreview');
+                if (data.type === 'image') {
+                    preview.innerHTML = `<img src="${data.file_url}" style="max-width: 100%;">`;
+                } else {
+                    preview.innerHTML = `<video src="${data.file_url}" controls style="max-width: 100%;"></video>`;
+                }
+
+                document.getElementById('imageEditor').classList.add('show');
+            } catch (error) {
+                console.error('Error loading gallery item:', error);
+            }
+        }
+
+        async function saveImageDetails() {
+            try {
+                const updates = {
+                    title: document.getElementById('editTitle').value,
+                    description: document.getElementById('editDescription').value,
+                    album: document.getElementById('editAlbum').value,
+                    featured: document.getElementById('editFeatured').checked
+                };
+
+                await supabase
+                    .from('gallery')
+                    .update(updates)
+                    .eq('id', editingId);
+
+                alert('Gallery item updated successfully!');
+                closeImageEditor();
+                loadGallery(currentPage);
+            } catch (error) {
+                alert('Error updating gallery item: ' + error.message);
+            }
+        }
+
+        async function deleteGalleryItem(id) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            try {
+                await supabase.from('gallery').delete().eq('id', id);
+                alert('Item deleted successfully');
+                loadGallery(currentPage);
+            } catch (error) {
+                alert('Error deleting item: ' + error.message);
+            }
+        }
+
+        function copyUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        function createAlbum() {
+            document.getElementById('albumModal').classList.add('show');
+        }
+
+        async function saveAlbum() {
+            const name = document.getElementById('albumName').value;
+            const description = document.getElementById('albumDescription').value;
+            const coverFile = document.getElementById('albumCover').files[0];
+
+            try {
+                // Create album in database (you might want an albums table)
+                // For now, we'll just add the album tag
+                
+                alert(`Album "${name}" created successfully!`);
+                closeAlbumModal();
+                
+                // Refresh album tags
+                // Add new album tag to selector
+                const selector = document.querySelector('.album-selector');
+                const newTag = document.createElement('button');
+                newTag.className = 'album-tag';
+                newTag.textContent = name;
+                newTag.setAttribute('onclick', `filterAlbum('${name}')`);
+                selector.insertBefore(newTag, selector.lastElementChild);
+                
+            } catch (error) {
+                alert('Error creating album: ' + error.message);
+            }
+        }
+
+        function closeImageEditor() {
+            document.getElementById('imageEditor').classList.remove('show');
+            editingId = null;
+        }
+
+        function closeAlbumModal() {
+            document.getElementById('albumModal').classList.remove('show');
+            document.getElementById('albumName').value = '';
+            document.getElementById('albumDescription').value = '';
+            document.getElementById('albumCover').value = '';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const admin = checkAdminAuth();
+            if (admin) {
+                document.getElementById('adminName').textContent = admin.full_name;
+                loadGallery(1);
+            }
+        });
+    </script>
+</body>
+</html>
