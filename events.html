@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header as before -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Events & Programmes</h1>
+        <div class="breadcrumb">
+            <a href="index.html">Home</a> / <span>Events</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="event-filters">
+            <button class="filter-btn active" onclick="filterEvents('all')">All Events</button>
+            <button class="filter-btn" onclick="filterEvents('upcoming')">Upcoming</button>
+            <button class="filter-btn" onclick="filterEvents('past')">Past Events</button>
+        </div>
+
+        <div class="events-list" id="eventsList">
+            <!-- Events will be loaded here -->
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Event Registration Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Register for Event</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="eventRegistrationForm" onsubmit="event.preventDefault(); registerForEvent()">
+                <input type="hidden" id="eventId">
+                
+                <div class="form-group">
+                    <label>Event Name</label>
+                    <p id="modalEventName" class="event-name-display"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="regName">Full Name *</label>
+                    <input type="text" id="regName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPhone">Phone Number *</label>
+                    <input type="tel" id="regPhone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail">
+                </div>
+
+                <div class="form-group">
+                    <label for="regMembers">Number of Members Attending</label>
+                    <input type="number" id="regMembers" min="1" value="1">
+                </div>
+
+                <button type="submit" class="btn">Register Now</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentPage = 1;
+        let currentFilter = 'all';
+        const limit = 9;
+
+        async function loadEvents(page = 1) {
+            try {
+                const { data, count, pages } = await EventsAPI.getEvents(page, limit);
+                
+                const eventsList = document.getElementById('eventsList');
+                const today = new Date().toISOString().split('T')[0];
+                
+                let filteredData = data;
+                if (currentFilter === 'upcoming') {
+                    filteredData = data.filter(e => e.event_date >= today);
+                } else if (currentFilter === 'past') {
+                    filteredData = data.filter(e => e.event_date < today);
+                }
+                
+                eventsList.innerHTML = filteredData.map(event => {
+                    const isUpcoming = event.event_date >= today;
+                    return `
+                        <div class="event-item ${isUpcoming ? 'upcoming' : 'past'}">
+                            ${event.image_url ? 
+                                `<img src="${event.image_url}" alt="${event.title}" class="event-image">` : 
+                                `<div class="event-image-placeholder"><i class="fas fa-calendar-alt"></i></div>`
+                            }
+                            <div class="event-details">
+                                <h3>${event.title}</h3>
+                                <p class="event-date">
+                                    <i class="fas fa-calendar"></i> 
+                                    ${new Date(event.event_date).toLocaleDateString('en-IN', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </p>
+                                ${event.venue ? `<p class="event-venue"><i class="fas fa-map-marker-alt"></i> ${event.venue}</p>` : ''}
+                                <p class="event-description">${event.description || 'No description available'}</p>
+                                <div class="event-actions">
+                                    ${isUpcoming ? 
+                                        `<button class="btn btn-small" onclick="openRegistrationModal('${event.id}', '${event.title}')">
+                                            <i class="fas fa-registered"></i> Register
+                                        </button>` : 
+                                        '<span class="past-badge">Event Completed</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Update pagination
+                renderPagination(page, pages);
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        function filterEvents(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadEvents(1);
+        }
+
+        function renderPagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+            
+            if (currentPage > 1) {
+                html += `<button class="page-btn" onclick="loadEvents(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
+            }
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="loadEvents(${i})">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<span class="page-dots">...</span>`;
+                }
+            }
+            
+            if (currentPage < totalPages) {
+                html += `<button class="page-btn" onclick="loadEvents(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+
+        function openRegistrationModal(eventId, eventName) {
+            document.getElementById('eventId').value = eventId;
+            document.getElementById('modalEventName').textContent = eventName;
+            document.getElementById('eventModal').classList.add('show');
+        }
+
+        async function registerForEvent() {
+            const eventId = document.getElementById('eventId').value;
+            const name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            const email = document.getElementById('regEmail').value;
+            const members = document.getElementById('regMembers').value;
+
+            if (!name || !phone) {
+                alert('Please fill required fields');
+                return;
+            }
+
+            try {
+                await EventRegistrationAPI.register({
+                    event_id: eventId,
+                    name,
+                    phone,
+                    email,
+                    members_count: members
+                });
+
+                alert('Registration successful! We will contact you soon.');
+                closeModal();
+                document.getElementById('eventRegistrationForm').reset();
+            } catch (error) {
+                alert('Error registering: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('eventModal').classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => loadEvents(1));
+    </script>
+</body>
+</html>
