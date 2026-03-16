@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Gallery - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Video Gallery</h1>
+        <div class="breadcrumb">
+            <a href="index.html">Home</a> / <span>Video Gallery</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="video-categories">
+            <button class="category-btn active" onclick="filterVideos('all')">All Videos</button>
+            <button class="category-btn" onclick="filterVideos('events')">Event Videos</button>
+            <button class="category-btn" onclick="filterVideos('lectures')">Lectures</button>
+            <button class="category-btn" onclick="filterVideos('interviews')">Interviews</button>
+            <button class="category-btn" onclick="filterVideos('documentaries')">Documentaries</button>
+        </div>
+
+        <div class="video-grid" id="videoGallery">
+            <!-- Videos will be loaded here -->
+        </div>
+
+        <div class="load-more">
+            <button class="btn" onclick="loadMoreVideos()" id="loadMoreBtn">Load More</button>
+        </div>
+    </section>
+
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="modalVideoTitle"></h2>
+                <span class="close-btn" onclick="closeVideoModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <video id="modalVideoPlayer" controls style="width: 100%;">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <p id="modalVideoDescription" class="video-description"></p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let currentPage = 1;
+        let currentCategory = 'all';
+        const limit = 8;
+        let totalCount = 0;
+
+        async function loadVideos(page = 1, append = false) {
+            try {
+                const { data, count } = await GalleryAPI.getGallery('video', page, limit);
+                totalCount = count;
+
+                const gallery = document.getElementById('videoGallery');
+                
+                if (!append) {
+                    gallery.innerHTML = '';
+                }
+
+                const videos = currentCategory === 'all' ? 
+                    data : 
+                    data.filter(v => v.category === currentCategory);
+
+                videos.forEach(video => {
+                    const item = document.createElement('div');
+                    item.className = 'video-card';
+                    item.innerHTML = `
+                        <div class="video-thumbnail" onclick="playVideo('${video.id}')">
+                            ${video.thumbnail_url ? 
+                                `<img src="${video.thumbnail_url}" alt="${video.title}">` : 
+                                `<div class="video-placeholder"><i class="fas fa-play"></i></div>`
+                            }
+                            <div class="play-button"><i class="fas fa-play-circle"></i></div>
+                        </div>
+                        <div class="video-info">
+                            <h3>${video.title}</h3>
+                            <p>${new Date(video.created_at).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                    gallery.appendChild(item);
+                });
+
+                // Show/hide load more button
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (page * limit >= totalCount) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+            }
+        }
+
+        async function playVideo(videoId) {
+            try {
+                const { data } = await supabase
+                    .from('gallery')
+                    .select('*')
+                    .eq('id', videoId)
+                    .single();
+
+                document.getElementById('modalVideoTitle').textContent = data.title;
+                document.getElementById('modalVideoDescription').textContent = data.description || '';
+                document.getElementById('modalVideoPlayer').src = data.file_url;
+                
+                document.getElementById('videoModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading video:', error);
+            }
+        }
+
+        function filterVideos(category) {
+            currentCategory = category;
+            currentPage = 1;
+            
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadVideos(1);
+        }
+
+        function loadMoreVideos() {
+            currentPage++;
+            loadVideos(currentPage, true);
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.remove('show');
+            document.getElementById('modalVideoPlayer').pause();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => loadVideos(1));
+    </script>
+</body>
+</html>
