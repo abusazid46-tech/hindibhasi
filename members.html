@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Directory - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <h2>Member Directory</h2>
+        
+        <div class="search-filters">
+            <input type="text" id="searchName" placeholder="Search by name..." class="search-input">
+            <select id="filterDistrict" class="search-input">
+                <option value="">All Districts</option>
+                <option value="Kamrup">Kamrup</option>
+                <option value="Nagaon">Nagaon</option>
+                <option value="Dibrugarh">Dibrugarh</option>
+                <option value="Jorhat">Jorhat</option>
+                <option value="Barpeta">Barpeta</option>
+                <option value="Cachar">Cachar</option>
+            </select>
+            <button onclick="searchMembers()" class="btn">Search</button>
+        </div>
+
+        <div class="members-grid" id="membersGrid">
+            <!-- Members will be loaded here -->
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be loaded here -->
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script>
+        let currentPage = 1;
+        const limit = 12;
+
+        async function loadMembers(page = 1) {
+            try {
+                const name = document.getElementById('searchName')?.value;
+                const district = document.getElementById('filterDistrict')?.value;
+                
+                const filters = {};
+                if (name) filters.name = name;
+                if (district) filters.district = district;
+                
+                const { data, count, pages } = await MembersAPI.getMembers(page, limit, filters);
+                
+                const grid = document.getElementById('membersGrid');
+                grid.innerHTML = data.map(member => `
+                    <div class="member-card">
+                        ${member.photo_url 
+                            ? `<img src="${member.photo_url}" alt="${member.name}" class="member-photo">`
+                            : `<div class="member-photo-placeholder">
+                                <i class="fas fa-user-circle"></i>
+                               </div>`
+                        }
+                        <h3>${member.name}</h3>
+                        <p><i class="fas fa-map-marker-alt"></i> ${member.district}, ${member.village}</p>
+                        <p><i class="fas fa-phone"></i> ${member.phone}</p>
+                        <p class="member-id">ID: ${member.membership_id}</p>
+                    </div>
+                `).join('');
+                
+                // Update pagination
+                renderPagination(page, pages);
+            } catch (error) {
+                console.error('Error loading members:', error);
+            }
+        }
+
+        function renderPagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                               onclick="loadMembers(${i})">${i}</button>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+
+        function searchMembers() {
+            currentPage = 1;
+            loadMembers(1);
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => loadMembers(1));
+    </script>
+</body>
+</html>
