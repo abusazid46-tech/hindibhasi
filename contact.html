@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <!-- Same header -->
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Brahman Mahasabha logo">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+                <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-users"></i> About</a>
+                    <a href="members.html"><i class="fas fa-address-book"></i> Members</a>
+                    <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                    <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                    <a href="photo-gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                    <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+                    <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                    <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Contact Us</h1>
+        <div class="breadcrumb">
+            <a href="index.html">Home</a> / <span>Contact</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="contact-container">
+            <div class="contact-info-grid">
+                <div class="info-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Head Office</h3>
+                    <p>Brahman Bhawan, G.S. Road<br>Guwahati - 781005, Assam</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-phone-alt"></i>
+                    <h3>Phone Numbers</h3>
+                    <p>Office: +91 361 2345678<br>Helpline: +91 98765 43210</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-envelope"></i>
+                    <h3>Email</h3>
+                    <p>info@ahbbm.org<br>support@ahbbm.org</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>Office Hours</h3>
+                    <p>Mon-Sat: 10:00 AM - 6:00 PM<br>Sunday: Closed</p>
+                </div>
+            </div>
+
+            <div class="contact-form-wrapper">
+                <h2>Send us a Message</h2>
+                <form id="contactForm" onsubmit="event.preventDefault(); submitContact()">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contactName">Full Name *</label>
+                            <input type="text" id="contactName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactPhone">Phone Number</label>
+                            <input type="tel" id="contactPhone">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactEmail">Email</label>
+                        <input type="email" id="contactEmail">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactSubject">Subject *</label>
+                        <input type="text" id="contactSubject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactMessage">Message *</label>
+                        <textarea id="contactMessage" rows="6" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="contactCopy"> 
+                            Send a copy to my email
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-large">Send Message</button>
+                </form>
+            </div>
+
+            <div class="map-container">
+                <h2>Find Us on Map</h2>
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14328.789582417423!2d91.752334!3d26.144515!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375a5a5f5a5a5a5%3A0x5a5a5a5a5a5a5a!2sGuwahati%2C%20Assam!5e0!3m2!1sen!2sin!4v1234567890" 
+                    width="100%" 
+                    height="400" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- District Contacts -->
+    <section class="section bg-light">
+        <h2>District Contacts</h2>
+        <div class="district-contacts" id="districtContacts">
+            <!-- District contacts will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Social Media -->
+    <section class="section">
+        <h2>Connect With Us</h2>
+        <div class="social-links">
+            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-telegram"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question">
+                    How can I become a member?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>You can become a member by filling the online registration form on our website or visiting our office during working hours. The membership fee is ₹99 per year.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    How do I book a puja?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>You can book pujas through our website's Puja Booking section or contact our office directly. We offer various puja services including Griha Pravesh, Satyanarayan Puja, and more.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is my donation tax-exempt?
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes, all donations to Asom Hindi Bhasi Brahman Mahasabha are eligible for tax exemption under Section 80G of the Income Tax Act.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        async function submitContact() {
+            const name = document.getElementById('contactName').value;
+            const phone = document.getElementById('contactPhone').value;
+            const email = document.getElementById('contactEmail').value;
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value;
+            const sendCopy = document.getElementById('contactCopy').checked;
+
+            if (!name || !subject || !message) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            try {
+                // Save to database
+                await ContactsAPI.submit({
+                    name,
+                    phone,
+                    email,
+                    subject,
+                    message
+                });
+
+                // Send copy to email if requested
+                if (sendCopy && email) {
+                    // You can implement email sending via a cloud function
+                    console.log('Send copy to:', email);
+                }
+
+                alert('Message sent successfully! We will get back to you soon.');
+                document.getElementById('contactForm').reset();
+
+                // Send WhatsApp notification to admin (optional)
+                const adminMessage = `New Contact Form Submission:\nName: ${name}\nPhone: ${phone}\nSubject: ${subject}`;
+                const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(adminMessage)}`;
+                window.open(whatsappUrl, '_blank');
+
+            } catch (error) {
+                alert('Error sending message: ' + error.message);
+            }
+        }
+
+        // Load district contacts
+        async function loadDistrictContacts() {
+            try {
+                const contacts = [
+                    { district: 'Kamrup', name: 'Shri Ram Sharma', phone: '9876543210' },
+                    { district: 'Nagaon', name: 'Shri Suresh Mishra', phone: '9876543211' },
+                    { district: 'Dibrugarh', name: 'Shri Rajesh Tiwari', phone: '9876543212' },
+                    { district: 'Jorhat', name: 'Shri Anil Dubey', phone: '9876543213' },
+                    { district: 'Barpeta', name: 'Shri Ravi Shastri', phone: '9876543214' },
+                    { district: 'Cachar', name: 'Shri Sanjay Pandey', phone: '9876543215' }
+                ];
+
+                const container = document.getElementById('districtContacts');
+                container.innerHTML = contacts.map(c => `
+                    <div class="district-card">
+                        <h4>${c.district}</h4>
+                        <p><i class="fas fa-user"></i> ${c.name}</p>
+                        <p><i class="fas fa-phone"></i> <a href="tel:+91${c.phone}">+91 ${c.phone}</a></p>
+                        <button class="btn btn-small" onclick="window.location.href='https://wa.me/91${c.phone}'">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading district contacts:', error);
+            }
+        }
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const faqItem = button.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all other FAQs
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Toggle current
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', loadDistrictContacts);
+    </script>
+</body>
+</html>
