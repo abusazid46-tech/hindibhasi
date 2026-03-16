@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Members - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p id="adminName"></p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="members.html" class="active"><i class="fas fa-users"></i> Members</a>
+                <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                <a href="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                <a href="donations.html"><i class="fas fa-hand-holding-heart"></i> Donations</a>
+                <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="contacts.html"><i class="fas fa-phone-alt"></i> Contacts</a>
+                <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1>Manage Members</h1>
+                <div class="header-actions">
+                    <button class="btn" onclick="exportMembers()"><i class="fas fa-download"></i> Export</button>
+                </div>
+            </header>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('pending')">Pending Approval</button>
+                <button class="tab-btn" onclick="switchTab('approved')">Approved Members</button>
+                <button class="tab-btn" onclick="switchTab('rejected')">Rejected</button>
+                <button class="tab-btn" onclick="switchTab('all')">All Members</button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <input type="text" id="searchMember" placeholder="Search by name, phone, or email..." class="search-input">
+                <select id="filterDistrict" class="search-input">
+                    <option value="">All Districts</option>
+                    <option value="Kamrup">Kamrup</option>
+                    <option value="Nagaon">Nagaon</option>
+                    <option value="Dibrugarh">Dibrugarh</option>
+                </select>
+                <button class="btn" onclick="searchMembers()"><i class="fas fa-search"></i> Search</button>
+            </div>
+
+            <!-- Members Table -->
+            <table class="admin-table" id="membersTable">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Membership ID</th>
+                        <th>District</th>
+                        <th>Village</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+
+    <!-- Member Detail Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Member Details</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="memberDetails">
+                <!-- Member details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentTab = 'pending';
+        let currentPage = 1;
+        const limit = 20;
+
+        async function loadMembers(page = 1) {
+            try {
+                let query = supabase
+                    .from('members')
+                    .select('*', { count: 'exact' })
+                    .order('created_at', { ascending: false });
+
+                if (currentTab !== 'all') {
+                    query = query.eq('status', currentTab);
+                }
+
+                const searchTerm = document.getElementById('searchMember')?.value;
+                if (searchTerm) {
+                    query = query.or(`name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+                }
+
+                const district = document.getElementById('filterDistrict')?.value;
+                if (district) {
+                    query = query.eq('district', district);
+                }
+
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+
+                const { data, count, error } = await query.range(from, to);
+
+                if (error) throw error;
+
+                const tbody = document.getElementById('membersTableBody');
+                tbody.innerHTML = data.map(member => `
+                    <tr>
+                        <td>
+                            ${member.photo_url ? 
+                                `<img src="${member.photo_url}" alt="${member.name}" class="table-photo">` : 
+                                `<i class="fas fa-user-circle fa-2x"></i>`
+                            }
+                        </td>
+                        <td>${member.name}</td>
+                        <td>${member.membership_id || 'N/A'}</td>
+                        <td>${member.district}</td>
+                        <td>${member.village}</td>
+                        <td>${member.phone}</td>
+                        <td>${member.email || '-'}</td>
+                        <td>
+                            <span class="badge ${member.status}">${member.status}</span>
+                        </td>
+                        <td>
+                            <button class="btn-small" onclick="viewMember('${member.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${member.status === 'pending' ? `
+                                <button class="btn-small success" onclick="approveMember('${member.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn-small danger" onclick="rejectMember('${member.id}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                            <button class="btn-small" onclick="editMember('${member.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update pagination
+                const totalPages = Math.ceil(count / limit);
+                renderPagination(page, totalPages);
+
+            } catch (error) {
+                console.error('Error loading members:', error);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            currentPage = 1;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadMembers(1);
+        }
+
+        function searchMembers() {
+            currentPage = 1;
+            loadMembers(1);
+        }
+
+        function renderPagination(current, total) {
+            const pagination = document.getElementById('pagination');
+            let html = '';
+
+            if (current > 1) {
+                html += `<button class="page-btn" onclick="loadMembers(${current - 1})">Previous</button>`;
+            }
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button class="page-btn ${i === current ? 'active' : ''}" onclick="loadMembers(${i})">${i}</button>`;
+                }
+            }
+
+            if (current < total) {
+                html += `<button class="page-btn" onclick="loadMembers(${current + 1})">Next</button>`;
+            }
+
+            pagination.innerHTML = html;
+        }
+
+        async function viewMember(memberId) {
+            try {
+                const { data } = await supabase
+                    .from('members')
+                    .select('*')
+                    .eq('id', memberId)
+                    .single();
+
+                const modal = document.getElementById('memberDetails');
+                modal.innerHTML = `
+                    <div class="member-detail-view">
+                        <div class="detail-photo">
+                            ${data.photo_url ? 
+                                `<img src="${data.photo_url}" alt="${data.name}">` : 
+                                `<i class="fas fa-user-circle fa-5x"></i>`
+                            }
+                        </div>
+                        <div class="detail-info">
+                            <p><strong>Name:</strong> ${data.name}</p>
+                            <p><strong>Membership ID:</strong> ${data.membership_id || 'N/A'}</p>
+                            <p><strong>District:</strong> ${data.district}</p>
+                            <p><strong>Village:</strong> ${data.village}</p>
+                            <p><strong>Phone:</strong> ${data.phone}</p>
+                            <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+                            <p><strong>Status:</strong> <span class="badge ${data.status}">${data.status}</span></p>
+                            <p><strong>Registered:</strong> ${new Date(data.created_at).toLocaleDateString()}</p>
+                            ${data.approved_at ? `<p><strong>Approved:</strong> ${new Date(data.approved_at).toLocaleDateString()}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('memberModal').classList.add('show');
+            } catch (error) {
+                console.error('Error loading member details:', error);
+            }
+        }
+
+        async function editMember(memberId) {
+            // Redirect to edit page or open edit modal
+            window.location.href = `member-edit.html?id=${memberId}`;
+        }
+
+        async function exportMembers() {
+            try {
+                const { data } = await supabase
+                    .from('members')
+                    .select('*')
+                    .order('name');
+
+                // Convert to CSV
+                const headers = ['Name', 'Membership ID', 'District', 'Village', 'Phone', 'Email', 'Status', 'Registered On'];
+                const csv = [
+                    headers.join(','),
+                    ...data.map(m => [
+                        m.name,
+                        m.membership_id || '',
+                        m.district,
+                        m.village,
+                        m.phone,
+                        m.email || '',
+                        m.status,
+                        new Date(m.created_at).toLocaleDateString()
+                    ].join(','))
+                ].join('\n');
+
+                // Download CSV
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `members_export_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+            } catch (error) {
+                console.error('Error exporting members:', error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('memberModal').classList.remove('show');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const admin = checkAdminAuth();
+            if (admin) {
+                document.getElementById('adminName').textContent = admin.full_name;
+                loadMembers(1);
+            }
+        });
+    </script>
+</body>
+</html>
