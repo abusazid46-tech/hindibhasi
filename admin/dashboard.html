@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Panel</h3>
+                <p id="adminName"></p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="members.html"><i class="fas fa-users"></i> Members</a>
+                <a href="events.html"><i class="fas fa-calendar"></i> Events</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+                <a href="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+                <a href="donations.html"><i class="fas fa-hand-holding-heart"></i> Donations</a>
+                <a href="documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+                <a href="contacts.html"><i class="fas fa-phone-alt"></i> Contacts</a>
+                <a href="#" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1>Dashboard</h1>
+            </header>
+
+            <div class="stats-grid" id="dashboardStats">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-details">
+                        <h3>Total Members</h3>
+                        <p id="totalMembers">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-details">
+                        <h3>Pending Approval</h3>
+                        <p id="pendingMembers">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                    <div class="stat-details">
+                        <h3>Events</h3>
+                        <p id="totalEvents">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                    <div class="stat-details">
+                        <h3>News</h3>
+                        <p id="totalNews">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-details">
+                        <h3>Donations</h3>
+                        <p id="totalDonations">₹0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-images"></i></div>
+                    <div class="stat-details">
+                        <h3>Gallery Items</h3>
+                        <p id="totalGallery">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="districtChart"></canvas>
+            </div>
+
+            <div class="recent-section">
+                <h2>Recent Members Pending Approval</h2>
+                <table id="pendingMembersTable" class="admin-table">
+                    <!-- Data will be loaded here -->
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>
