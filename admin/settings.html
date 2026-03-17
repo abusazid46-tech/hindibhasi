@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: gold;
+        }
+
+        .menu-item i {
+            width: 22px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2d1f00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: 2px solid #f3b28a;
+            color: #b3412e;
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Settings Container */
+        .settings-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        /* Settings Menu */
+        .settings-menu {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .settings-menu-item {
+            padding: 15px 20px;
+            margin: 5px 0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #666;
+        }
+
+        .settings-menu-item:hover {
+            background: #fef8f0;
+            color: #b3412e;
+        }
+
+        .settings-menu-item.active {
+            background: #b3412e;
+            color: white;
+        }
+
+        .settings-menu-item i {
+            width: 24px;
+            font-size: 18px;
+        }
+
+        /* Settings Panels */
+        .settings-panels {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 30px;
+        }
+
+        .settings-panel {
+            display: none;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .panel-title {
+            color: #2d1f00;
+            font-size: 24px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #b3412e;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #b3412e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .social-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b3412e;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-header h3, .sidebar-header p, .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p>Super Admin</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="members.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            <a href="events.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="news.html" class="menu-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <a href="gallery.html" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="donations.html" class="menu-item">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Donations</span>
+            </a>
+            <a href="documents.html" class="menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>Documents</span>
+            </a>
+            <a href="contacts.html" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <a href="committee.html" class="menu-item">
+                <i class="fas fa-user-tie"></i>
+                <span>Committee</span>
+            </a>
+            <div class="menu-divider"></div>
+            <a href="settings.html" class="menu-item active">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#" class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+            
+            <div class="admin-info">
+                <span id="headerAdminName">Admin</span>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Container -->
+        <div class="settings-container">
+            <!-- Settings Menu -->
+            <div class="settings-menu">
+                <div class="settings-menu-item active" onclick="switchPanel('general')">
+                    <i class="fas fa-building"></i>
+                    <span>General Settings</span>
+                </div>
+                <div class="settings-menu-item" onclick="switchPanel('social')">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Social Media</span>
+                </div>
+                <div class="settings-menu-item" onclick="switchPanel('membership')">
+                    <i class="fas fa-id-card"></i>
+                    <span>Membership</span>
+                </div>
+                <div class="settings-menu-item" onclick="switchPanel('contact')">
+                    <i class="fas fa-address-book"></i>
+                    <span>Contact Info</span>
+                </div>
+                <div class="settings-menu-item" onclick="switchPanel('seo')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>SEO & Analytics</span>
+                </div>
+                <div class="settings-menu-item" onclick="switchPanel('backup')">
+                    <i class="fas fa-database"></i>
+                    <span>Backup</span>
+                </div>
+            </div>
+
+            <!-- Settings Panels -->
+            <div class="settings-panels">
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle"></i> Settings saved successfully!
+                </div>
+
+                <!-- General Settings Panel -->
+                <div class="settings-panel active" id="panel-general">
+                    <h2 class="panel-title">General Settings</h2>
+                    
+                    <div class="form-group">
+                        <label>Organization Name</label>
+                        <input type="text" id="orgName" value="Asom Hindi Bhasi Brahman Mahasabha">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Short Name</label>
+                        <input type="text" id="orgShortName" value="AHBBM">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Registration Number</label>
+                        <input type="text" id="regNumber" value="RS/ASSAM/123/1985">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Established Year</label>
+                        <input type="text" id="estYear" value="1985">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Website URL</label>
+                        <input type="url" id="websiteUrl" value="https://hindibhasi.vercel.app">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mission Statement</label>
+                        <textarea id="mission" rows="3">To preserve and promote the rich cultural heritage of the Brahmin community while actively contributing to social welfare through education, healthcare, and community development programs.</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Vision Statement</label>
+                        <textarea id="vision" rows="3">To build a united, prosperous, and culturally vibrant Brahmin community that leads by example in ethical living, scholarly pursuits, and compassionate service.</textarea>
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveSettings('general')">Save Changes</button>
+                </div>
+
+                <!-- Social Media Panel -->
+                <div class="settings-panel" id="panel-social">
+                    <h2 class="panel-title">Social Media Links</h2>
+                    
+                    <div class="form-group">
+                        <label>Facebook</label>
+                        <div class="social-input-group">
+                            <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
+                            <input type="url" id="facebook" value="https://facebook.com/ahbbm" placeholder="https://facebook.com/your-page">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Twitter</label>
+                        <div class="social-input-group">
+                            <span class="social-icon"><i class="fab fa-twitter"></i></span>
+                            <input type="url" id="twitter" value="https://twitter.com/ahbbm" placeholder="https://twitter.com/your-handle">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <div class="social-input-group">
+                            <span class="social-icon"><i class="fab fa-instagram"></i></span>
+                            <input type="url" id="instagram" value="https://instagram.com/ahbbm" placeholder="https://instagram.com/your-profile">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>YouTube</label>
+                        <div class="social-input-group">
+                            <span class="social-icon"><i class="fab fa-youtube"></i></span>
+                            <input type="url" id="youtube" value="https://youtube.com/@ahbbm" placeholder="https://youtube.com/@channel">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>WhatsApp Number</label>
+                        <div class="social-input-group">
+                            <span class="social-icon"><i class="fab fa-whatsapp"></i></span>
+                            <input type="text" id="whatsapp" value="+919876543210" placeholder="+91XXXXXXXXXX">
+                        </div>
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveSettings('social')">Save Changes</button>
+                </div>
+
+                <!-- Membership Settings Panel -->
+                <div class="settings-panel" id="panel-membership">
+                    <h2 class="panel-title">Membership Settings</h2>
+                    
+                    <div class="form-group">
+                        <label>Membership Fee (₹)</label>
+                        <input type="number" id="membershipFee" value="49" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Currency</label>
+                        <select id="currency">
+                            <option value="INR" selected>INR (₹)</option>
+                            <option value="USD">USD ($)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Membership Prefix</label>
+                        <input type="text" id="memberPrefix" value="AHBBM">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Default Member Status</label>
+                        <select id="defaultStatus">
+                            <option value="pending" selected>Pending Approval</option>
+                            <option value="approved">Auto-Approved</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Enable Digital Membership Card</label>
+                        <select id="digitalCard">
+                            <option value="yes" selected>Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveSettings('membership')">Save Changes</button>
+                </div>
+
+                <!-- Contact Info Panel -->
+                <div class="settings-panel" id="panel-contact">
+                    <h2 class="panel-title">Contact Information</h2>
+                    
+                    <div class="form-group">
+                        <label>Office Address</label>
+                        <textarea id="address" rows="3">Brahman Bhawan, MG Road, Guwahati - 781001, Assam</textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primary Phone</label>
+                            <input type="text" id="phone1" value="+91 98765 43210">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Secondary Phone</label>
+                            <input type="text" id="phone2" value="+91 98765 43211">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primary Email</label>
+                            <input type="email" id="email1" value="info@ahbbm.org">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Secondary Email</label>
+                            <input type="email" id="email2" value="support@ahbbm.org">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Office Hours</label>
+                        <input type="text" id="officeHours" value="Mon-Sat: 10:00 AM - 6:00 PM">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Google Maps Embed URL</label>
+                        <input type="url" id="mapsUrl" value="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d227748.999734434!2d91.65679109704615!3d26.144516172753924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375a5a287f9133ff%3A0x2bbd1332436bde32!2sGuwahati%2C%20Assam!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin">
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveSettings('contact')">Save Changes</button>
+                </div>
+
+                <!-- SEO & Analytics Panel -->
+                <div class="settings-panel" id="panel-seo">
+                    <h2 class="panel-title">SEO & Analytics</h2>
+                    
+                    <div class="form-group">
+                        <label>Meta Title</label>
+                        <input type="text" id="metaTitle" value="Asom Hindi Bhasi Brahman Mahasabha - Official Website">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Meta Description</label>
+                        <textarea id="metaDesc" rows="3">Official website of Asom Hindi Bhasi Brahman Mahasabha - A non-profit organization working for cultural preservation, community welfare, and social development in Assam.</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Meta Keywords</label>
+                        <input type="text" id="metaKeywords" value="Brahman, Mahasabha, Assam, Hindi Bhasi, Hindu, Temple, Culture, Community">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Google Analytics ID</label>
+                        <input type="text" id="gaId" placeholder="G-XXXXXXXXXX">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Facebook Pixel ID</label>
+                        <input type="text" id="fbPixel" placeholder="XXXXXXXXXXXXXXX">
+                    </div>
+                    
+                    <button class="save-btn" onclick="saveSettings('seo')">Save Changes</button>
+                </div>
+
+                <!-- Backup Panel -->
+                <div class="settings-panel" id="panel-backup">
+                    <h2 class="panel-title">Backup & Export</h2>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 15px;">Export Data</h3>
+                        <div style="display: grid; gap: 15px;">
+                            <button class="save-btn" style="background: #27ae60;" onclick="exportData('members')">
+                                <i class="fas fa-users"></i> Export Members
+                            </button>
+                            <button class="save-btn" style="background: #3498db;" onclick="exportData('events')">
+                                <i class="fas fa-calendar"></i> Export Events
+                            </button>
+                            <button class="save-btn" style="background: #f39c12;" onclick="exportData('donations')">
+                                <i class="fas fa-hand-holding-heart"></i> Export Donations
+                            </button>
+                            <button class="save-btn" style="background: #9b59b6;" onclick="exportData('all')">
+                                <i class="fas fa-database"></i> Export All Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 15px;">Database Backup</h3>
+                        <p style="color: #666; margin-bottom: 15px;">Last backup: Never</p>
+                        <button class="save-btn" onclick="createBackup()">
+                            <i class="fas fa-sync"></i> Create Backup Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // Check auth
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const storedAdmin = sessionStorage.getItem('adminInfo');
+                if (storedAdmin) {
+                    const admin = JSON.parse(storedAdmin);
+                    document.getElementById('adminName').textContent = admin.name;
+                    document.getElementById('headerAdminName').textContent = admin.name;
+                }
+                
+                loadSettings();
+            });
+
+            async function loadSettings() {
+                try {
+                    const { data, error } = await supabase
+                        .from('settings')
+                        .select('*');
+                    
+                    if (error) throw error;
+                    
+                    // Apply settings to form fields
+                    data.forEach(setting => {
+                        const value = setting.value;
+                        switch(setting.key) {
+                            case 'organization_info':
+                                document.getElementById('orgName').value = value.name || 'Asom Hindi Bhasi Brahman Mahasabha';
+                                document.getElementById('orgShortName').value = value.short_name || 'AHBBM';
+                                document.getElementById('regNumber').value = value.registration_no || '';
+                                document.getElementById('estYear').value = value.established || '1985';
+                                document.getElementById('websiteUrl').value = value.website || 'https://hindibhasi.vercel.app';
+                                document.getElementById('mission').value = value.mission || '';
+                                document.getElementById('vision').value = value.vision || '';
+                                break;
+                            case 'social_links':
+                                document.getElementById('facebook').value = value.facebook || '';
+                                document.getElementById('twitter').value = value.twitter || '';
+                                document.getElementById('instagram').value = value.instagram || '';
+                                document.getElementById('youtube').value = value.youtube || '';
+                                document.getElementById('whatsapp').value = value.whatsapp || '+919876543210';
+                                break;
+                            case 'contact_info':
+                                document.getElementById('address').value = value.address || '';
+                                if (value.phone && value.phone[0]) document.getElementById('phone1').value = value.phone[0];
+                                if (value.phone && value.phone[1]) document.getElementById('phone2').value = value.phone[1];
+                                if (value.email && value.email[0]) document.getElementById('email1').value = value.email[0];
+                                if (value.email && value.email[1]) document.getElementById('email2').value = value.email[1];
+                                document.getElementById('officeHours').value = value.office_hours || '';
+                                break;
+                            case 'membership_fee':
+                                document.getElementById('membershipFee').value = value.amount || 49;
+                                document.getElementById('currency').value = value.currency || 'INR';
+                                break;
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading settings:', error);
+                }
+            }
+
+            window.switchPanel = function(panelId) {
+                // Update menu active state
+                document.querySelectorAll('.settings-menu-item').forEach(item => item.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+                
+                // Show selected panel
+                document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+                document.getElementById(`panel-${panelId}`).classList.add('active');
+            };
+
+            window.saveSettings = async function(panel) {
+                let settings = {};
+                
+                switch(panel) {
+                    case 'general':
+                        settings = {
+                            key: 'organization_info',
+                            value: {
+                                name: document.getElementById('orgName').value,
+                                short_name: document.getElementById('orgShortName').value,
+                                registration_no: document.getElementById('regNumber').value,
+                                established: document.getElementById('estYear').value,
+                                website: document.getElementById('websiteUrl').value,
+                                mission: document.getElementById('mission').value,
+                                vision: document.getElementById('vision').value
+                            }
+                        };
+                        break;
+                    case 'social':
+                        settings = {
+                            key: 'social_links',
+                            value: {
+                                facebook: document.getElementById('facebook').value,
+                                twitter: document.getElementById('twitter').value,
+                                instagram: document.getElementById('instagram').value,
+                                youtube: document.getElementById('youtube').value,
+                                whatsapp: document.getElementById('whatsapp').value
+                            }
+                        };
+                        break;
+                    case 'membership':
+                        settings = {
+                            key: 'membership_fee',
+                            value: {
+                                amount: parseInt(document.getElementById('membershipFee').value),
+                                currency: document.getElementById('currency').value,
+                                prefix: document.getElementById('memberPrefix').value || 'AHBBM',
+                                default_status: document.getElementById('defaultStatus').value,
+                                digital_card: document.getElementById('digitalCard').value === 'yes'
+                            }
+                        };
+                        break;
+                    case 'contact':
+                        settings = {
+                            key: 'contact_info',
+                            value: {
+                                address: document.getElementById('address').value,
+                                phone: [
+                                    document.getElementById('phone1').value,
+                                    document.getElementById('phone2').value
+                                ],
+                                email: [
+                                    document.getElementById('email1').value,
+                                    document.getElementById('email2').value
+                                ],
+                                office_hours: document.getElementById('officeHours').value,
+                                maps_url: document.getElementById('mapsUrl').value
+                            }
+                        };
+                        break;
+                    case 'seo':
+                        settings = {
+                            key: 'seo',
+                            value: {
+                                meta_title: document.getElementById('metaTitle').value,
+                                meta_description: document.getElementById('metaDesc').value,
+                                meta_keywords: document.getElementById('metaKeywords').value,
+                                ga_id: document.getElementById('gaId').value,
+                                fb_pixel: document.getElementById('fbPixel').value
+                            }
+                        };
+                        break;
+                }
+                
+                try {
+                    const { error } = await supabase
+                        .from('settings')
+                        .upsert(settings, { onConflict: 'key' });
+                    
+                    if (error) throw error;
+                    
+                    // Show success message
+                    const msg = document.getElementById('successMessage');
+                    msg.classList.add('show');
+                    setTimeout(() => msg.classList.remove('show'), 3000);
+                    
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    alert('Error saving settings: ' + error.message);
+                }
+            };
+
+            window.exportData = async function(type) {
+                let query;
+                let filename;
+                
+                switch(type) {
+                    case 'members':
+                        query = supabase.from('members').select('*').eq('status', 'approved');
+                        filename = 'members_export.csv';
+                        break;
+                    case 'events':
+                        query = supabase.from('events').select('*');
+                        filename = 'events_export.csv';
+                        break;
+                    case 'donations':
+                        query = supabase.from('donations').select('*').eq('payment_status', 'completed');
+                        filename = 'donations_export.csv';
+                        break;
+                    case 'all':
+                        // Export multiple tables
+                        alert('Full database export coming soon!');
+                        return;
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) {
+                    alert('Error exporting data: ' + error.message);
+                    return;
+                }
+                
+                // Convert to CSV
+                const headers = Object.keys(data[0] || {}).join(',');
+                const rows = data.map(row => Object.values(row).map(val => 
+                    typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val
+                ).join(',')).join('\n');
+                
+                const csv = headers + '\n' + rows;
+                
+                // Download
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            };
+
+            window.createBackup = function() {
+                alert('Backup feature coming soon!');
+            };
+
+            window.logout = async function() {
+                await supabase.auth.signOut();
+                sessionStorage.removeItem('adminInfo');
+                window.location.href = 'login.html';
+            };
+        })();
+    </script>
+</body>
+</html>
