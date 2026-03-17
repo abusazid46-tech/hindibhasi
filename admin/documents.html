@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Management - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: gold;
+        }
+
+        .menu-item i {
+            width: 22px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2d1f00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #16a085, #1abc9c);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-select select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Documents Table */
+        .documents-table-container {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .documents-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .documents-table th {
+            text-align: left;
+            padding: 15px 10px;
+            color: #2d1f00;
+            font-weight: 600;
+            border-bottom: 3px solid #16a085;
+        }
+
+        .documents-table td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .category-badge {
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-constitution { background: #e8f0fe; color: #3498db; }
+        .badge-form { background: #fef5e7; color: #f39c12; }
+        .badge-minutes { background: #e8f5e9; color: #27ae60; }
+        .badge-report { background: #f3e8ff; color: #9b59b6; }
+        .badge-other { background: #f0f0f0; color: #7f8c8d; }
+
+        .public-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .public-badge.public {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .public-badge.private {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .public-toggle {
+            background: #16a085;
+            color: white;
+        }
+
+        .download-link {
+            color: #16a085;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #16a085;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .page-btn.active {
+            background: #16a085;
+            color: white;
+        }
+
+        /* Upload Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group.checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group.checkbox input {
+            width: auto;
+        }
+
+        .file-input {
+            border: 2px dashed #f3b28a;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #16a085;
+            background: #f0fcf9;
+        }
+
+        .file-input i {
+            font-size: 40px;
+            color: #16a085;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0fcf9;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .upload-btn-submit {
+            background: linear-gradient(45deg, #16a085, #1abc9c);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-header h3, .sidebar-header p, .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p>Admin</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="members.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            <a href="events.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="news.html" class="menu-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <a href="gallery.html" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="donations.html" class="menu-item">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Donations</span>
+            </a>
+            <a href="documents.html" class="menu-item active">
+                <i class="fas fa-file-pdf"></i>
+                <span>Documents</span>
+            </a>
+            <a href="contacts.html" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <div class="menu-divider"></div>
+            <a href="#" class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-file-pdf"></i>
+                <span>Document Management</span>
+            </div>
+            <button class="upload-btn" onclick="showUploadModal()">
+                <i class="fas fa-cloud-upload-alt"></i> Upload Document
+            </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search documents..." onkeyup="debounceSearch()">
+            </div>
+            
+            <div class="filter-select">
+                <select id="categoryFilter" onchange="applyFilters()">
+                    <option value="all">All Categories</option>
+                    <option value="constitution">📜 Constitution</option>
+                    <option value="form">📝 Membership Forms</option>
+                    <option value="minutes">📋 Meeting Minutes</option>
+                    <option value="report">📊 Annual Reports</option>
+                    <option value="other">📁 Other</option>
+                </select>
+            </div>
+            
+            <div class="filter-select">
+                <select id="visibilityFilter" onchange="applyFilters()">
+                    <option value="all">All Documents</option>
+                    <option value="public">Public Only</option>
+                    <option value="private">Private Only</option>
+                </select>
+            </div>
+            
+            <div class="filter-select">
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="title">By Title</option>
+                    <option value="downloads">Most Downloaded</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Documents Table -->
+        <div class="documents-table-container">
+            <table class="documents-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Version</th>
+                        <th>Size</th>
+                        <th>Downloads</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="documentsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading documents...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Upload/Edit Modal -->
+    <div class="modal" id="documentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Upload Document</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="documentForm">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="docTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="docDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="docCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="constitution">📜 Constitution</option>
+                        <option value="form">📝 Membership Form</option>
+                        <option value="minutes">📋 Meeting Minutes</option>
+                        <option value="report">📊 Annual Report</option>
+                        <option value="other">📁 Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Version</label>
+                    <input type="text" id="docVersion" placeholder="e.g., 1.0, 2.1" value="1.0">
+                </div>
+                
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Effective Date</label>
+                        <input type="date" id="effectiveDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="date" id="expiryDate">
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="isPublic" checked>
+                    <label>Make this document public</label>
+                </div>
+                
+                <div class="file-input" onclick="document.getElementById('docFile').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to select file</p>
+                    <small>Supports: PDF, DOC, DOCX, XLS, XLSX (Max 20MB)</small>
+                </div>
+                <input type="file" id="docFile" style="display: none;" accept=".pdf,.doc,.docx,.xls,.xlsx" onchange="previewFile(this)">
+                
+                <div class="file-info" id="fileInfo">
+                    <i class="fas fa-file-pdf"></i> <span id="fileName"></span> (<span id="fileSize"></span>)
+                </div>
+                
+                <button type="submit" class="upload-btn-submit" id="submitBtn">Upload Document</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/documents.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Initialize DocumentsModule
+            DocumentsModule.init(supabase);
+
+            // State
+            let currentPage = 1;
+            let totalPages = 1;
+            let currentFilters = {
+                category: 'all',
+                search: '',
+                is_public: undefined,
+                sort: 'newest'
+            };
+            let searchTimeout;
+            let editingDocId = null;
+            let selectedFile = null;
+
+            // Category display mapping
+            const categoryBadges = {
+                'constitution': 'badge-constitution',
+                'form': 'badge-form',
+                'minutes': 'badge-minutes',
+                'report': 'badge-report',
+                'other': 'badge-other'
+            };
+
+            const categoryLabels = {
+                'constitution': '📜 Constitution',
+                'form': '📝 Form',
+                'minutes': '📋 Minutes',
+                'report': '📊 Report',
+                'other': '📁 Other'
+            };
+
+            // Check auth
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                loadDocuments();
+            });
+
+            async function loadDocuments() {
+                const tbody = document.getElementById('documentsTableBody');
+                
+                // Apply visibility filter
+                const visibility = document.getElementById('visibilityFilter').value;
+                if (visibility === 'public') {
+                    currentFilters.is_public = true;
+                } else if (visibility === 'private') {
+                    currentFilters.is_public = false;
+                } else {
+                    currentFilters.is_public = undefined;
+                }
+                
+                const result = await DocumentsModule.getAllDocumentsForAdmin(currentFilters, currentPage, 15);
+                
+                if (result.success) {
+                    const { data, totalPages: pages } = result;
+                    totalPages = pages;
+                    
+                    if (data && data.length > 0) {
+                        tbody.innerHTML = data.map(doc => {
+                            const categoryClass = categoryBadges[doc.category] || 'badge-other';
+                            const categoryLabel = categoryLabels[doc.category] || doc.category;
+                            
+                            return `
+                                <tr>
+                                    <td>
+                                        <strong>${DocumentsModule.helpers.escapeHtml(doc.title)}</strong>
+                                        <br>
+                                        <small>${doc.description ? doc.description.substring(0, 50) + '...' : ''}</small>
+                                    </td>
+                                    <td>
+                                        <span class="category-badge ${categoryClass}">${categoryLabel}</span>
+                                    </td>
+                                    <td>v${doc.version || '1.0'}</td>
+                                    <td>${DocumentsModule.helpers.formatFileSize(doc.file_size || 0)}</td>
+                                    <td>${doc.download_count || 0}</td>
+                                    <td>
+                                        <span class="public-badge ${doc.is_public ? 'public' : 'private'}">
+                                            ${doc.is_public ? '🌍 Public' : '🔒 Private'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <a href="${doc.file_url}" target="_blank" class="download-link" title="Download">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="action-btn public-toggle" onclick="togglePublic('${doc.id}', ${doc.is_public})">
+                                                ${doc.is_public ? '🔒' : '🌍'}
+                                            </button>
+                                            <button class="action-btn edit-btn" onclick="editDocument('${doc.id}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="action-btn delete-btn" onclick="deleteDocument('${doc.id}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No documents found</td></tr>';
+                    }
+                    
+                    renderPagination();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">Error: ${result.error}</td></tr>`;
+                }
+            }
+
+            function renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let html = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>`;
+                }
+                
+                pagination.innerHTML = html;
+            }
+
+            window.changePage = function(page) {
+                currentPage = page;
+                loadDocuments();
+            };
+
+            window.applyFilters = function() {
+                currentFilters.search = document.getElementById('searchInput').value;
+                currentFilters.category = document.getElementById('categoryFilter').value;
+                currentFilters.sort = document.getElementById('sortFilter').value;
+                currentPage = 1;
+                loadDocuments();
+            };
+
+            window.debounceSearch = function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 500);
+            };
+
+            window.showUploadModal = function() {
+                editingDocId = null;
+                document.getElementById('modalTitle').textContent = 'Upload Document';
+                document.getElementById('documentForm').reset();
+                document.getElementById('fileInfo').style.display = 'none';
+                document.getElementById('isPublic').checked = true;
+                document.getElementById('submitBtn').textContent = 'Upload Document';
+                document.getElementById('documentModal').classList.add('show');
+            };
+
+            window.editDocument = async function(docId) {
+                const result = await DocumentsModule.getDocumentById(docId);
+                
+                if (result.success) {
+                    const doc = result.data;
+                    editingDocId = docId;
+                    
+                    document.getElementById('modalTitle').textContent = 'Edit Document';
+                    document.getElementById('docTitle').value = doc.title;
+                    document.getElementById('docDescription').value = doc.description || '';
+                    document.getElementById('docCategory').value = doc.category;
+                    document.getElementById('docVersion').value = doc.version || '1.0';
+                    document.getElementById('effectiveDate').value = doc.effective_date || '';
+                    document.getElementById('expiryDate').value = doc.expiry_date || '';
+                    document.getElementById('isPublic').checked = doc.is_public;
+                    
+                    // Show file info if exists
+                    if (doc.file_url) {
+                        document.getElementById('fileInfo').style.display = 'flex';
+                        document.getElementById('fileName').textContent = doc.file_url.split('/').pop();
+                        document.getElementById('fileSize').textContent = DocumentsModule.helpers.formatFileSize(doc.file_size || 0);
+                    }
+                    
+                    document.getElementById('submitBtn').textContent = 'Update Document';
+                    document.getElementById('documentModal').classList.add('show');
+                }
+            };
+
+            window.previewFile = function(input) {
+                const file = input.files[0];
+                if (file) {
+                    selectedFile = file;
+                    document.getElementById('fileInfo').style.display = 'flex';
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('fileSize').textContent = DocumentsModule.helpers.formatFileSize(file.size);
+                }
+            };
+
+            document.getElementById('documentForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const documentData = {
+                    title: document.getElementById('docTitle').value,
+                    description: document.getElementById('docDescription').value,
+                    category: document.getElementById('docCategory').value,
+                    version: document.getElementById('docVersion').value,
+                    effective_date: document.getElementById('effectiveDate').value || null,
+                    expiry_date: document.getElementById('expiryDate').value || null,
+                    is_public: document.getElementById('isPublic').checked
+                };
+                
+                let result;
+                if (editingDocId) {
+                    result = await DocumentsModule.updateDocument(editingDocId, documentData, selectedFile);
+                } else {
+                    if (!selectedFile) {
+                        alert('Please select a file to upload');
+                        return;
+                    }
+                    result = await DocumentsModule.uploadDocument(selectedFile, documentData);
+                }
+                
+                if (result.success) {
+                    alert(editingDocId ? 'Document updated!' : 'Document uploaded!');
+                    closeModal();
+                    loadDocuments();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            });
+
+            window.togglePublic = async function(docId, current) {
+                const result = await DocumentsModule.togglePublic(docId, !current);
+                if (result.success) {
+                    loadDocuments();
+                }
+            };
+
+            window.deleteDocument = async function(docId) {
+                if (!confirm('Are you sure you want to delete this document?')) return;
+                
+                const result = await DocumentsModule.deleteDocument(docId);
+                if (result.success) {
+                    alert('Document deleted');
+                    loadDocuments();
+                }
+            };
+
+            window.closeModal = function() {
+                document.getElementById('documentModal').classList.remove('show');
+                selectedFile = null;
+            };
+
+            window.logout = async function() {
+                await supabase.auth.signOut();
+                window.location.href = 'login.html';
+            };
+        })();
+    </script>
+</body>
+</html>
