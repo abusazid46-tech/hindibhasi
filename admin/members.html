@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Management - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar (same as dashboard) */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: gold;
+        }
+
+        .menu-item i {
+            width: 22px;
+        }
+
+        .menu-item .badge {
+            margin-left: auto;
+            background: gold;
+            color: #b3412e;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2d1f00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: 2px solid #f3b28a;
+            color: #b3412e;
+            padding: 8px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Member Management Specific */
+        .status-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #b3412e;
+            color: white;
+        }
+
+        .tab-btn.pending {
+            border-left: 4px solid #f39c12;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-select select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .members-table-container {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .members-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .members-table th {
+            text-align: left;
+            padding: 15px 10px;
+            color: #2d1f00;
+            font-weight: 600;
+            border-bottom: 3px solid #f3b28a;
+        }
+
+        .members-table td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .member-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .status-approved {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .status-rejected {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .approve-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .reject-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .view-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #f3b28a;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .page-btn.active {
+            background: #b3412e;
+            color: white;
+            border-color: #b3412e;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .member-detail {
+            margin-bottom: 15px;
+        }
+
+        .member-detail label {
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .member-detail p {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-header h3, .sidebar-header p, .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .filter-bar {
+                flex-direction: column;
+            }
+            .search-box, .filter-select {
+                width: 100%;
+            }
+            .action-btns {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p id="adminRole">Super Admin</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="members.html" class="menu-item active">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+                <span class="badge" id="pendingBadge">0</span>
+            </a>
+            <a href="events.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="news.html" class="menu-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <a href="gallery.html" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="donations.html" class="menu-item">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Donations</span>
+            </a>
+            <a href="documents.html" class="menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>Documents</span>
+            </a>
+            <a href="contacts.html" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <div class="menu-divider"></div>
+            <a href="#" class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-users"></i>
+                <span>Member Management</span>
+            </div>
+            
+            <div class="admin-info">
+                <span id="headerAdminName">Admin</span>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Tabs -->
+        <div class="status-tabs">
+            <button class="tab-btn active" onclick="filterByStatus('all')">All Members</button>
+            <button class="tab-btn pending" onclick="filterByStatus('pending')">Pending Approval</button>
+            <button class="tab-btn" onclick="filterByStatus('approved')">Approved</button>
+            <button class="tab-btn" onclick="filterByStatus('rejected')">Rejected</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, phone, or email..." onkeyup="debounceSearch()">
+            </div>
+            
+            <div class="filter-select">
+                <select id="districtFilter" onchange="applyFilters()">
+                    <option value="all">All Districts</option>
+                </select>
+            </div>
+            
+            <div class="filter-select">
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="members-table-container">
+            <table class="members-table" id="membersTable">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>District</th>
+                        <th>Status</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading members...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Member Details Modal -->
+    <div class="modal" id="memberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Member Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase config
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // State
+        let currentPage = 1;
+        let totalMembers = 0;
+        const pageSize = 10;
+        let currentFilters = {
+            status: 'all',
+            search: '',
+            district: 'all',
+            sort: 'newest'
+        };
+        let searchTimeout;
+
+        // Check auth on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadDistricts();
+            await loadMembers();
+            await loadPendingCount();
+        });
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Load districts for filter
+        async function loadDistricts() {
+            try {
+                const { data, error } = await supabase
+                    .from('members')
+                    .select('district')
+                    .order('district');
+                
+                if (error) throw error;
+                
+                const districts = [...new Set(data.map(item => item.district))];
+                const districtSelect = document.getElementById('districtFilter');
+                
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading districts:', error);
+            }
+        }
+
+        // Load pending count for badge
+        async function loadPendingCount() {
+            try {
+                const { count, error } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
+                
+                if (!error) {
+                    document.getElementById('pendingBadge').textContent = count || 0;
+                }
+            } catch (error) {
+                console.error('Error loading pending count:', error);
+            }
+        }
+
+        // Load members with filters
+        async function loadMembers() {
+            const tbody = document.getElementById('membersTableBody');
+            
+            try {
+                let query = supabase
+                    .from('members')
+                    .select('*', { count: 'exact' });
+                
+                // Apply status filter
+                if (currentFilters.status !== 'all') {
+                    query = query.eq('status', currentFilters.status);
+                }
+                
+                // Apply search filter
+                if (currentFilters.search) {
+                    query = query.or(`
+                        name.ilike.%${currentFilters.search}%,
+                        phone.ilike.%${currentFilters.search}%,
+                        email.ilike.%${currentFilters.search}%,
+                        membership_id.ilike.%${currentFilters.search}%
+                    `);
+                }
+                
+                // Apply district filter
+                if (currentFilters.district !== 'all') {
+                    query = query.eq('district', currentFilters.district);
+                }
+                
+                // Apply sorting
+                switch (currentFilters.sort) {
+                    case 'newest':
+                        query = query.order('created_at', { ascending: false });
+                        break;
+                    case 'oldest':
+                        query = query.order('created_at', { ascending: true });
+                        break;
+                    case 'name':
+                        query = query.order('name');
+                        break;
+                }
+                
+                // Get total count
+                const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
+                if (countError) throw countError;
+                
+                totalMembers = count || 0;
+                
+                // Apply pagination
+                const from = (currentPage - 1) * pageSize;
+                const to = from + pageSize - 1;
+                
+                const { data, error } = await query.range(from, to);
+                
+                if (error) throw error;
+                
+                // Render table
+                if (data && data.length > 0) {
+                    tbody.innerHTML = data.map(member => `
+                        <tr>
+                            <td>
+                                <img src="${member.photo_url || 'https://via.placeholder.com/50'}" 
+                                     class="member-photo"
+                                     onerror="this.src='https://via.placeholder.com/50'">
+                            </td>
+                            <td>
+                                <strong>${escapeHtml(member.name)}</strong><br>
+                                <small>ID: ${member.membership_id || 'Pending'}</small>
+                            </td>
+                            <td>
+                                ${member.phone}<br>
+                                <small>${member.email || 'No email'}</small>
+                            </td>
+                            <td>${escapeHtml(member.district)}</td>
+                            <td>
+                                <span class="status-badge status-${member.status}">
+                                    ${member.status}
+                                </span>
+                            </td>
+                            <td>${new Date(member.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn view-btn" onclick="viewMember('${member.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    ${member.status === 'pending' ? `
+                                        <button class="action-btn approve-btn" onclick="approveMember('${member.id}')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="action-btn reject-btn" onclick="rejectMember('${member.id}')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn edit-btn" onclick="editMember('${member.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteMember('${member.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-users-slash"></i>
+                                <p>No members found</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                // Render pagination
+                renderPagination();
+                
+            } catch (error) {
+                console.error('Error loading members:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Failed to load members</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(totalMembers / pageSize);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                        onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            pagination.innerHTML = html;
+        }
+
+        // Change page
+        window.changePage = function(page) {
+            currentPage = page;
+            loadMembers();
+        };
+
+        // Filter functions
+        window.filterByStatus = function(status) {
+            currentFilters.status = status;
+            currentPage = 1;
+            
+            // Update tab UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            loadMembers();
+        };
+
+        window.applyFilters = function() {
+            currentFilters.search = document.getElementById('searchInput').value;
+            currentFilters.district = document.getElementById('districtFilter').value;
+            currentFilters.sort = document.getElementById('sortFilter').value;
+            currentPage = 1;
+            loadMembers();
+        };
+
+        window.debounceSearch = function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+            }, 500);
+        };
+
+        // Member actions
+        window.viewMember = async function(memberId) {
+            try {
+                const { data, error } = await supabase
+                    .from('members')
+                    .select('*')
+                    .eq('id', memberId)
+                    .single();
+                
+                if (error) throw error;
+                
+                const modalContent = document.getElementById('modalContent');
+                modalContent.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${data.photo_url || 'https://via.placeholder.com/150'}" 
+                             style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid #b3412e;">
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Name</label>
+                        <p>${escapeHtml(data.name)}</p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Membership ID</label>
+                        <p>${data.membership_id || 'Pending'}</p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Status</label>
+                        <p><span class="status-badge status-${data.status}">${data.status}</span></p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Contact</label>
+                        <p>📞 ${data.phone}<br>✉️ ${data.email || 'Not provided'}</p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Address</label>
+                        <p>${escapeHtml(data.district)}, ${escapeHtml(data.village || '')}<br>${escapeHtml(data.address || '')}</p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Additional Info</label>
+                        <p>Occupation: ${data.occupation || 'Not provided'}<br>
+                           Blood Group: ${data.blood_group || 'Not provided'}<br>
+                           DOB: ${data.date_of_birth || 'Not provided'}<br>
+                           Emergency: ${data.emergency_contact || 'Not provided'}</p>
+                    </div>
+                    
+                    <div class="member-detail">
+                        <label>Registered On</label>
+                        <p>${new Date(data.created_at).toLocaleString()}</p>
+                    </div>
+                `;
+                
+                document.getElementById('memberModal').classList.add('show');
+                
+            } catch (error) {
+                console.error('Error viewing member:', error);
+                alert('Failed to load member details');
+            }
+        };
+
+        window.approveMember = async function(memberId) {
+            if (!confirm('Are you sure you want to approve this member?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('members')
+                    .update({ 
+                        status: 'approved',
+                        approved_at: new Date().toISOString()
+                    })
+                    .eq('id', memberId);
+                
+                if (error) throw error;
+                
+                alert('Member approved successfully!');
+                loadMembers();
+                loadPendingCount();
+                
+            } catch (error) {
+                console.error('Error approving member:', error);
+                alert('Failed to approve member');
+            }
+        };
+
+        window.rejectMember = async function(memberId) {
+            const reason = prompt('Please enter reason for rejection:');
+            if (reason === null) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('members')
+                    .update({ 
+                        status: 'rejected',
+                        notes: reason
+                    })
+                    .eq('id', memberId);
+                
+                if (error) throw error;
+                
+                alert('Member rejected');
+                loadMembers();
+                loadPendingCount();
+                
+            } catch (error) {
+                console.error('Error rejecting member:', error);
+                alert('Failed to reject member');
+            }
+        };
+
+        window.editMember = function(memberId) {
+            alert('Edit functionality coming soon!');
+        };
+
+        window.deleteMember = async function(memberId) {
+            if (!confirm('Are you sure you want to delete this member? This action cannot be undone.')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('members')
+                    .delete()
+                    .eq('id', memberId);
+                
+                if (error) throw error;
+                
+                alert('Member deleted');
+                loadMembers();
+                loadPendingCount();
+                
+            } catch (error) {
+                console.error('Error deleting member:', error);
+                alert('Failed to delete member');
+            }
+        };
+
+        window.closeModal = function() {
+            document.getElementById('memberModal').classList.remove('show');
+        };
+
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            window.location.href = 'login.html';
+        };
+
+        // Helper: Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
