@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fef8f0 0%, #fce3d5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(180, 60, 20, 0.2);
+            border-left: 6px solid #f28c38;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-area img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .logo-area h2 {
+            color: #b3412e;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .logo-area p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            color: #b3412e;
+            font-size: 18px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #f3b28a;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #fffcf5;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #f28c38;
+            box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.2);
+        }
+
+        .input-group .toggle-password {
+            position: absolute;
+            right: 15px;
+            left: auto;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .input-group .toggle-password:hover {
+            color: #b3412e;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+        }
+
+        .remember-me input {
+            width: 16px;
+            height: 16px;
+            accent-color: #b3412e;
+        }
+
+        .forgot-password {
+            color: #b3412e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(180, 60, 20, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(180, 60, 20, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .error-message i {
+            font-size: 18px;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .success-message.show {
+            display: flex;
+        }
+
+        .info-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .info-text a {
+            color: #b3412e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-to-site {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-to-site a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s;
+        }
+
+        .back-to-site a:hover {
+            color: #b3412e;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px;
+            }
+
+            .logo-area h2 {
+                font-size: 20px;
+            }
+
+            .login-btn {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-area">
+                <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/80x80?text=🕉️'">
+                <h2>Admin Login</h2>
+                <p>Asom Hindi Bhasi Brahman Mahasabha</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                <i class="fas fa-check-circle"></i>
+                <span id="successText"></span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="admin@ahbbm.org" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember"> Remember me
+                    </label>
+                    <a href="#" class="forgot-password" onclick="forgotPassword()">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                </button>
+            </form>
+
+            <div class="info-text">
+                <i class="fas fa-shield-alt"></i> Secure admin access only
+            </div>
+
+            <div class="back-to-site">
+                <a href="../index.html"><i class="fas fa-arrow-left"></i> Back to Website</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.add('show');
+            
+            // Hide success message if visible
+            document.getElementById('successMessage').classList.remove('show');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+            successText.textContent = message;
+            successDiv.classList.add('show');
+            
+            // Hide error message if visible
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Validate inputs
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+            
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            
+            try {
+                // Attempt to sign in
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (authError) throw authError;
+                
+                if (authData.user) {
+                    // Check if user is an admin
+                    const { data: adminData, error: adminError } = await supabase
+                        .from('admins')
+                        .select('*')
+                        .eq('id', authData.user.id)
+                        .eq('is_active', true)
+                        .single();
+                    
+                    if (adminError || !adminData) {
+                        // Not an admin, sign out
+                        await supabase.auth.signOut();
+                        throw new Error('Unauthorized access. Admin privileges required.');
+                    }
+                    
+                    // Set session persistence
+                    if (remember) {
+                        // Session will persist
+                    } else {
+                        // Session expires when browser closes
+                    }
+                    
+                    // Store admin info in session
+                    sessionStorage.setItem('adminInfo', JSON.stringify({
+                        id: adminData.id,
+                        name: adminData.name,
+                        email: adminData.email,
+                        role: adminData.role
+                    }));
+                    
+                    showSuccess('Login successful! Redirecting...');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                if (error.message.includes('Invalid login credentials')) {
+                    showError('Invalid email or password');
+                } else if (error.message.includes('Admin privileges')) {
+                    showError(error.message);
+                } else {
+                    showError('Login failed. Please try again.');
+                }
+                
+                // Re-enable button
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+            }
+        }
+
+        // Forgot password handler
+        async function forgotPassword(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            
+            if (!email) {
+                showError('Please enter your email address first');
+                return;
+            }
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/admin/reset-password.html`
+                });
+                
+                if (error) throw error;
+                
+                showSuccess('Password reset link sent to your email');
+                
+            } catch (error) {
+                console.error('Reset error:', error);
+                showError('Failed to send reset link. Please try again.');
+            }
+        }
+
+        // Check if already logged in
+        async function checkExistingSession() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    // Check if admin
+                    const { data: adminData, error } = await supabase
+                        .from('admins')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .eq('is_active', true)
+                        .single();
+                    
+                    if (adminData && !error) {
+                        // Already logged in as admin, redirect to dashboard
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        // Not admin, sign out
+                        await supabase.auth.signOut();
+                    }
+                }
+            } catch (error) {
+                console.error('Session check error:', error);
+            }
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', checkExistingSession);
+    </script>
+</body>
+</html>
