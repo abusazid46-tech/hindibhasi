@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Management - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: gold;
+        }
+
+        .menu-item i {
+            width: 22px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2d1f00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-select select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .news-table-container {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 25px;
+            overflow-x: auto;
+        }
+
+        .news-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .news-table th {
+            text-align: left;
+            padding: 15px 10px;
+            color: #2d1f00;
+            font-weight: 600;
+            border-bottom: 3px solid #e67e22;
+        }
+
+        .news-table td {
+            padding: 15px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .news-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .badge-important {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-featured {
+            background: #f39c12;
+            color: white;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .featured-btn {
+            background: #f1c40f;
+            color: white;
+        }
+
+        .important-btn {
+            background: #e67e22;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #e67e22;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .page-btn.active {
+            background: #e67e22;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group.checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group.checkbox input {
+            width: auto;
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-top: 10px;
+            display: none;
+            border: 3px solid #e67e22;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-header h3, .sidebar-header p, .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .filter-bar {
+                flex-direction: column;
+            }
+            .search-box, .filter-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p>Admin</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="members.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            <a href="events.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="news.html" class="menu-item active">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <a href="gallery.html" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="donations.html" class="menu-item">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Donations</span>
+            </a>
+            <a href="documents.html" class="menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>Documents</span>
+            </a>
+            <a href="contacts.html" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <div class="menu-divider"></div>
+            <a href="#" class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-newspaper"></i>
+                <span>News Management</span>
+            </div>
+            <button class="add-btn" onclick="showAddModal()">
+                <i class="fas fa-plus"></i> Add News
+            </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search news..." onkeyup="debounceSearch()">
+            </div>
+            
+            <div class="filter-select">
+                <select id="filterType" onchange="applyFilters()">
+                    <option value="all">All News</option>
+                    <option value="important">Important Only</option>
+                    <option value="featured">Featured Only</option>
+                </select>
+            </div>
+            
+            <div class="filter-select">
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="popular">Most Viewed</option>
+                    <option value="title">By Title</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- News Table -->
+        <div class="news-table-container">
+            <table class="news-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Views</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="newsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading news...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- News Modal -->
+    <div class="modal" id="newsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add News</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="newsForm">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="newsTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Summary</label>
+                    <input type="text" id="newsSummary" placeholder="Brief summary (optional)">
+                </div>
+                
+                <div class="form-group">
+                    <label>Content *</label>
+                    <textarea id="newsContent" rows="6" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Publish Date</label>
+                    <input type="date" id="publishDate">
+                </div>
+                
+                <div class="form-group">
+                    <label>Expiry Date (Optional)</label>
+                    <input type="date" id="expiryDate">
+                </div>
+                
+                <div class="form-group">
+                    <label>Featured Image</label>
+                    <input type="file" id="newsImage" accept="image/*">
+                    <img id="imagePreview" class="image-preview">
+                </div>
+                
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="isFeatured">
+                    <label>Feature this News</label>
+                </div>
+                
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="isImportant">
+                    <label>Mark as Important</label>
+                </div>
+                
+                <button type="submit" class="save-btn">Save News</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/news.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Initialize NewsModule
+            NewsModule.init(supabase);
+
+            // State
+            let currentPage = 1;
+            let totalPages = 1;
+            let currentFilters = {
+                search: '',
+                sort: 'newest'
+            };
+            let searchTimeout;
+            let editingNewsId = null;
+            let selectedFile = null;
+
+            // Check auth
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                loadNews();
+            });
+
+            async function loadNews() {
+                const tbody = document.getElementById('newsTableBody');
+                
+                // Apply type filter
+                const filterType = document.getElementById('filterType').value;
+                if (filterType === 'important') {
+                    currentFilters.important = true;
+                    delete currentFilters.featured;
+                } else if (filterType === 'featured') {
+                    currentFilters.featured = true;
+                    delete currentFilters.important;
+                } else {
+                    delete currentFilters.important;
+                    delete currentFilters.featured;
+                }
+                
+                const result = await NewsModule.getAllNewsForAdmin(currentFilters, currentPage, 10);
+                
+                if (result.success) {
+                    const { data, totalPages: pages } = result;
+                    totalPages = pages;
+                    
+                    if (data && data.length > 0) {
+                        tbody.innerHTML = data.map(news => `
+                            <tr>
+                                <td>
+                                    <div style="position: relative; width: 60px; height: 60px;">
+                                        ${news.image_url ? 
+                                            `<img src="${news.image_url}" 
+                                                 style="width:60px; height:60px; object-fit:cover; border-radius:10px;"
+                                                 onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').style.display='flex';">` 
+                                            : ''
+                                        }
+                                        <div class="fallback" 
+                                             style="display: ${news.image_url ? 'none' : 'flex'}; 
+                                                    width:60px; height:60px; 
+                                                    background: linear-gradient(135deg, #e67e22, #d35400); 
+                                                    border-radius:10px; 
+                                                    align-items:center; 
+                                                    justify-content:center; 
+                                                    color:white;
+                                                    font-size:24px;">
+                                            <i class="fas fa-newspaper"></i>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>${NewsModule.helpers.escapeHtml(news.title)}</strong>
+                                    <div style="margin-top: 5px;">
+                                        ${news.is_important ? '<span class="badge badge-important"><i class="fas fa-exclamation"></i> Important</span>' : ''}
+                                        ${news.is_featured ? '<span class="badge badge-featured"><i class="fas fa-star"></i> Featured</span>' : ''}
+                                    </div>
+                                </td>
+                                <td>${NewsModule.helpers.formatDate(news.publish_date)}</td>
+                                <td>
+                                    <span class="badge" style="background: ${new Date(news.publish_date) <= new Date() ? '#27ae60' : '#f39c12'}; color: white;">
+                                        ${new Date(news.publish_date) <= new Date() ? 'Published' : 'Scheduled'}
+                                    </span>
+                                </td>
+                                <td>${news.views || 0}</td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="action-btn important-btn" onclick="toggleImportant('${news.id}', ${news.is_important})">
+                                            ${news.is_important ? '★ Important' : '☆ Important'}
+                                        </button>
+                                        <button class="action-btn featured-btn" onclick="toggleFeatured('${news.id}', ${news.is_featured})">
+                                            ${news.is_featured ? '★ Featured' : '☆ Feature'}
+                                        </button>
+                                        <button class="action-btn edit-btn" onclick="editNews('${news.id}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="deleteNews('${news.id}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No news found</td></tr>';
+                    }
+                    
+                    renderPagination();
+                }
+            }
+
+            function renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let html = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>`;
+                }
+                
+                pagination.innerHTML = html;
+            }
+
+            window.changePage = function(page) {
+                currentPage = page;
+                loadNews();
+            };
+
+            window.applyFilters = function() {
+                currentFilters.search = document.getElementById('searchInput').value;
+                currentFilters.sort = document.getElementById('sortFilter').value;
+                currentPage = 1;
+                loadNews();
+            };
+
+            window.debounceSearch = function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 500);
+            };
+
+            window.showAddModal = function() {
+                editingNewsId = null;
+                document.getElementById('modalTitle').textContent = 'Add News';
+                document.getElementById('newsForm').reset();
+                document.getElementById('imagePreview').style.display = 'none';
+                
+                // Set today's date as default
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('publishDate').value = today;
+                
+                document.getElementById('newsModal').classList.add('show');
+            };
+
+            window.editNews = async function(newsId) {
+                const result = await NewsModule.getNewsById(newsId);
+                
+                if (result.success) {
+                    const news = result.data;
+                    editingNewsId = newsId;
+                    
+                    document.getElementById('modalTitle').textContent = 'Edit News';
+                    document.getElementById('newsTitle').value = news.title;
+                    document.getElementById('newsSummary').value = news.summary || '';
+                    document.getElementById('newsContent').value = news.content;
+                    document.getElementById('publishDate').value = news.publish_date;
+                    document.getElementById('expiryDate').value = news.expiry_date || '';
+                    document.getElementById('isFeatured').checked = news.is_featured || false;
+                    document.getElementById('isImportant').checked = news.is_important || false;
+                    
+                    if (news.image_url) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.src = news.image_url;
+                        preview.style.display = 'block';
+                    }
+                    
+                    document.getElementById('newsModal').classList.add('show');
+                }
+            };
+
+            document.getElementById('newsImage').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.getElementById('newsForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const newsData = {
+                    title: document.getElementById('newsTitle').value,
+                    content: document.getElementById('newsContent').value,
+                    summary: document.getElementById('newsSummary').value || document.getElementById('newsContent').value.substring(0, 150) + '...',
+                    publish_date: document.getElementById('publishDate').value || new Date().toISOString().split('T')[0],
+                    expiry_date: document.getElementById('expiryDate').value || null,
+                    is_featured: document.getElementById('isFeatured').checked,
+                    is_important: document.getElementById('isImportant').checked
+                };
+                
+                let result;
+                if (editingNewsId) {
+                    result = await NewsModule.updateNews(editingNewsId, newsData, selectedFile);
+                } else {
+                    result = await NewsModule.createNews(newsData, selectedFile);
+                }
+                
+                if (result.success) {
+                    alert(editingNewsId ? 'News updated!' : 'News created!');
+                    closeModal();
+                    loadNews();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            });
+
+            window.toggleFeatured = async function(newsId, current) {
+                const result = await NewsModule.toggleFeatured(newsId, !current);
+                if (result.success) {
+                    loadNews();
+                }
+            };
+
+            window.toggleImportant = async function(newsId, current) {
+                const result = await NewsModule.toggleImportant(newsId, !current);
+                if (result.success) {
+                    loadNews();
+                }
+            };
+
+            window.deleteNews = async function(newsId) {
+                if (!confirm('Are you sure you want to delete this news?')) return;
+                
+                const result = await NewsModule.deleteNews(newsId);
+                if (result.success) {
+                    alert('News deleted');
+                    loadNews();
+                }
+            };
+
+            window.closeModal = function() {
+                document.getElementById('newsModal').classList.remove('show');
+                selectedFile = null;
+            };
+
+            window.logout = async function() {
+                await supabase.auth.signOut();
+                window.location.href = 'login.html';
+            };
+        })();
+    </script>
+</body>
+</html>
