@@ -363,223 +363,194 @@
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+   <!-- At the bottom of members.html, before closing body tag -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/members.js"></script>
+<script>
+    // Supabase configuration
+    const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Initialize MembersModule
+    MembersModule.init(supabase);
+
+    // State
+    let currentPage = 1;
+    let totalMembers = 0;
+    const pageSize = 12;
+    let currentFilters = {
+        search: '',
+        district: 'all'
+    };
+    let districts = [];
+
+    // Load districts on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadDistricts();
+        await loadMembers();
+    });
+
+    // Load districts for filter dropdown using module
+    async function loadDistricts() {
+        const result = await MembersModule.getDistricts();
+        if (result.success) {
+            districts = result.districts;
+            const districtSelect = document.getElementById('districtFilter');
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                districtSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Load members using module
+    async function loadMembers() {
+        const grid = document.getElementById('membersGrid');
+        const memberCountEl = document.getElementById('memberCount');
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // State
-        let currentPage = 1;
-        let totalMembers = 0;
-        const pageSize = 12;
-        let currentFilters = {
-            search: '',
-            district: 'all'
-        };
-        let districts = [];
-
-        // Load districts on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadDistricts();
-            await loadMembers();
-        });
-
-        // Load districts for filter dropdown
-        async function loadDistricts() {
-            try {
-                const { data, error } = await supabase
-                    .from('members')
-                    .select('district')
-                    .eq('status', 'approved')
-                    .order('district');
-                
-                if (error) throw error;
-                
-                districts = [...new Set(data.map(item => item.district))];
-                
-                const districtSelect = document.getElementById('districtFilter');
-                districts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district;
-                    option.textContent = district;
-                    districtSelect.appendChild(option);
-                });
-                
-            } catch (error) {
-                console.error('Error loading districts:', error);
-            }
-        }
-
-        // Load members with current filters
-        async function loadMembers() {
-            const grid = document.getElementById('membersGrid');
-            const memberCountEl = document.getElementById('memberCount');
+        const result = await MembersModule.getApprovedMembers(currentPage, pageSize, currentFilters);
+        
+        if (result.success) {
+            const { data, count } = result;
+            totalMembers = count || 0;
             
-            try {
-                let query = supabase
-                    .from('members')
-                    .select('*', { count: 'exact' })
-                    .eq('status', 'approved')
-                    .order('name');
-                
-                // Apply search filter
-                if (currentFilters.search) {
-                    query = query.or(`name.ilike.%${currentFilters.search}%,village.ilike.%${currentFilters.search}%`);
-                }
-                
-                // Apply district filter
-                if (currentFilters.district && currentFilters.district !== 'all') {
-                    query = query.eq('district', currentFilters.district);
-                }
-                
-                // Get total count for pagination
-                const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
-                
-                if (countError) throw countError;
-                
-                totalMembers = count || 0;
-                
-                // Apply pagination
-                const from = (currentPage - 1) * pageSize;
-                const to = from + pageSize - 1;
-                
-                const { data, error } = await query.range(from, to);
-                
-                if (error) throw error;
-                
-                // Update member count
-                const start = totalMembers > 0 ? from + 1 : 0;
-                const end = Math.min(to + 1, totalMembers);
-                memberCountEl.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
-                
-                // Render members
-                if (data && data.length > 0) {
-                    grid.innerHTML = data.map(member => `
-                        <div class="member-card">
-                            <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
-                                 alt="${member.name}" 
-                                 class="member-photo"
-                                 onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
-                            <div class="member-info">
-                                <h3>${escapeHtml(member.name)}</h3>
-                                <span class="member-id">ID: ${member.membership_id || 'Pending'}</span>
-                                <div class="member-details">
-                                    <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(member.district)}</p>
-                                    <p><i class="fas fa-home"></i> ${escapeHtml(member.village || 'N/A')}</p>
-                                    <p><i class="fas fa-phone"></i> ${escapeHtml(member.phone)}</p>
-                                </div>
-                                <button class="view-profile-btn" onclick="viewProfile('${member.id}')">
-                                    <i class="fas fa-user"></i> View Profile
-                                </button>
+            // Update member count
+            const start = totalMembers > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+            const end = Math.min(start + pageSize - 1, totalMembers);
+            memberCountEl.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
+            
+            // Render members
+            if (data && data.length > 0) {
+                grid.innerHTML = data.map(member => `
+                    <div class="member-card">
+                        <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
+                             alt="${MembersModule.helpers.escapeHtml(member.name)}" 
+                             class="member-photo"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
+                        <div class="member-info">
+                            <h3>${MembersModule.helpers.escapeHtml(member.name)}</h3>
+                            <span class="member-id">ID: ${member.membership_id || 'Pending'}</span>
+                            <div class="member-details">
+                                <p><i class="fas fa-map-marker-alt"></i> ${MembersModule.helpers.escapeHtml(member.district)}</p>
+                                <p><i class="fas fa-home"></i> ${MembersModule.helpers.escapeHtml(member.village || 'N/A')}</p>
+                                <p><i class="fas fa-phone"></i> ${MembersModule.helpers.escapeHtml(member.phone)}</p>
                             </div>
+                            <button class="view-profile-btn" onclick="viewProfile('${member.id}')">
+                                <i class="fas fa-user"></i> View Profile
+                            </button>
                         </div>
-                    `).join('');
-                } else {
-                    grid.innerHTML = `
-                        <div class="no-results">
-                            <i class="fas fa-users-slash"></i>
-                            <h3>No members found</h3>
-                            <p>Try adjusting your search filters</p>
-                        </div>
-                    `;
-                }
-                
-                // Render pagination
-                renderPagination();
-                
-            } catch (error) {
-                console.error('Error loading members:', error);
-                grid.innerHTML = '<div class="error-message">Failed to load members. Please refresh.</div>';
-            }
-        }
-
-        // Render pagination controls
-        function renderPagination() {
-            const totalPages = Math.ceil(totalMembers / pageSize);
-            const pagination = document.getElementById('pagination');
-            
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>No members found</h3>
+                        <p>Try adjusting your search filters</p>
+                    </div>
+                `;
             }
             
-            let html = '';
-            
-            // Previous button
-            html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
-                    onclick="changePage(${currentPage - 1})" 
-                    ${currentPage === 1 ? 'disabled' : ''}>
-                    <i class="fas fa-chevron-left"></i>
-                </button>`;
-            
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
-                if (
-                    i === 1 || 
-                    i === totalPages || 
-                    (i >= currentPage - 2 && i <= currentPage + 2)
-                ) {
-                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                            onclick="changePage(${i})">${i}</button>`;
-                } else if (
-                    i === currentPage - 3 || 
-                    i === currentPage + 3
-                ) {
-                    html += `<span class="page-dots">...</span>`;
-                }
+            // Render pagination
+            renderPagination();
+        } else {
+            grid.innerHTML = '<div class="error-message">Failed to load members. Please refresh.</div>';
+        }
+    }
+
+    // Render pagination
+    function renderPagination() {
+        const totalPages = Math.ceil(totalMembers / pageSize);
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Previous button
+        html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage - 1})" 
+                ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i>
+            </button>`;
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (
+                i === 1 || 
+                i === totalPages || 
+                (i >= currentPage - 2 && i <= currentPage + 2)
+            ) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                        onclick="changePage(${i})">${i}</button>`;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += `<span class="page-dots">...</span>`;
             }
-            
-            // Next button
-            html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
-                    onclick="changePage(${currentPage + 1})"
-                    ${currentPage === totalPages ? 'disabled' : ''}>
-                    <i class="fas fa-chevron-right"></i>
-                </button>`;
-            
-            pagination.innerHTML = html;
         }
+        
+        // Next button
+        html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage + 1})"
+                ${currentPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-chevron-right"></i>
+            </button>`;
+        
+        pagination.innerHTML = html;
+    }
 
-        // Change page
-        window.changePage = function(page) {
-            const totalPages = Math.ceil(totalMembers / pageSize);
-            if (page < 1 || page > totalPages) return;
-            
-            currentPage = page;
-            loadMembers();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
+    // Change page
+    window.changePage = function(page) {
+        const totalPages = Math.ceil(totalMembers / pageSize);
+        if (page < 1 || page > totalPages) return;
+        
+        currentPage = page;
+        loadMembers();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-        // Apply filters
-        window.applyFilters = function() {
-            currentFilters.search = document.getElementById('searchInput').value;
-            currentFilters.district = document.getElementById('districtFilter').value;
-            currentPage = 1;
-            loadMembers();
-        };
+    // Apply filters
+    window.applyFilters = function() {
+        currentFilters.search = document.getElementById('searchInput').value;
+        currentFilters.district = document.getElementById('districtFilter').value;
+        currentPage = 1;
+        loadMembers();
+    };
 
-        // Reset filters
-        window.resetFilters = function() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('districtFilter').value = 'all';
-            currentFilters = { search: '', district: 'all' };
-            currentPage = 1;
-            loadMembers();
-        };
+    // Reset filters
+    window.resetFilters = function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('districtFilter').value = 'all';
+        currentFilters = { search: '', district: 'all' };
+        currentPage = 1;
+        loadMembers();
+    };
 
-        // View profile (modal for now)
-        window.viewProfile = async function(memberId) {
-            // You can implement a modal or redirect to profile page
-            alert('Profile view coming soon! Member ID: ' + memberId);
-        };
+    // Debounce search
+    let searchTimeout;
+    window.debounceSearch = function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            applyFilters();
+        }, 500);
+    };
 
-        // Helper: Escape HTML
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+    // View profile using module
+    window.viewProfile = async function(memberId) {
+        const result = await MembersModule.getMemberById(memberId);
+        if (result.success) {
+            // You can implement a modal here
+            alert(`Member: ${result.data.name}\nPhone: ${result.data.phone}\nDistrict: ${result.data.district}`);
+        } else {
+            alert('Error loading member details');
         }
-    </script>
+    };
+</script>     
 </body>
 </html>
