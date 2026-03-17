@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Latest News and Notices - Asom Hindi Bhasi Brahman Mahasabha">
+  <meta name="theme-color" content="#b3412e">
+  <link rel="manifest" href="/manifest.json">
+  <title>News & Notices - Asom Hindi Bhasi Brahman Mahasabha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 30px;
+      margin: 30px 0;
+    }
+    
+    .news-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .news-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .news-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    
+    .news-content {
+      padding: 25px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .news-date {
+      color: var(--secondary);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .news-title {
+      font-size: 1.3rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+    
+    .news-excerpt {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+    
+    .notice-badge {
+      background: var(--warning);
+      color: #000;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    
+    .featured-news {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      background: linear-gradient(135deg, #fff5e6, #ffe4d6);
+      border-radius: 30px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .featured-news .news-image {
+      height: 300px;
+      border-radius: 20px;
+    }
+    
+    .featured-news .news-title {
+      font-size: 2rem;
+    }
+    
+    .news-categories {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+    
+    .category-btn {
+      padding: 10px 25px;
+      border: 2px solid var(--secondary);
+      background: transparent;
+      color: var(--primary);
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .category-btn.active {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .category-btn:hover {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .newsletter-signup {
+      background: linear-gradient(45deg, var(--primary), #c94b1f);
+      color: white;
+      border-radius: 30px;
+      padding: 40px;
+      text-align: center;
+      margin: 50px 0;
+    }
+    
+    .newsletter-signup h3 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    
+    .newsletter-form {
+      display: flex;
+      gap: 10px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .newsletter-form input {
+      flex: 1;
+      border: none;
+      background: rgba(255,255,255,0.9);
+    }
+    
+    .newsletter-form button {
+      background: var(--secondary);
+      color: var(--primary);
+    }
+    
+    @media (max-width: 768px) {
+      .featured-news {
+        grid-template-columns: 1fr;
+      }
+      
+      .featured-news .news-title {
+        font-size: 1.5rem;
+      }
+      
+      .newsletter-form {
+        flex-direction: column;
+      }
+      
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+  </div>
+  <div class="right-controls">
+    <div class="lang-switch">
+      <button class="lang-option en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+    </div>
+    <div class="menu-dropdown">
+      <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="dropdown-content">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/about.html"><i class="fas fa-users"></i> About Us</a>
+        <a href="/members.html"><i class="fas fa-id-card"></i> Members</a>
+        <a href="/events.html"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
+        <a href="/gallery.html"><i class="fas fa-images"></i> Gallery</a>
+        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        <a href="/contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+        <a href="/register.html"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="/documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Page Banner -->
+<section class="hero" style="height: 30vh; min-height: 200px; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop') center/cover;">
+  <h1>News & Notices</h1>
+  <p>Stay updated with latest happenings</p>
+</section>
+
+<!-- Main Content -->
+<section class="section">
+  <!-- Categories Filter -->
+  <div class="news-categories">
+    <button class="category-btn active" onclick="filterNews('all')">All News</button>
+    <button class="category-btn" onclick="filterNews('notice')">Notices</button>
+    <button class="category-btn" onclick="filterNews('announcement')">Announcements</button>
+    <button class="category-btn" onclick="filterNews('press')">Press Release</button>
+    <button class="category-btn" onclick="filterNews('update')">Updates</button>
+  </div>
+  
+  <!-- Featured News (if any) -->
+  <div id="featured-news" style="display: none;"></div>
+  
+  <!-- News Grid -->
+  <div id="news-container" class="news-grid">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+  
+  <!-- Newsletter Signup -->
+  <div class="newsletter-signup">
+    <h3>📧 Subscribe to Newsletter</h3>
+    <p>Get latest updates directly in your inbox</p>
+    <form class="newsletter-form" onsubmit="event.preventDefault(); subscribeNewsletter()">
+      <input type="email" id="newsletter-email" placeholder="Enter your email" required>
+      <button type="submit" class="btn">Subscribe</button>
+    </form>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>About Us</h4>
+      <p>Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/members.html">Members Directory</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/news.html">News</a></li>
+        <li><a href="/donate.html">Donate</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="copyright">
+    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
+  </div>
+</footer>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script src="/js/supabase.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+  let currentPage = 1;
+  const itemsPerPage = 9;
+  let totalNews = 0;
+  let currentFilter = 'all';
+  let allNews = [];
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadNews();
+  });
+
+  async function loadNews(page = 1) {
+    try {
+      const container = document.getElementById('news-container');
+      showLoading(container);
+      
+      const result = await db.news.getAll(itemsPerPage, page, true);
+      allNews = result.data;
+      totalNews = result.count;
+      currentPage = page;
+      
+      // Filter based on category
+      let filteredNews = allNews;
+      if (currentFilter !== 'all') {
+        filteredNews = allNews.filter(news => news.category === currentFilter);
+      }
+      
+      // Display featured news (first item if exists)
+      if (filteredNews.length > 0 && page === 1) {
+        displayFeaturedNews(filteredNews[0]);
+        displayNews(filteredNews.slice(1));
+      } else {
+        document.getElementById('featured-news').style.display = 'none';
+        displayNews(filteredNews);
+      }
+      
+      updatePagination();
+      
+    } catch (error) {
+      console.error('Error loading news:', error);
+      document.getElementById('news-container').innerHTML = 
+        '<p class="error">Failed to load news</p>';
+    }
+  }
+
+  function displayFeaturedNews(news) {
+    const featured = document.getElementById('featured-news');
+    
+    const date = new Date(news.date).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    featured.innerHTML = `
+      <div class="featured-news">
+        ${news.image_url ? `
+          <img src="${news.image_url}" alt="${news.title}" class="news-image">
+        ` : `
+          <div style="background: linear-gradient(45deg, var(--primary), var(--secondary)); border-radius: 20px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-newspaper" style="font-size: 100px; color: white; opacity: 0.5;"></i>
+          </div>
+        `}
+        <div class="news-content">
+          ${news.category ? `<span class="notice-badge">${news.category.toUpperCase()}</span>` : ''}
+          <span class="news-date"><i class="far fa-calendar-alt"></i> ${date}</span>
+          <h2 class="news-title">${news.title}</h2>
+          <p class="news-excerpt">${news.content.substring(0, 300)}${news.content.length > 300 ? '...' : ''}</p>
+          <button class="btn" onclick="viewFullNews('${news.id}')">Read Full Article</button>
+        </div>
+      </div>
+    `;
+    
+    featured.style.display = 'block';
+  }
+
+  function displayNews(news) {
+    const container = document.getElementById('news-container');
+    container.innerHTML = '';
+    
+    if (!news || news.length === 0) {
+      container.innerHTML = `
+        <div class="no-results" style="grid-column: 1/-1;">
+          <i class="fas fa-newspaper"></i>
+          <p>No news found</p>
+        </div>
+      `;
+      return;
+    }
+    
+    news.forEach(item => {
+      container.appendChild(createNewsCard(item));
+    });
+  }
+
+  function createNewsCard(news) {
+    const div = document.createElement('div');
+    div.className = 'news-card';
+    
+    const date = new Date(news.date).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    div.innerHTML = `
+      ${news.image_url ? `
+        <img src="${news.image_url}" alt="${news.title}" class="news-image" 
+             onerror="this.src='https://via.placeholder.com/400x200?text=News'">
+      ` : ''}
+      <div class="news-content">
+        ${news.category ? `<span class="notice-badge">${news.category.toUpperCase()}</span>` : ''}
+        <span class="news-date"><i class="far fa-calendar-alt"></i> ${date}</span>
+        <h3 class="news-title">${news.title}</h3>
+        <p class="news-excerpt">${news.content.substring(0, 150)}${news.content.length > 150 ? '...' : ''}</p>
+        <button class="btn btn-sm btn-outline" onclick="viewFullNews('${news.id}')">
+          Read More
+        </button>
+      </div>
+    `;
+    
+    return div;
+  }
+
+  function filterNews(filter) {
+    currentFilter = filter;
+    
+    // Update active button
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Reload news
+    loadNews(1);
+  }
+
+  function viewFullNews(newsId) {
+    const news = allNews.find(n => n.id === newsId);
+    if (!news) return;
+    
+    // Create modal for full news
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    
+    const date = new Date(news.date).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 800px;">
+        <span class="close-modal" onclick="this.closest('.modal').remove()">&times;</span>
+        ${news.image_url ? `
+          <img src="${news.image_url}" alt="${news.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 15px; margin-bottom: 20px;">
+        ` : ''}
+        <span class="news-date"><i class="far fa-calendar-alt"></i> ${date}</span>
+        <h2 style="color: var(--primary); margin: 15px 0;">${news.title}</h2>
+        ${news.category ? `<span class="notice-badge" style="margin-bottom: 15px;">${news.category.toUpperCase()}</span>` : ''}
+        <div style="line-height: 1.8; white-space: pre-line;">${news.content}</div>
+        <button class="btn btn-outline" style="margin-top: 20px;" onclick="this.closest('.modal').remove()">Close</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  }
+
+  function subscribeNewsletter() {
+    const email = document.getElementById('newsletter-email').value;
+    if (validateEmail(email)) {
+      showNotification('Thank you for subscribing to our newsletter!', 'success');
+      document.getElementById('newsletter-email').value = '';
+    } else {
+      showNotification('Please enter a valid email address', 'error');
+    }
+  }
+
+  function updatePagination() {
+    const totalPages = Math.ceil(totalNews / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+      pagination.innerHTML = '';
+      return;
+    }
+    
+    let html = '';
+    
+    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+      <i class="fas fa-chevron-left"></i>
+    </button>`;
+    
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 || 
+        i === totalPages || 
+        (i >= currentPage - 2 && i <= currentPage + 2)
+      ) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+          ${i}
+        </button>`;
+      } else if (i === currentPage - 3 || i === currentPage + 3) {
+        html += `<span class="page-dots">...</span>`;
+      }
+    }
+    
+    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+      <i class="fas fa-chevron-right"></i>
+    </button>`;
+    
+    pagination.innerHTML = html;
+  }
+
+  function changePage(page) {
+    if (page < 1) return;
+    loadNews(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showLoading(container) {
+    container.innerHTML = '<div class="spinner"></div>';
+  }
+</script>
+
+</body>
+</html>
