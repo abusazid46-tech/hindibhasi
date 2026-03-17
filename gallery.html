@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Photo Gallery - Asom Hindi Bhasi Brahman Mahasabha">
+  <meta name="theme-color" content="#b3412e">
+  <link rel="manifest" href="/manifest.json">
+  <title>Gallery - Asom Hindi Bhasi Brahman Mahasabha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .gallery-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .gallery-tab {
+      padding: 12px 30px;
+      border: none;
+      background: white;
+      color: var(--primary);
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+    }
+    
+    .gallery-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .gallery-tab:hover {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+    
+    .gallery-item {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      aspect-ratio: 1/1;
+    }
+    
+    .gallery-item img, .gallery-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    .gallery-item:hover img {
+      transform: scale(1.1);
+    }
+    
+    .gallery-item-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+      padding: 20px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover .gallery-item-overlay {
+      transform: translateY(0);
+    }
+    
+    .gallery-item-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .gallery-item-date {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    
+    .gallery-item:hover .play-icon {
+      opacity: 1;
+    }
+    
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .lightbox.show {
+      display: flex;
+    }
+    
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 90%;
+      position: relative;
+    }
+    
+    .lightbox-content img, .lightbox-content video {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 10px;
+    }
+    
+    .lightbox-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+    }
+    
+    .lightbox-prev, .lightbox-next {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .lightbox-prev:hover, .lightbox-next:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .lightbox-prev {
+      left: 20px;
+    }
+    
+    .lightbox-next {
+      right: 20px;
+    }
+    
+    .lightbox-caption {
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: white;
+    }
+    
+    .album-section {
+      margin-bottom: 50px;
+    }
+    
+    .album-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--secondary);
+    }
+    
+    @media (max-width: 768px) {
+      .gallery-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .gallery-tabs {
+        justify-content: center;
+      }
+      
+      .lightbox-prev, .lightbox-next {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+  </div>
+  <div class="right-controls">
+    <div class="lang-switch">
+      <button class="lang-option en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+    </div>
+    <div class="menu-dropdown">
+      <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="dropdown-content">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/about.html"><i class="fas fa-users"></i> About Us</a>
+        <a href="/members.html"><i class="fas fa-id-card"></i> Members</a>
+        <a href="/events.html"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
+        <a href="/gallery.html"><i class="fas fa-images"></i> Gallery</a>
+        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        <a href="/contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+        <a href="/register.html"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="/documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Page Banner -->
+<section class="hero" style="height: 30vh; min-height: 200px; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2038&auto=format&fit=crop') center/cover;">
+  <h1>Photo & Video Gallery</h1>
+  <p>Moments captured from our events and activities</p>
+</section>
+
+<!-- Main Content -->
+<section class="section">
+  <!-- Gallery Header -->
+  <div class="gallery-header">
+    <h2 style="margin: 0;">Our Gallery</h2>
+    <div class="gallery-tabs">
+      <button class="gallery-tab active" onclick="switchGalleryTab('all')">All</button>
+      <button class="gallery-tab" onclick="switchGalleryTab('photos')">Photos</button>
+      <button class="gallery-tab" onclick="switchGalleryTab('videos')">Videos</button>
+    </div>
+  </div>
+  
+  <!-- Albums/Years Navigation -->
+  <div style="display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 20px;">
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('all')">All Albums</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('2026')">2026</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('2025')">2025</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('2024')">2024</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('events')">Events</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('meetings')">Meetings</button>
+    <button class="btn btn-sm btn-outline" onclick="filterByAlbum('cultural')">Cultural</button>
+  </div>
+  
+  <!-- Gallery Grid -->
+  <div id="gallery-container" class="gallery-grid">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Load More Button -->
+  <div style="text-align: center; margin-top: 40px;">
+    <button class="btn btn-outline" onclick="loadMore()" id="load-more-btn" style="display: none;">
+      <i class="fas fa-plus"></i> Load More
+    </button>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-prev" onclick="changeLightboxItem(-1)"><i class="fas fa-chevron-left"></i></button>
+  <div class="lightbox-content" id="lightbox-content"></div>
+  <button class="lightbox-next" onclick="changeLightboxItem(1)"><i class="fas fa-chevron-right"></i></button>
+  <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>About Us</h4>
+      <p>Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/members.html">Members Directory</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/news.html">News</a></li>
+        <li><a href="/donate.html">Donate</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="copyright">
+    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
+  </div>
+</footer>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script src="/js/supabase.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+  let currentType = 'all';
+  let currentPage = 1;
+  const itemsPerPage = 20;
+  let allItems = [];
+  let currentLightboxIndex = 0;
+  let currentFilteredItems = [];
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadGallery();
+  });
+
+  async function loadGallery(page = 1) {
+    try {
+      const container = document.getElementById('gallery-container');
+      showLoading(container);
+      
+      const result = await db.gallery.getAll(currentType, itemsPerPage, page);
+      const newItems = result.data;
+      
+      if (page === 1) {
+        allItems = newItems;
+      } else {
+        allItems = [...allItems, ...newItems];
+      }
+      
+      currentPage = page;
+      currentFilteredItems = allItems;
+      
+      displayGallery(allItems);
+      
+      // Show/hide load more button
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      if (allItems.length < result.count) {
+        loadMoreBtn.style.display = 'inline-block';
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+      
+    } catch (error) {
+      console.error('Error loading gallery:', error);
+      document.getElementById('gallery-container').innerHTML = 
+        '<p class="error">Failed to load gallery</p>';
+    }
+  }
+
+  function displayGallery(items) {
+    const container = document.getElementById('gallery-container');
+    container.innerHTML = '';
+    
+    if (!items || items.length === 0) {
+      container.innerHTML = `
+        <div class="no-results" style="grid-column: 1/-1;">
+          <i class="fas fa-images"></i>
+          <p>No gallery items found</p>
+        </div>
+      `;
+      return;
+    }
+    
+    items.forEach((item, index) => {
+      container.appendChild(createGalleryItem(item, index));
+    });
+  }
+
+  function createGalleryItem(item, index) {
+    const div = document.createElement('div');
+    div.className = 'gallery-item';
+    div.setAttribute('data-index', index);
+    div.setAttribute('data-type', item.type);
+    
+    const date = item.uploaded_at ? new Date(item.uploaded_at).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short'
+    }) : '';
+    
+    if (item.type === 'image') {
+      div.innerHTML = `
+        <img src="${item.file_url}" alt="${item.title || 'Gallery image'}" loading="lazy">
+        <div class="gallery-item-overlay">
+          <div class="gallery-item-title">${item.title || 'Untitled'}</div>
+          <div class="gallery-item-date">${date}</div>
+        </div>
+      `;
+    } else {
+      div.innerHTML = `
+        <video src="${item.file_url}" muted playsinline></video>
+        <i class="fas fa-play-circle play-icon"></i>
+        <div class="gallery-item-overlay">
+          <div class="gallery-item-title">${item.title || 'Untitled Video'}</div>
+          <div class="gallery-item-date">${date}</div>
+        </div>
+      `;
+    }
+    
+    div.onclick = () => openLightbox(index);
+    
+    return div;
+  }
+
+  function switchGalleryTab(type) {
+    currentType = type;
+    currentPage = 1;
+    
+    // Update active tab
+    document.querySelectorAll('.gallery-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    loadGallery(1);
+  }
+
+  function filterByAlbum(album) {
+    // This would filter by album/year in a real implementation
+    showNotification(`Filtering by: ${album}`, 'info');
+  }
+
+  function loadMore() {
+    loadGallery(currentPage + 1);
+  }
+
+  function openLightbox(index) {
+    currentLightboxIndex = index;
+    const item = currentFilteredItems[index];
+    
+    const lightbox = document.getElementById('lightbox');
+    const content = document.getElementById('lightbox-content');
+    const caption = document.getElementById('lightbox-caption');
+    
+    if (item.type === 'image') {
+      content.innerHTML = `<img src="${item.file_url}" alt="${item.title || ''}">`;
+    } else {
+      content.innerHTML = `<video src="${item.file_url}" controls autoplay></video>`;
+    }
+    
+    caption.textContent = item.title || '';
+    lightbox.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox(event) {
+    if (event && event.target !== event.currentTarget) return;
+    
+    const lightbox = document.getElementById('lightbox');
+    lightbox.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Stop video if playing
+    const video = lightbox.querySelector('video');
+    if (video) {
+      video.pause();
+    }
+  }
+
+  function changeLightboxItem(direction) {
+    const newIndex = currentLightboxIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < currentFilteredItems.length) {
+      currentLightboxIndex = newIndex;
+      const item = currentFilteredItems[newIndex];
+      
+      const content = document.getElementById('lightbox-content');
+      const caption = document.getElementById('lightbox-caption');
+      
+      if (item.type === 'image') {
+        content.innerHTML = `<img src="${item.file_url}" alt="${item.title || ''}">`;
+      } else {
+        content.innerHTML = `<video src="${item.file_url}" controls autoplay></video>`;
+      }
+      
+      caption.textContent = item.title || '';
+    }
+  }
+
+  // Keyboard navigation for lightbox
+  document.addEventListener('keydown', function(e) {
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox.classList.contains('show')) return;
+    
+    if (e.key === 'Escape') {
+      closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+      changeLightboxItem(-1);
+    } else if (e.key === 'ArrowRight') {
+      changeLightboxItem(1);
+    }
+  });
+
+  function showLoading(container) {
+    container.innerHTML = '<div class="spinner"></div>';
+  }
+</script>
+
+</body>
+</html>
