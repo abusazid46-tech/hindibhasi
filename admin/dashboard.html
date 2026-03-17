@@ -7,12 +7,12 @@
     <!-- Google Fonts & Font Awesome -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js for analytics -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="../css/admin.css">
     <style>
+        /* Copy all the dashboard styles from previous message */
         * {
             margin: 0;
             padding: 0;
@@ -544,6 +544,20 @@
                 gap: 5px;
             }
         }
+
+        .coming-soon {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            color: #666;
+        }
+
+        .coming-soon i {
+            font-size: 60px;
+            color: #b3412e;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -631,7 +645,6 @@
 
         <!-- Dynamic Content Area -->
         <div id="contentArea">
-            <!-- Dashboard content will be loaded here -->
             <div class="loading-spinner">
                 <i class="fas fa-spinner fa-spin"></i>
                 <p>Loading dashboard...</p>
@@ -644,10 +657,8 @@
         const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
         
-        // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Admin info
         let currentAdmin = null;
         let dashboardCharts = {};
 
@@ -659,7 +670,6 @@
             setupRealtimeSubscriptions();
         });
 
-        // Check authentication
         async function checkAuth() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
@@ -669,12 +679,10 @@
                     return;
                 }
                 
-                // Get admin info from session storage or fetch
                 const storedAdmin = sessionStorage.getItem('adminInfo');
                 if (storedAdmin) {
                     currentAdmin = JSON.parse(storedAdmin);
                 } else {
-                    // Fetch admin details
                     const { data: adminData, error } = await supabase
                         .from('admins')
                         .select('*')
@@ -689,7 +697,6 @@
                     sessionStorage.setItem('adminInfo', JSON.stringify(adminData));
                 }
                 
-                // Update UI with admin info
                 document.getElementById('adminName').textContent = currentAdmin.name;
                 document.getElementById('adminRole').textContent = currentAdmin.role.replace('_', ' ').toUpperCase();
                 document.getElementById('headerAdminName').textContent = currentAdmin.name;
@@ -704,67 +711,47 @@
             }
         }
 
-        // Load pending badges
         async function loadBadges() {
             try {
-                // Pending members count
-                const { count: pendingCount, error: pendingError } = await supabase
+                const { count: pendingCount } = await supabase
                     .from('members')
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'pending');
                 
-                if (!pendingError) {
-                    document.getElementById('pendingBadge').textContent = pendingCount || 0;
-                }
+                document.getElementById('pendingBadge').textContent = pendingCount || 0;
                 
-                // New messages count
-                const { count: messageCount, error: messageError } = await supabase
+                const { count: messageCount } = await supabase
                     .from('contacts')
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'new');
                 
-                if (!messageError) {
-                    document.getElementById('messageBadge').textContent = messageCount || 0;
-                }
+                document.getElementById('messageBadge').textContent = messageCount || 0;
                 
             } catch (error) {
                 console.error('Error loading badges:', error);
             }
         }
 
-        // Setup realtime subscriptions
         function setupRealtimeSubscriptions() {
-            // Listen for member changes
-            const memberSubscription = supabase
+            supabase
                 .channel('member-changes')
-                .on('postgres_changes', { 
-                    event: '*', 
-                    schema: 'public', 
-                    table: 'members' 
-                }, () => {
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => {
                     loadBadges();
                 })
                 .subscribe();
             
-            // Listen for contact changes
-            const contactSubscription = supabase
+            supabase
                 .channel('contact-changes')
-                .on('postgres_changes', { 
-                    event: '*', 
-                    schema: 'public', 
-                    table: 'contacts' 
-                }, () => {
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, () => {
                     loadBadges();
                 })
                 .subscribe();
         }
 
-        // Toggle sidebar on mobile
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
         }
 
-        // Logout function
         async function logout() {
             try {
                 await supabase.auth.signOut();
@@ -775,37 +762,30 @@
             }
         }
 
-        // Load dashboard section
         async function loadDashboard() {
             const contentArea = document.getElementById('contentArea');
             contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading dashboard...</p></div>';
             
             try {
-                // Fetch dashboard stats
-                const { data: stats, error: statsError } = await supabase
+                const { data: stats } = await supabase
                     .from('dashboard_stats')
                     .select('*')
                     .single();
                 
-                if (statsError) throw statsError;
-                
-                // Fetch recent activity
-                const { data: recentMembers, error: membersError } = await supabase
+                const { data: recentMembers } = await supabase
                     .from('members')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(5);
                 
-                const { data: recentContacts, error: contactsError } = await supabase
+                const { data: recentContacts } = await supabase
                     .from('contacts')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(5);
                 
-                // Combine activities
                 const activities = [
                     ...(recentMembers || []).map(m => ({
-                        type: 'member',
                         icon: 'fas fa-user-plus',
                         title: `New member registration: ${m.name}`,
                         time: new Date(m.created_at).toLocaleString(),
@@ -813,7 +793,6 @@
                         statusClass: `status-${m.status}`
                     })),
                     ...(recentContacts || []).map(c => ({
-                        type: 'contact',
                         icon: 'fas fa-envelope',
                         title: `New message from: ${c.name}`,
                         time: new Date(c.created_at).toLocaleString(),
@@ -822,19 +801,14 @@
                     }))
                 ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
 
-                // Build dashboard HTML
                 contentArea.innerHTML = `
-                    <!-- Stats Grid -->
                     <div class="stats-grid">
                         <div class="stat-card pending">
                             <div class="stat-header">
                                 <span class="stat-title">Pending Members</span>
                                 <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
                             </div>
-                            <div class="stat-value">${stats.pending_members || 0}</div>
-                            <div class="stat-change">
-                                <i class="fas fa-clock"></i> Awaiting approval
-                            </div>
+                            <div class="stat-value">${stats?.pending_members || 0}</div>
                         </div>
                         
                         <div class="stat-card members">
@@ -842,10 +816,7 @@
                                 <span class="stat-title">Total Members</span>
                                 <div class="stat-icon"><i class="fas fa-users"></i></div>
                             </div>
-                            <div class="stat-value">${stats.total_members || 0}</div>
-                            <div class="stat-change">
-                                <i class="fas fa-arrow-up"></i> Active community
-                            </div>
+                            <div class="stat-value">${stats?.total_members || 0}</div>
                         </div>
                         
                         <div class="stat-card events">
@@ -853,10 +824,7 @@
                                 <span class="stat-title">Upcoming Events</span>
                                 <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
                             </div>
-                            <div class="stat-value">${stats.upcoming_events || 0}</div>
-                            <div class="stat-change">
-                                <i class="fas fa-calendar-check"></i> This month
-                            </div>
+                            <div class="stat-value">${stats?.upcoming_events || 0}</div>
                         </div>
                         
                         <div class="stat-card donations">
@@ -864,95 +832,50 @@
                                 <span class="stat-title">Monthly Donations</span>
                                 <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
                             </div>
-                            <div class="stat-value">₹${(stats.monthly_donations || 0).toLocaleString()}</div>
-                            <div class="stat-change">
-                                <i class="fas fa-arrow-up"></i> ${stats.monthly_donation_count || 0} donations
-                            </div>
+                            <div class="stat-value">₹${(stats?.monthly_donations || 0).toLocaleString()}</div>
                         </div>
                     </div>
 
-                    <!-- Charts Row -->
-                    <div class="charts-row">
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Member Registration Trend</h3>
-                                <select id="memberChartPeriod" onchange="updateMemberChart()">
-                                    <option value="7">Last 7 days</option>
-                                    <option value="30" selected>Last 30 days</option>
-                                    <option value="90">Last 90 days</option>
-                                </select>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="memberChart"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="chart-card">
-                            <div class="chart-header">
-                                <h3>Donation Overview</h3>
-                                <select id="donationChartPeriod" onchange="updateDonationChart()">
-                                    <option value="7">Last 7 days</option>
-                                    <option value="30" selected>Last 30 days</option>
-                                    <option value="90">Last 90 days</option>
-                                </select>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="donationChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Activity -->
                     <div class="recent-activity">
                         <div class="section-header">
                             <h3>Recent Activity</h3>
-                            <a href="#" class="view-all" onclick="loadSection('members')">
-                                View All <i class="fas fa-arrow-right"></i>
-                            </a>
                         </div>
                         
                         <div class="activity-list">
                             ${activities.map(activity => `
                                 <div class="activity-item">
-                                    <div class="activity-icon">
-                                        <i class="${activity.icon}"></i>
-                                    </div>
+                                    <div class="activity-icon"><i class="${activity.icon}"></i></div>
                                     <div class="activity-content">
                                         <div class="activity-title">${activity.title}</div>
-                                        <div class="activity-meta">
-                                            <span><i class="far fa-clock"></i> ${activity.time}</span>
-                                        </div>
+                                        <div class="activity-meta"><i class="far fa-clock"></i> ${activity.time}</div>
                                     </div>
-                                    <div class="activity-status ${activity.statusClass}">
-                                        ${activity.status}
-                                    </div>
+                                    <div class="activity-status ${activity.statusClass}">${activity.status}</div>
                                 </div>
                             `).join('')}
-                            ${activities.length === 0 ? '<p class="no-data">No recent activity</p>' : ''}
+                            ${activities.length === 0 ? '<p>No recent activity</p>' : ''}
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
                     <div class="quick-actions">
                         <a href="#" class="quick-action-card" onclick="loadSection('members', 'pending')">
                             <i class="fas fa-user-check"></i>
                             <h4>Approve Members</h4>
-                            <p>${stats.pending_members || 0} pending approvals</p>
+                            <p>${stats?.pending_members || 0} pending</p>
                         </a>
                         
-                        <a href="#" class="quick-action-card" onclick="loadSection('events', 'new')">
+                        <a href="#" class="quick-action-card" onclick="loadSection('events')">
                             <i class="fas fa-calendar-plus"></i>
                             <h4>Add Event</h4>
                             <p>Create new event</p>
                         </a>
                         
-                        <a href="#" class="quick-action-card" onclick="loadSection('news', 'new')">
+                        <a href="#" class="quick-action-card" onclick="loadSection('news')">
                             <i class="fas fa-newspaper"></i>
                             <h4>Post News</h4>
                             <p>Share update</p>
                         </a>
                         
-                        <a href="#" class="quick-action-card" onclick="loadSection('gallery', 'upload')">
+                        <a href="#" class="quick-action-card" onclick="loadSection('gallery')">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <h4>Upload Photos</h4>
                             <p>Add to gallery</p>
@@ -960,148 +883,16 @@
                     </div>
                 `;
 
-                // Initialize charts
-                setTimeout(() => {
-                    initMemberChart();
-                    initDonationChart();
-                }, 100);
-
             } catch (error) {
                 console.error('Error loading dashboard:', error);
-                contentArea.innerHTML = '<div class="error-message">Failed to load dashboard. Please refresh.</div>';
+                contentArea.innerHTML = '<div class="error-message">Failed to load dashboard</div>';
             }
         }
 
-        // Initialize member chart
-        async function initMemberChart() {
-            const ctx = document.getElementById('memberChart').getContext('2d');
-            const period = document.getElementById('memberChartPeriod').value;
-            
-            // Destroy existing chart if any
-            if (dashboardCharts.memberChart) {
-                dashboardCharts.memberChart.destroy();
-            }
-            
-            // Fetch data for chart
-            const { data, error } = await supabase
-                .rpc('get_member_registration_trend', { days: parseInt(period) });
-            
-            const chartData = error ? generateSampleData(period) : data;
-            
-            dashboardCharts.memberChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.map(d => d.date),
-                    datasets: [{
-                        label: 'New Members',
-                        data: chartData.map(d => d.count),
-                        borderColor: '#b3412e',
-                        backgroundColor: 'rgba(180, 65, 46, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Initialize donation chart
-        async function initDonationChart() {
-            const ctx = document.getElementById('donationChart').getContext('2d');
-            const period = document.getElementById('donationChartPeriod').value;
-            
-            // Destroy existing chart if any
-            if (dashboardCharts.donationChart) {
-                dashboardCharts.donationChart.destroy();
-            }
-            
-            // Fetch data for chart
-            const { data, error } = await supabase
-                .rpc('get_donation_trend', { days: parseInt(period) });
-            
-            const chartData = error ? generateSampleDonationData(period) : data;
-            
-            dashboardCharts.donationChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: chartData.map(d => d.date),
-                    datasets: [{
-                        label: 'Donations (₹)',
-                        data: chartData.map(d => d.amount),
-                        backgroundColor: '#f39c12',
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-        }
-
-        // Generate sample data for charts (fallback)
-        function generateSampleData(days) {
-            const data = [];
-            const today = new Date();
-            
-            for (let i = parseInt(days) - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                
-                data.push({
-                    date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-                    count: Math.floor(Math.random() * 5) + 1
-                });
-            }
-            
-            return data;
-        }
-
-        function generateSampleDonationData(days) {
-            const data = [];
-            const today = new Date();
-            
-            for (let i = parseInt(days) - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                
-                data.push({
-                    date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-                    amount: Math.floor(Math.random() * 5000) + 1000
-                });
-            }
-            
-            return data;
-        }
-
-        // Load different sections
-        async function loadSection(section, filter = null) {
-            // Update active menu
+        async function loadSection(section) {
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             event.target.closest('.menu-item').classList.add('active');
             
-            // Update page title
             const titles = {
                 'dashboard': 'Dashboard',
                 'members': 'Member Management',
@@ -1117,128 +908,17 @@
             
             document.getElementById('currentSection').textContent = titles[section] || section;
             
-            // Load appropriate section
-            switch(section) {
-                case 'dashboard':
-                    loadDashboard();
-                    break;
-                case 'members':
-                    loadMemberManagement(filter);
-                    break;
-                case 'events':
-                    loadEventManagement();
-                    break;
-                case 'news':
-                    loadNewsManagement();
-                    break;
-                case 'gallery':
-                    loadGalleryManagement();
-                    break;
-                case 'donations':
-                    loadDonationReports();
-                    break;
-                case 'documents':
-                    loadDocumentManagement();
-                    break;
-                case 'contacts':
-                    loadContactMessages();
-                    break;
-                case 'committee':
-                    loadCommitteeManagement();
-                    break;
-                case 'settings':
-                    loadSettings();
-                    break;
+            if (section === 'dashboard') {
+                loadDashboard();
+            } else {
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="coming-soon">
+                        <i class="fas fa-tools"></i>
+                        <h3>${titles[section]} Coming Soon</h3>
+                        <p>This section is under development</p>
+                    </div>
+                `;
             }
-        }
-
-        // Placeholder functions for other sections
-        async function loadMemberManagement(filter) {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading member management...</p></div>';
-            // We'll implement full member management in next step
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Member management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadEventManagement() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading event management...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Event management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadNewsManagement() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading news management...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">News management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadGalleryManagement() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading gallery management...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Gallery management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadDonationReports() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading donation reports...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Donation reports interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadDocumentManagement() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading document management...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Document management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadContactMessages() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading contact messages...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Contact messages interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadCommitteeManagement() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading committee management...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Committee management interface coming soon...</div>';
-            }, 1000);
-        }
-
-        async function loadSettings() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading settings...</p></div>';
-            setTimeout(() => {
-                contentArea.innerHTML = '<div class="coming-soon">Settings interface coming soon...</div>';
-            }, 1000);
-        }
-
-        // Chart update functions
-        function updateMemberChart() {
-            if (dashboardCharts.memberChart) {
-                dashboardCharts.memberChart.destroy();
-            }
-            initMemberChart();
-        }
-
-        function updateDonationChart() {
-            if (dashboardCharts.donationChart) {
-                dashboardCharts.donationChart.destroy();
-            }
-            initDonationChart();
         }
     </script>
 </body>
