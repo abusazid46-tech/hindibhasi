@@ -1,0 +1,5 @@
+# Handle admin routes
+RewriteEngine On
+RewriteRule ^admin/?$ admin/dashboard.html [L]
+RewriteRule ^admin/login/?$ admin/login.html [L]
+RewriteRule ^admin/dashboard/?$ admin/dashboard.html [L]
