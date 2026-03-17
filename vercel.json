@@ -1,9 +1,10 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/admin", "destination": "/admin/dashboard.html" },
+    { "source": "/admin/login", "destination": "/admin/login.html" },
+    { "source": "/admin/dashboard", "destination": "/admin/dashboard.html" },
+    { "source": "/admin/:path*", "destination": "/admin/:path*.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -23,13 +24,5 @@
         }
       ]
     }
-  ]
-}
-{
-  "rewrites": [
-    { "source": "/admin", "destination": "/admin/dashboard.html" },
-    { "source": "/admin/login", "destination": "/admin/login.html" },
-    { "source": "/admin/dashboard", "destination": "/admin/dashboard.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
