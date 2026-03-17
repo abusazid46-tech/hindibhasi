@@ -246,6 +246,145 @@
             font-size: 14px;
         }
 
+        /* Profile Modal Styles */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .profile-modal.show {
+            display: flex;
+        }
+
+        .profile-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .profile-close:hover {
+            color: #b3412e;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-header img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #f28c38;
+            margin-bottom: 15px;
+            object-fit: cover;
+        }
+
+        .profile-header h2 {
+            color: #2d1f00;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+
+        .profile-badge {
+            background: #fce3d5;
+            color: #b3412e;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .profile-info {
+            background: #fef8f0;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f3b28a;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            width: 120px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #2d1f00;
+        }
+
+        .profile-footer {
+            text-align: center;
+        }
+
+        .profile-footer button {
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .profile-footer button:hover {
+            transform: translateY(-2px);
+        }
+
         @media (max-width: 768px) {
             .filter-section {
                 flex-direction: column;
@@ -259,10 +398,25 @@
                 width: 100%;
             }
         }
+
+        @media (max-width: 480px) {
+            .profile-content {
+                padding: 25px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .info-label {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Header (same as index.html) -->
+    <!-- Header -->
     <header>
         <div class="logo-area">
             <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
@@ -317,11 +471,11 @@
                 </select>
             </div>
             
-            <button class="search-btn" onclick="applyFilters()">
+            <button class="search-btn" onclick="window.applyFilters()">
                 <i class="fas fa-filter"></i> Apply Filters
             </button>
             
-            <button class="reset-btn" onclick="resetFilters()">
+            <button class="reset-btn" onclick="window.resetFilters()">
                 <i class="fas fa-redo"></i> Reset
             </button>
         </div>
@@ -341,7 +495,7 @@
         <div class="pagination" id="pagination"></div>
     </div>
 
-    <!-- Footer (same as index.html) -->
+    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-section">
@@ -362,195 +516,343 @@
     <!-- WhatsApp Button -->
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <!-- Profile Modal Container -->
+    <div class="profile-modal" id="memberProfileModal"></div>
+
     <script>
-   <!-- At the bottom of members.html, before closing body tag -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/members.js"></script>
-<script>
-    // Supabase configuration
-    const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Wrap everything in an IIFE to avoid global scope pollution
+        (function() {
+            // Supabase configuration
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            // Initialize Supabase client
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Initialize MembersModule
-    MembersModule.init(supabase);
+            // State
+            let currentPage = 1;
+            let totalMembers = 0;
+            const pageSize = 12;
+            let currentFilters = {
+                search: '',
+                district: 'all'
+            };
+            let districts = [];
+            let searchTimeout;
 
-    // State
-    let currentPage = 1;
-    let totalMembers = 0;
-    const pageSize = 12;
-    let currentFilters = {
-        search: '',
-        district: 'all'
-    };
-    let districts = [];
-
-    // Load districts on page load
-    document.addEventListener('DOMContentLoaded', async () => {
-        await loadDistricts();
-        await loadMembers();
-    });
-
-    // Load districts for filter dropdown using module
-    async function loadDistricts() {
-        const result = await MembersModule.getDistricts();
-        if (result.success) {
-            districts = result.districts;
-            const districtSelect = document.getElementById('districtFilter');
-            districts.forEach(district => {
-                const option = document.createElement('option');
-                option.value = district;
-                option.textContent = district;
-                districtSelect.appendChild(option);
+            // Load districts on page load
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadDistricts();
+                await loadMembers();
             });
-        }
-    }
 
-    // Load members using module
-    async function loadMembers() {
-        const grid = document.getElementById('membersGrid');
-        const memberCountEl = document.getElementById('memberCount');
-        
-        const result = await MembersModule.getApprovedMembers(currentPage, pageSize, currentFilters);
-        
-        if (result.success) {
-            const { data, count } = result;
-            totalMembers = count || 0;
-            
-            // Update member count
-            const start = totalMembers > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-            const end = Math.min(start + pageSize - 1, totalMembers);
-            memberCountEl.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
-            
-            // Render members
-            if (data && data.length > 0) {
-                grid.innerHTML = data.map(member => `
-                    <div class="member-card">
-                        <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
-                             alt="${MembersModule.helpers.escapeHtml(member.name)}" 
-                             class="member-photo"
-                             onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
-                        <div class="member-info">
-                            <h3>${MembersModule.helpers.escapeHtml(member.name)}</h3>
-                            <span class="member-id">ID: ${member.membership_id || 'Pending'}</span>
-                            <div class="member-details">
-                                <p><i class="fas fa-map-marker-alt"></i> ${MembersModule.helpers.escapeHtml(member.district)}</p>
-                                <p><i class="fas fa-home"></i> ${MembersModule.helpers.escapeHtml(member.village || 'N/A')}</p>
-                                <p><i class="fas fa-phone"></i> ${MembersModule.helpers.escapeHtml(member.phone)}</p>
+            // Load districts for filter dropdown
+            async function loadDistricts() {
+                try {
+                    const { data, error } = await supabase
+                        .from('members')
+                        .select('district')
+                        .eq('status', 'approved')
+                        .order('district');
+                    
+                    if (error) throw error;
+                    
+                    districts = [...new Set(data.map(item => item.district))];
+                    
+                    const districtSelect = document.getElementById('districtFilter');
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district;
+                        option.textContent = district;
+                        districtSelect.appendChild(option);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                }
+            }
+
+            // Load members with current filters
+            async function loadMembers() {
+                const grid = document.getElementById('membersGrid');
+                const memberCountEl = document.getElementById('memberCount');
+                
+                try {
+                    let query = supabase
+                        .from('members')
+                        .select('*', { count: 'exact' })
+                        .eq('status', 'approved')
+                        .order('name');
+                    
+                    // Apply search filter
+                    if (currentFilters.search) {
+                        query = query.or(`name.ilike.%${currentFilters.search}%,village.ilike.%${currentFilters.search}%`);
+                    }
+                    
+                    // Apply district filter
+                    if (currentFilters.district && currentFilters.district !== 'all') {
+                        query = query.eq('district', currentFilters.district);
+                    }
+                    
+                    // Get total count for pagination
+                    const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
+                    
+                    if (countError) throw countError;
+                    
+                    totalMembers = count || 0;
+                    
+                    // Apply pagination
+                    const from = (currentPage - 1) * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await query.range(from, to);
+                    
+                    if (error) throw error;
+                    
+                    // Update member count
+                    const start = totalMembers > 0 ? from + 1 : 0;
+                    const end = Math.min(to + 1, totalMembers);
+                    memberCountEl.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
+                    
+                    // Render members
+                    if (data && data.length > 0) {
+                        grid.innerHTML = data.map(member => `
+                            <div class="member-card">
+                                <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
+                                     alt="${escapeHtml(member.name)}" 
+                                     class="member-photo"
+                                     onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
+                                <div class="member-info">
+                                    <h3>${escapeHtml(member.name)}</h3>
+                                    <span class="member-id">ID: ${member.membership_id || 'Pending'}</span>
+                                    <div class="member-details">
+                                        <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(member.district)}</p>
+                                        <p><i class="fas fa-home"></i> ${escapeHtml(member.village || 'N/A')}</p>
+                                        <p><i class="fas fa-phone"></i> ${escapeHtml(member.phone)}</p>
+                                    </div>
+                                    <button class="view-profile-btn" onclick="window.viewProfile('${member.id}')">
+                                        <i class="fas fa-user"></i> View Profile
+                                    </button>
+                                </div>
                             </div>
-                            <button class="view-profile-btn" onclick="viewProfile('${member.id}')">
-                                <i class="fas fa-user"></i> View Profile
-                            </button>
+                        `).join('');
+                    } else {
+                        grid.innerHTML = `
+                            <div class="no-results">
+                                <i class="fas fa-users-slash"></i>
+                                <h3>No members found</h3>
+                                <p>Try adjusting your search filters</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Render pagination
+                    renderPagination();
+                    
+                } catch (error) {
+                    console.error('Error loading members:', error);
+                    grid.innerHTML = '<div class="error-message">Failed to load members. Please refresh.</div>';
+                }
+            }
+
+            // Render pagination controls
+            function renderPagination() {
+                const totalPages = Math.ceil(totalMembers / pageSize);
+                const pagination = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let html = '';
+                
+                // Previous button
+                html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                        onclick="window.changePage(${currentPage - 1})" 
+                        ${currentPage === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>`;
+                
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    if (
+                        i === 1 || 
+                        i === totalPages || 
+                        (i >= currentPage - 2 && i <= currentPage + 2)
+                    ) {
+                        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                                onclick="window.changePage(${i})">${i}</button>`;
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        html += `<span class="page-dots">...</span>`;
+                    }
+                }
+                
+                // Next button
+                html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                        onclick="window.changePage(${currentPage + 1})"
+                        ${currentPage === totalPages ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>`;
+                
+                pagination.innerHTML = html;
+            }
+
+            // Change page
+            window.changePage = function(page) {
+                const totalPages = Math.ceil(totalMembers / pageSize);
+                if (page < 1 || page > totalPages) return;
+                
+                currentPage = page;
+                loadMembers();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            // Apply filters
+            window.applyFilters = function() {
+                currentFilters.search = document.getElementById('searchInput').value;
+                currentFilters.district = document.getElementById('districtFilter').value;
+                currentPage = 1;
+                loadMembers();
+            };
+
+            // Reset filters
+            window.resetFilters = function() {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('districtFilter').value = 'all';
+                currentFilters = { search: '', district: 'all' };
+                currentPage = 1;
+                loadMembers();
+            };
+
+            // Debounce search
+            window.debounceSearch = function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    window.applyFilters();
+                }, 500);
+            };
+
+            // View profile with proper modal
+            window.viewProfile = async function(memberId) {
+                try {
+                    const { data: member, error } = await supabase
+                        .from('members')
+                        .select('*')
+                        .eq('id', memberId)
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    const modal = document.getElementById('memberProfileModal');
+                    
+                    // Build profile HTML
+                    modal.innerHTML = `
+                        <div class="profile-content">
+                            <button class="profile-close" onclick="window.closeProfileModal()">&times;</button>
+                            
+                            <div class="profile-header">
+                                <img src="${member.photo_url || 'https://via.placeholder.com/150?text=🕉️'}" 
+                                     alt="${escapeHtml(member.name)}"
+                                     onerror="this.src='https://via.placeholder.com/150?text=🕉️'">
+                                <h2>${escapeHtml(member.name)}</h2>
+                                <span class="profile-badge">Member ID: ${member.membership_id || 'Pending'}</span>
+                            </div>
+                            
+                            <div class="profile-info">
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-map-marker-alt"></i> District</span>
+                                    <span class="info-value">${escapeHtml(member.district)}</span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-home"></i> Village</span>
+                                    <span class="info-value">${escapeHtml(member.village || 'Not provided')}</span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-phone"></i> Phone</span>
+                                    <span class="info-value">${member.phone}</span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
+                                    <span class="info-value">${member.email || 'Not provided'}</span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-calendar"></i> Joined</span>
+                                    <span class="info-value">${new Date(member.created_at).toLocaleDateString()}</span>
+                                </div>
+                                
+                                ${member.occupation ? `
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-briefcase"></i> Occupation</span>
+                                    <span class="info-value">${escapeHtml(member.occupation)}</span>
+                                </div>
+                                ` : ''}
+                                
+                                ${member.blood_group ? `
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fas fa-tint"></i> Blood Group</span>
+                                    <span class="info-value">${member.blood_group}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="profile-footer">
+                                <button onclick="window.closeProfileModal()">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="no-results">
-                        <i class="fas fa-users-slash"></i>
-                        <h3>No members found</h3>
-                        <p>Try adjusting your search filters</p>
-                    </div>
-                `;
+                    `;
+                    
+                    // Show modal
+                    modal.classList.add('show');
+                    
+                } catch (error) {
+                    console.error('Error loading member details:', error);
+                    alert('Failed to load member details');
+                }
+            };
+
+            // Close profile modal
+            window.closeProfileModal = function() {
+                const modal = document.getElementById('memberProfileModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            };
+
+            // Close modal when clicking outside
+            document.addEventListener('click', function(e) {
+                const modal = document.getElementById('memberProfileModal');
+                if (e.target === modal) {
+                    window.closeProfileModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.closeProfileModal();
+                }
+            });
+
+            // Helper: Escape HTML
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             }
-            
-            // Render pagination
-            renderPagination();
-        } else {
-            grid.innerHTML = '<div class="error-message">Failed to load members. Please refresh.</div>';
-        }
-    }
 
-    // Render pagination
-    function renderPagination() {
-        const totalPages = Math.ceil(totalMembers / pageSize);
-        const pagination = document.getElementById('pagination');
-        
-        if (totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-        }
-        
-        let html = '';
-        
-        // Previous button
-        html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
-                onclick="changePage(${currentPage - 1})" 
-                ${currentPage === 1 ? 'disabled' : ''}>
-                <i class="fas fa-chevron-left"></i>
-            </button>`;
-        
-        // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-            if (
-                i === 1 || 
-                i === totalPages || 
-                (i >= currentPage - 2 && i <= currentPage + 2)
-            ) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                        onclick="changePage(${i})">${i}</button>`;
-            } else if (i === currentPage - 3 || i === currentPage + 3) {
-                html += `<span class="page-dots">...</span>`;
-            }
-        }
-        
-        // Next button
-        html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
-                onclick="changePage(${currentPage + 1})"
-                ${currentPage === totalPages ? 'disabled' : ''}>
-                <i class="fas fa-chevron-right"></i>
-            </button>`;
-        
-        pagination.innerHTML = html;
-    }
-
-    // Change page
-    window.changePage = function(page) {
-        const totalPages = Math.ceil(totalMembers / pageSize);
-        if (page < 1 || page > totalPages) return;
-        
-        currentPage = page;
-        loadMembers();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    // Apply filters
-    window.applyFilters = function() {
-        currentFilters.search = document.getElementById('searchInput').value;
-        currentFilters.district = document.getElementById('districtFilter').value;
-        currentPage = 1;
-        loadMembers();
-    };
-
-    // Reset filters
-    window.resetFilters = function() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('districtFilter').value = 'all';
-        currentFilters = { search: '', district: 'all' };
-        currentPage = 1;
-        loadMembers();
-    };
-
-    // Debounce search
-    let searchTimeout;
-    window.debounceSearch = function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            applyFilters();
-        }, 500);
-    };
-
-    // View profile using module
-    window.viewProfile = async function(memberId) {
-        const result = await MembersModule.getMemberById(memberId);
-        if (result.success) {
-            // You can implement a modal here
-            alert(`Member: ${result.data.name}\nPhone: ${result.data.phone}\nDistrict: ${result.data.district}`);
-        } else {
-            alert('Error loading member details');
-        }
-    };
-</script>     
+            // Add search input event listener for debounce
+            document.getElementById('searchInput').addEventListener('keyup', function() {
+                window.debounceSearch();
+            });
+        })();
+    </script>
 </body>
 </html>
