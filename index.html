@@ -3,31 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <meta name="description" content="Asom Hindi Bhasi Brahman Mahasabha - Official website for cultural and social welfare organization">
-  <meta name="theme-color" content="#b3412e">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
   <title>Asom Hindi Bhasi Brahman Mahasabha</title>
   <!-- Google Fonts & Font Awesome -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="/css/style.css">
-  <!-- Supabase SDK -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#b3412e">
 </head>
 <body>
 
 <header>
   <div class="logo-area">
     <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
-    <h2 data-i18n="orgName">Asom Hindi Bhasi Brahman Mahasabha</h2>
+    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
   </div>
   <div class="right-controls">
     <div class="lang-switch">
-      <button class="lang-option en" data-lang="en">EN</button>
-      <button class="lang-option hi" data-lang="hi">HI</button>
-      <button class="lang-option as" data-lang="as">AS</button>
+      <button class="lang-option en active" onclick="setLanguage('en')">EN</button>
+      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+      <button class="lang-option bho" onclick="setLanguage('bho')">भो</button>
     </div>
     <div class="menu-dropdown">
       <div class="hamburger" aria-label="menu" role="button" tabindex="0">
@@ -36,114 +36,154 @@
         <span></span>
       </div>
       <div class="dropdown-content">
-        <a href="/"><i class="fas fa-home"></i> <span data-i18n="home">Home</span></a>
-        <a href="/about.html"><i class="fas fa-users"></i> <span data-i18n="about">About Us</span></a>
-        <a href="/members.html"><i class="fas fa-id-card"></i> <span data-i18n="members">Members</span></a>
-        <a href="/events.html"><i class="fas fa-calendar-alt"></i> <span data-i18n="events">Events</span></a>
-        <a href="/news.html"><i class="fas fa-newspaper"></i> <span data-i18n="news">News</span></a>
-        <a href="/gallery.html"><i class="fas fa-images"></i> <span data-i18n="gallery">Gallery</span></a>
-        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> <span data-i18n="donate">Donate</span></a>
-        <a href="/contact.html"><i class="fas fa-phone-alt"></i> <span data-i18n="contact">Contact</span></a>
-        <a href="/register.html"><i class="fas fa-user-plus"></i> <span data-i18n="register">Register</span></a>
-        <a href="/documents.html"><i class="fas fa-file-alt"></i> <span data-i18n="documents">Documents</span></a>
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="about.html"><i class="fas fa-users"></i> About Us</a>
+        <a href="members.html"><i class="fas fa-address-book"></i> Member Directory</a>
+        <a href="membership-registration.html"><i class="fas fa-user-plus"></i> Join Membership</a>
+        <a href="events.html"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="news.html"><i class="fas fa-newspaper"></i> News</a>
+        <a href="gallery.html"><i class="fas fa-images"></i> Gallery</a>
+        <a href="videos.html"><i class="fas fa-video"></i> Videos</a>
+        <a href="donation.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        <a href="documents.html"><i class="fas fa-file-pdf"></i> Documents</a>
+        <a href="contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+        <a href="admin/login.html"><i class="fas fa-lock"></i> Admin</a>
       </div>
     </div>
   </div>
 </header>
 
-<!-- Hero -->
+<!-- Hero Section (keeping original) -->
 <section class="hero">
-  <h1 data-i18n="heroTitle">Serving Dharma & Humanity</h1>
-  <p data-i18n="heroDesc">A Non-Profit Organization for Cultural & Social Welfare</p>
+  <h1 id="heroTitle">Serving Dharma & Humanity</h1>
+  <p id="heroDesc">A Non-Profit Organization for Cultural & Social Welfare</p>
+  <div class="hero-stats" id="heroStats">
+    <div class="stat-item">
+      <span class="stat-number" id="memberCount">0</span>
+      <span class="stat-label">Members</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" id="donationTotal">₹0</span>
+      <span class="stat-label">Donations</span>
+    </div>
+  </div>
 </section>
 
-<!-- Latest News Section -->
-<section class="section">
-  <h2 data-i18n="latestNews">Latest News</h2>
-  <div class="grid" id="latest-news">
-    <div class="spinner"></div>
+<!-- Latest News Section (Dynamic) -->
+<section id="latest-news" class="section">
+  <h2 id="newsTitle">Latest News</h2>
+  <div class="card">
+    <div class="news-grid" id="newsContainer">
+      <!-- Dynamically loaded -->
+      <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading news...</div>
+    </div>
+    <a href="news.html" class="btn view-all-btn">View All News <i class="fas fa-arrow-right"></i></a>
   </div>
-  <a href="/news.html" class="btn btn-outline" data-i18n="viewAll">View All News</a>
 </section>
 
-<!-- Upcoming Events Section -->
-<section class="section">
-  <h2 data-i18n="upcomingEvents">Upcoming Events</h2>
-  <div class="grid" id="upcoming-events">
-    <div class="spinner"></div>
+<!-- Upcoming Events Section (Dynamic) -->
+<section id="upcoming-events" class="section">
+  <h2 id="eventsTitle">Upcoming Events</h2>
+  <div class="card">
+    <div class="events-grid" id="eventsContainer">
+      <!-- Dynamically loaded -->
+      <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading events...</div>
+    </div>
+    <a href="events.html" class="btn view-all-btn">View All Events <i class="fas fa-arrow-right"></i></a>
   </div>
-  <a href="/events.html" class="btn btn-outline" data-i18n="viewAll">View All Events</a>
+</section>
+
+<!-- About Preview (keeping original but enhanced) -->
+<section id="about" class="section">
+  <h2 id="aboutTitle">About Us</h2>
+  <div class="card">
+    <p id="aboutText">We are a registered non-profit Brahman society working for religious, cultural and charity activities across Assam and India.</p>
+    <a href="about.html" class="btn">Read More <i class="fas fa-info-circle"></i></a>
+  </div>
+  
+  <!-- Office Bearers Preview -->
+  <div class="office-bearers-preview">
+    <h3>Our Office Bearers</h3>
+    <div class="bearers-grid" id="bearersContainer">
+      <!-- Dynamically loaded -->
+    </div>
+    <a href="about.html#committee" class="btn secondary-btn">View All Committee Members</a>
+  </div>
 </section>
 
 <!-- Gallery Preview -->
-<section class="section">
-  <h2 data-i18n="gallery">Photo Gallery</h2>
-  <div class="media-gallery" id="gallery-preview">
-    <div class="spinner"></div>
+<section id="gallery-preview" class="section">
+  <h2>Photo Gallery</h2>
+  <div class="card">
+    <div class="media-gallery" id="galleryPreview"></div>
+    <a href="gallery.html" class="btn view-all-btn">View Full Gallery <i class="fas fa-images"></i></a>
   </div>
-  <a href="/gallery.html" class="btn btn-outline" data-i18n="viewAll">View Full Gallery</a>
 </section>
 
-<!-- Office Bearers Preview -->
-<section class="section">
-  <h2 data-i18n="officeBearers">Our Office Bearers</h2>
-  <div class="grid" id="office-bearers-preview">
-    <div class="spinner"></div>
+<!-- Join Membership CTA -->
+<section class="section cta-section">
+  <div class="card cta-card">
+    <h2>Become a Member Today</h2>
+    <p>Join our community and be part of our cultural and social initiatives</p>
+    <div class="cta-features">
+      <span><i class="fas fa-check-circle"></i> Digital Membership Card</span>
+      <span><i class="fas fa-check-circle"></i> Event Participation</span>
+      <span><i class="fas fa-check-circle"></i> Community Network</span>
+    </div>
+    <a href="membership-registration.html" class="btn cta-button">Register Now (₹49)</a>
   </div>
-  <a href="/about.html#committee" class="btn btn-outline" data-i18n="viewAll">View All Committee Members</a>
 </section>
 
-<!-- Join & Donate Section -->
+<!-- Donation CTA -->
 <section class="section">
-  <div class="grid">
-    <!-- Join Card -->
-    <div class="card">
-      <h3 data-i18n="joinMembership">Join as Member</h3>
-      <p data-i18n="joinDesc">Become a member of our community and support our cause.</p>
-      <p class="price">₹49 <small data-i18n="registrationFee">Registration fee</small></p>
-      <a href="/register.html" class="btn" data-i18n="joinNow">Join Now</a>
+  <div class="card donation-card">
+    <h2>Support Our Cause</h2>
+    <p>Your donations help us organize cultural events, charity drives, and community welfare programs</p>
+    <div class="donation-impact">
+      <div class="impact-item">
+        <i class="fas fa-utensils"></i>
+        <span>Anna Daan</span>
+      </div>
+      <div class="impact-item">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Education</span>
+      </div>
+      <div class="impact-item">
+        <i class="fas fa-hand-holding-heart"></i>
+        <span>Social Welfare</span>
+      </div>
     </div>
-    
-    <!-- Donate Card -->
-    <div class="card">
-      <h3 data-i18n="supportUs">Support Our Cause</h3>
-      <p data-i18n="donateDesc">Your donation helps us serve the community better.</p>
-      <p class="total-donations" data-i18n="totalRaised">Total Raised: <span id="total-donations">₹0</span></p>
-      <a href="/donate.html" class="btn btn-success" data-i18n="donateNow">Donate Now</a>
-    </div>
+    <a href="donation.html" class="btn donate-cta">Donate Now <i class="fas fa-heart"></i></a>
   </div>
 </section>
 
 <!-- Contact Preview -->
-<section class="section" id="contact">
-  <h2 data-i18n="contactUs">Contact Us</h2>
-  <div class="card">
-    <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
-    <p><i class="fas fa-phone"></i> +91 98765 43210</p>
-    <p><i class="fas fa-map-marker-alt"></i> Guwahati, Assam</p>
-    <a href="/contact.html" class="btn btn-outline" data-i18n="contactForm">Send Message</a>
+<section id="contact" class="section">
+  <h2>Contact Us</h2>
+  <div class="card contact-preview">
+    <div class="contact-info">
+      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-map-marker-alt"></i> Guwahati, Assam</p>
+    </div>
+    <a href="contact.html" class="btn">Send Message <i class="fas fa-paper-plane"></i></a>
   </div>
 </section>
 
 <footer>
   <div class="footer-content">
     <div class="footer-section">
-      <h4 data-i18n="aboutUs">About Us</h4>
-      <p data-i18n="footerAbout">Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
+      <h3>Asom Hindi Bhasi Brahman Mahasabha</h3>
+      <p>Working for cultural preservation and community welfare since 1985</p>
     </div>
     <div class="footer-section">
-      <h4 data-i18n="quickLinks">Quick Links</h4>
-      <ul>
-        <li><a href="/members.html" data-i18n="members">Members Directory</a></li>
-        <li><a href="/events.html" data-i18n="events">Events</a></li>
-        <li><a href="/news.html" data-i18n="news">News</a></li>
-        <li><a href="/donate.html" data-i18n="donate">Donate</a></li>
-      </ul>
+      <h4>Quick Links</h4>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="sitemap.html">Sitemap</a>
     </div>
     <div class="footer-section">
-      <h4 data-i18n="contactUs">Contact Us</h4>
-      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
-      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <h4>Follow Us</h4>
       <div class="social-links">
         <a href="#"><i class="fab fa-facebook"></i></a>
         <a href="#"><i class="fab fa-twitter"></i></a>
@@ -152,33 +192,15 @@
       </div>
     </div>
   </div>
-  <div class="copyright" data-i18n="copyright">
-    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
+  <div class="footer-bottom">
+    © 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved
   </div>
 </footer>
 
-<!-- WhatsApp Button -->
-<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
-  <i class="fab fa-whatsapp"></i>
-</a>
+<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
 <!-- Scripts -->
-<script src="/js/supabase.js"></script>
-<script src="/js/app.js"></script>
-
-<script>
-  // Register Service Worker for PWA
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('ServiceWorker registered:', registration);
-        })
-        .catch(error => {
-          console.log('ServiceWorker registration failed:', error);
-        });
-    });
-  }
-</script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
