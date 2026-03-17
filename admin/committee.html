@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committee Management - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid gold;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: gold;
+        }
+
+        .menu-item i {
+            width: 22px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2d1f00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-select select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 14px;
+            background: white;
+        }
+
+        /* Committee Grid */
+        .committee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .committee-card {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 4px solid #f28c38;
+            position: relative;
+        }
+
+        .committee-photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .status-inactive {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .order-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #b3412e;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .committee-info {
+            padding: 20px;
+        }
+
+        .committee-info h3 {
+            color: #2d1f00;
+            margin-bottom: 5px;
+        }
+
+        .committee-designation {
+            color: #b3412e;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .committee-details {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .committee-details p {
+            margin: 5px 0;
+        }
+
+        .committee-details i {
+            width: 20px;
+            color: #b3412e;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .toggle-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .up-btn, .down-btn {
+            width: 35px;
+            background: #b3412e;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #b3412e;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .page-btn.active {
+            background: #b3412e;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group.checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group.checkbox input {
+            width: auto;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .file-input {
+            border: 2px dashed #f3b28a;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #b3412e;
+            background: #fef8f0;
+        }
+
+        .file-input i {
+            font-size: 40px;
+            color: #b3412e;
+            margin-bottom: 10px;
+        }
+
+        .preview {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 15px auto;
+            display: none;
+            border: 3px solid #b3412e;
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-header h3, .sidebar-header p, .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p>Admin</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="members.html" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            <a href="events.html" class="menu-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="news.html" class="menu-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </a>
+            <a href="gallery.html" class="menu-item">
+                <i class="fas fa-images"></i>
+                <span>Gallery</span>
+            </a>
+            <a href="donations.html" class="menu-item">
+                <i class="fas fa-hand-holding-heart"></i>
+                <span>Donations</span>
+            </a>
+            <a href="documents.html" class="menu-item">
+                <i class="fas fa-file-pdf"></i>
+                <span>Documents</span>
+            </a>
+            <a href="contacts.html" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <a href="committee.html" class="menu-item active">
+                <i class="fas fa-user-tie"></i>
+                <span>Committee</span>
+            </a>
+            <div class="menu-divider"></div>
+            <a href="#" class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-user-tie"></i>
+                <span>Committee Management</span>
+            </div>
+            <button class="add-btn" onclick="showAddModal()">
+                <i class="fas fa-plus"></i> Add Member
+            </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, designation..." onkeyup="debounceSearch()">
+            </div>
+            
+            <div class="filter-select">
+                <select id="statusFilter" onchange="applyFilters()">
+                    <option value="all">All Members</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+            
+            <div class="filter-select">
+                <select id="sortFilter" onchange="applyFilters()">
+                    <option value="order">Display Order</option>
+                    <option value="name">By Name</option>
+                    <option value="designation">By Designation</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Committee Grid -->
+        <div class="committee-grid" id="committeeGrid">
+            <div class="loading-spinner" style="grid-column: 1/-1; text-align: center;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading committee members...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="committeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Committee Member</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="committeeForm">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="memberName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Designation *</label>
+                    <input type="text" id="designation" placeholder="e.g., President, Secretary" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>District</label>
+                        <input type="text" id="district" placeholder="e.g., Kamrup">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Display Order</label>
+                        <input type="number" id="displayOrder" min="1" value="1">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Biography</label>
+                    <textarea id="bio" rows="4" placeholder="Brief biography..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Term Start</label>
+                        <input type="date" id="termStart">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Term End</label>
+                        <input type="date" id="termEnd">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Photo</label>
+                    <div class="file-input" onclick="document.getElementById('memberPhoto').click()">
+                        <i class="fas fa-camera"></i>
+                        <p>Click to upload photo</p>
+                        <small>JPG, PNG (Max 2MB)</small>
+                    </div>
+                    <input type="file" id="memberPhoto" accept="image/*" style="display: none;" onchange="previewPhoto(this)">
+                    <img id="photoPreview" class="preview">
+                </div>
+                
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="isActive" checked>
+                    <label>Active Member</label>
+                </div>
+                
+                <button type="submit" class="save-btn">Save Member</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/committee.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Initialize CommitteeModule
+            CommitteeModule.init(supabase);
+
+            // State
+            let currentPage = 1;
+            let totalPages = 1;
+            let currentFilters = {
+                search: '',
+                sort: 'order'
+            };
+            let searchTimeout;
+            let editingMemberId = null;
+            let selectedFile = null;
+
+            // Check auth
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const storedAdmin = sessionStorage.getItem('adminInfo');
+                if (storedAdmin) {
+                    const admin = JSON.parse(storedAdmin);
+                    document.getElementById('adminName').textContent = admin.name;
+                }
+                
+                loadMembers();
+            });
+
+            async function loadMembers() {
+                const grid = document.getElementById('committeeGrid');
+                
+                // Apply status filter
+                const status = document.getElementById('statusFilter').value;
+                if (status === 'active') {
+                    currentFilters.is_active = true;
+                } else if (status === 'inactive') {
+                    currentFilters.is_active = false;
+                } else {
+                    delete currentFilters.is_active;
+                }
+                
+                const result = await CommitteeModule.getAllMembers(currentFilters, currentPage, 12);
+                
+                if (result.success) {
+                    const { data, totalPages: pages } = result;
+                    totalPages = pages;
+                    
+                    if (data && data.length > 0) {
+                        grid.innerHTML = data.map(member => `
+                            <div class="committee-card">
+                                <span class="order-badge">${member.display_order}</span>
+                                <span class="status-badge ${member.is_active ? 'status-active' : 'status-inactive'}">
+                                    ${member.is_active ? 'Active' : 'Inactive'}
+                                </span>
+                                <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
+                                     alt="${CommitteeModule.helpers.escapeHtml(member.name)}" 
+                                     class="committee-photo"
+                                     onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
+                                <div class="committee-info">
+                                    <h3>${CommitteeModule.helpers.escapeHtml(member.name)}</h3>
+                                    <div class="committee-designation">${CommitteeModule.helpers.escapeHtml(member.designation)}</div>
+                                    <div class="committee-details">
+                                        <p><i class="fas fa-map-marker-alt"></i> ${member.district || 'Assam'}</p>
+                                        ${member.phone ? `<p><i class="fas fa-phone"></i> ${member.phone}</p>` : ''}
+                                        ${member.email ? `<p><i class="fas fa-envelope"></i> ${member.email}</p>` : ''}
+                                    </div>
+                                    <div class="card-actions">
+                                        <button class="action-btn up-btn" onclick="reorderMember('${member.id}', -1)"><i class="fas fa-arrow-up"></i></button>
+                                        <button class="action-btn down-btn" onclick="reorderMember('${member.id}', 1)"><i class="fas fa-arrow-down"></i></button>
+                                        <button class="action-btn edit-btn" onclick="editMember('${member.id}')"><i class="fas fa-edit"></i></button>
+                                        <button class="action-btn toggle-btn" onclick="toggleActive('${member.id}', ${member.is_active})">
+                                            ${member.is_active ? 'Deactivate' : 'Activate'}
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="deleteMember('${member.id}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px;">No committee members found</div>';
+                    }
+                    
+                    renderPagination();
+                }
+            }
+
+            function renderPagination() {
+                const pagination = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+                
+                let html = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>`;
+                }
+                
+                pagination.innerHTML = html;
+            }
+
+            window.changePage = function(page) {
+                currentPage = page;
+                loadMembers();
+            };
+
+            window.applyFilters = function() {
+                currentFilters.search = document.getElementById('searchInput').value;
+                currentFilters.sort = document.getElementById('sortFilter').value;
+                currentPage = 1;
+                loadMembers();
+            };
+
+            window.debounceSearch = function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 500);
+            };
+
+            window.showAddModal = function() {
+                editingMemberId = null;
+                document.getElementById('modalTitle').textContent = 'Add Committee Member';
+                document.getElementById('committeeForm').reset();
+                document.getElementById('photoPreview').style.display = 'none';
+                document.getElementById('displayOrder').value = '1';
+                document.getElementById('isActive').checked = true;
+                document.getElementById('committeeModal').classList.add('show');
+            };
+
+            window.editMember = async function(memberId) {
+                const result = await CommitteeModule.getMemberById(memberId);
+                
+                if (result.success) {
+                    const member = result.data;
+                    editingMemberId = memberId;
+                    
+                    document.getElementById('modalTitle').textContent = 'Edit Committee Member';
+                    document.getElementById('memberName').value = member.name;
+                    document.getElementById('designation').value = member.designation;
+                    document.getElementById('district').value = member.district || '';
+                    document.getElementById('displayOrder').value = member.display_order;
+                    document.getElementById('phone').value = member.phone || '';
+                    document.getElementById('email').value = member.email || '';
+                    document.getElementById('bio').value = member.bio || '';
+                    document.getElementById('termStart').value = member.term_start || '';
+                    document.getElementById('termEnd').value = member.term_end || '';
+                    document.getElementById('isActive').checked = member.is_active;
+                    
+                    if (member.photo_url) {
+                        const preview = document.getElementById('photoPreview');
+                        preview.src = member.photo_url;
+                        preview.style.display = 'block';
+                    }
+                    
+                    document.getElementById('committeeModal').classList.add('show');
+                }
+            };
+
+            window.previewPhoto = function(input) {
+                const file = input.files[0];
+                if (file) {
+                    selectedFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('photoPreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            document.getElementById('committeeForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const memberData = {
+                    name: document.getElementById('memberName').value,
+                    designation: document.getElementById('designation').value,
+                    district: document.getElementById('district').value || null,
+                    display_order: parseInt(document.getElementById('displayOrder').value),
+                    phone: document.getElementById('phone').value || null,
+                    email: document.getElementById('email').value || null,
+                    bio: document.getElementById('bio').value || null,
+                    term_start: document.getElementById('termStart').value || null,
+                    term_end: document.getElementById('termEnd').value || null,
+                    is_active: document.getElementById('isActive').checked
+                };
+                
+                let result;
+                if (editingMemberId) {
+                    result = await CommitteeModule.updateMember(editingMemberId, memberData, selectedFile);
+                } else {
+                    result = await CommitteeModule.createMember(memberData, selectedFile);
+                }
+                
+                if (result.success) {
+                    alert(editingMemberId ? 'Member updated!' : 'Member added!');
+                    closeModal();
+                    loadMembers();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            });
+
+            window.toggleActive = async function(memberId, current) {
+                const result = await CommitteeModule.toggleActive(memberId, !current);
+                if (result.success) {
+                    loadMembers();
+                }
+            };
+
+            window.deleteMember = async function(memberId) {
+                if (!confirm('Are you sure you want to delete this member?')) return;
+                
+                const result = await CommitteeModule.deleteMember(memberId);
+                if (result.success) {
+                    alert('Member deleted');
+                    loadMembers();
+                }
+            };
+
+            window.reorderMember = async function(memberId, direction) {
+                // Get current members list
+                const result = await CommitteeModule.getAllMembers({}, 1, 100);
+                
+                if (result.success) {
+                    const members = result.data;
+                    const currentIndex = members.findIndex(m => m.id === memberId);
+                    
+                    if (currentIndex === -1) return;
+                    
+                    const newIndex = currentIndex + direction;
+                    if (newIndex < 0 || newIndex >= members.length) return;
+                    
+                    // Swap display orders
+                    const currentOrder = members[currentIndex].display_order;
+                    const newOrder = members[newIndex].display_order;
+                    
+                    members[currentIndex].display_order = newOrder;
+                    members[newIndex].display_order = currentOrder;
+                    
+                    // Update both members
+                    await CommitteeModule.reorderMembers([
+                        { id: members[currentIndex].id, display_order: newOrder },
+                        { id: members[newIndex].id, display_order: currentOrder }
+                    ]);
+                    
+                    loadMembers();
+                }
+            };
+
+            window.closeModal = function() {
+                document.getElementById('committeeModal').classList.remove('show');
+                selectedFile = null;
+            };
+
+            window.logout = async function() {
+                await supabase.auth.signOut();
+                sessionStorage.removeItem('adminInfo');
+                window.location.href = 'login.html';
+            };
+        })();
+    </script>
+</body>
+</html>
