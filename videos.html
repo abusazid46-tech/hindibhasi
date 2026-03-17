@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Video Gallery - Asom Hindi Bhasi Brahman Mahasabha">
+  <meta name="theme-color" content="#b3412e">
+  <link rel="manifest" href="/manifest.json">
+  <title>Videos - Asom Hindi Bhasi Brahman Mahasabha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 30px;
+      margin: 30px 0;
+    }
+    
+    .video-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease;
+    }
+    
+    .video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .video-thumbnail {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    
+    .video-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    .video-card:hover .video-thumbnail img {
+      transform: scale(1.1);
+    }
+    
+    .play-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+    
+    .video-card:hover .play-button {
+      background: var(--primary);
+      color: white;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    
+    .video-duration {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    
+    .video-info {
+      padding: 20px;
+    }
+    
+    .video-title {
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    .video-meta {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .video-description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
+    
+    .video-views {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--secondary);
+    }
+    
+    .category-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+    
+    .video-player-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .video-player-modal.show {
+      display: flex;
+    }
+    
+    .video-player-container {
+      width: 90%;
+      max-width: 1000px;
+      position: relative;
+    }
+    
+    .video-player-container video {
+      width: 100%;
+      max-height: 80vh;
+      border-radius: 10px;
+    }
+    
+    .close-video {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+    }
+    
+    .video-info-modal {
+      color: white;
+      margin-top: 20px;
+    }
+    
+    .youtube-embed {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+    }
+    
+    .youtube-embed iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    @media (max-width: 768px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+  </div>
+  <div class="right-controls">
+    <div class="lang-switch">
+      <button class="lang-option en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+    </div>
+    <div class="menu-dropdown">
+      <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="dropdown-content">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/about.html"><i class="fas fa-users"></i> About Us</a>
+        <a href="/members.html"><i class="fas fa-id-card"></i> Members</a>
+        <a href="/events.html"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
+        <a href="/gallery.html"><i class="fas fa-images"></i> Gallery</a>
+        <a href="/videos.html"><i class="fas fa-video"></i> Videos</a>
+        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        <a href="/contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+        <a href="/register.html"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="/documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Page Banner -->
+<section class="hero" style="height: 30vh; min-height: 200px; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1536240474400-95dad987e66d?q=80&w=2069&auto=format&fit=crop') center/cover;">
+  <h1>Video Gallery</h1>
+  <p>Watch our events, ceremonies, and cultural programs</p>
+</section>
+
+<!-- Main Content -->
+<section class="section">
+  <!-- Category Filters -->
+  <div class="category-filters">
+    <button class="filter-btn active" onclick="filterVideos('all')">All Videos</button>
+    <button class="filter-btn" onclick="filterVideos('event')">Events</button>
+    <button class="filter-btn" onclick="filterVideos('ceremony')">Ceremonies</button>
+    <button class="filter-btn" onclick="filterVideos('interview')">Interviews</button>
+    <button class="filter-btn" onclick="filterVideos('cultural')">Cultural</button>
+    <button class="filter-btn" onclick="filterVideos('lecture')">Lectures</button>
+  </div>
+  
+  <!-- Featured Video -->
+  <div id="featured-video" style="margin-bottom: 40px; display: none;">
+    <h3 style="text-align: left; margin-bottom: 20px;">Featured Video</h3>
+    <div class="video-card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div class="video-thumbnail" style="height: 300px;" onclick="playVideo('featured')">
+        <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Featured Video">
+        <div class="play-button"><i class="fas fa-play"></i></div>
+      </div>
+      <div class="video-info">
+        <h3 class="video-title" style="font-size: 1.5rem;">Annual Cultural Program 2026</h3>
+        <div class="video-meta">
+          <span><i class="far fa-calendar"></i> January 15, 2026</span>
+          <span class="video-views"><i class="far fa-eye"></i> 2.5K views</span>
+        </div>
+        <p class="video-description" style="font-size: 1rem;">
+          Watch the highlights from our annual cultural program featuring traditional dances, music performances, and community gathering.
+        </p>
+        <button class="btn" onclick="playVideo('featured')">Watch Now</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Video Grid -->
+  <div id="videos-container" class="video-grid">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Load More Button -->
+  <div style="text-align: center; margin-top: 40px;">
+    <button class="btn btn-outline" onclick="loadMoreVideos()" id="load-more-videos" style="display: none;">
+      <i class="fas fa-plus"></i> Load More Videos
+    </button>
+  </div>
+</section>
+
+<!-- Video Player Modal -->
+<div class="video-player-modal" id="videoPlayer">
+  <div class="video-player-container">
+    <span class="close-video" onclick="closeVideoPlayer()">&times;</span>
+    <div id="video-player-content"></div>
+    <div class="video-info-modal" id="video-info-modal"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>About Us</h4>
+      <p>Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/members.html">Members Directory</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/news.html">News</a></li>
+        <li><a href="/donate.html">Donate</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="copyright">
+    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
+  </div>
+</footer>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script src="/js/supabase.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+  let currentVideoPage = 1;
+  const videosPerPage = 12;
+  let allVideos = [];
+  let currentVideoFilter = 'all';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadVideos();
+  });
+
+  async function loadVideos(page = 1) {
+    try {
+      const container = document.getElementById('videos-container');
+      showLoading(container);
+      
+      // In production, fetch from Supabase
+      // For demo, using mock data
+      const mockVideos = generateMockVideos();
+      
+      if (page === 1) {
+        allVideos = mockVideos;
+      } else {
+        allVideos = [...allVideos, ...generateMockVideos(page)];
+      }
+      
+      currentVideoPage = page;
+      
+      let filteredVideos = allVideos;
+      if (currentVideoFilter !== 'all') {
+        filteredVideos = allVideos.filter(v => v.category === currentVideoFilter);
+      }
+      
+      displayVideos(filteredVideos);
+      
+      // Show/hide load more button
+      const loadMoreBtn = document.getElementById('load-more-videos');
+      if (filteredVideos.length >= 50) {
+        loadMoreBtn.style.display = 'none';
+      } else {
+        loadMoreBtn.style.display = 'inline-block';
+      }
+      
+    } catch (error) {
+      console.error('Error loading videos:', error);
+      document.getElementById('videos-container').innerHTML = 
+        '<p class="error">Failed to load videos</p>';
+    }
+  }
+
+  function generateMockVideos(page = 1) {
+    // Mock data for demonstration
+    const categories = ['event', 'ceremony', 'interview', 'cultural', 'lecture'];
+    const videos = [];
+    
+    for (let i = 0; i < 12; i++) {
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      videos.push({
+        id: `video-${page}-${i}`,
+        title: `${category.charAt(0).toUpperCase() + category.slice(1)} Video ${i + 1}`,
+        description: `This is a sample ${category} video description. Watch our activities and programs.`,
+        category: category,
+        thumbnail: `https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg`,
+        videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+        duration: '5:30',
+        views: Math.floor(Math.random() * 1000) + 100,
+        date: new Date(2026, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString(),
+        isYouTube: false
+      });
+    }
+    
+    return videos;
+  }
+
+  function displayVideos(videos) {
+    const container = document.getElementById('videos-container');
+    container.innerHTML = '';
+    
+    if (!videos || videos.length === 0) {
+      container.innerHTML = `
+        <div class="no-results" style="grid-column: 1/-1;">
+          <i class="fas fa-video-slash"></i>
+          <p>No videos found</p>
+        </div>
+      `;
+      return;
+    }
+    
+    videos.forEach((video, index) => {
+      container.appendChild(createVideoCard(video, index));
+    });
+  }
+
+  function createVideoCard(video, index) {
+    const div = document.createElement('div');
+    div.className = 'video-card';
+    
+    const date = new Date(video.date).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    div.innerHTML = `
+      <div class="video-thumbnail" onclick="playVideo(${index})">
+        <img src="${video.thumbnail}" alt="${video.title}">
+        <div class="play-button"><i class="fas fa-play"></i></div>
+        <span class="video-duration">${video.duration}</span>
+      </div>
+      <div class="video-info">
+        <h3 class="video-title">${video.title}</h3>
+        <div class="video-meta">
+          <span><i class="far fa-calendar"></i> ${date}</span>
+          <span class="video-views"><i class="far fa-eye"></i> ${video.views} views</span>
+        </div>
+        <p class="video-description">${video.description.substring(0, 100)}...</p>
+      </div>
+    `;
+    
+    return div;
+  }
+
+  function filterVideos(category) {
+    currentVideoFilter = category;
+    
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Filter and display
+    const filtered = category === 'all' 
+      ? allVideos 
+      : allVideos.filter(v => v.category === category);
+    
+    displayVideos(filtered);
+  }
+
+  function playVideo(index) {
+    const video = allVideos[index];
+    if (!video) return;
+    
+    const player = document.getElementById('videoPlayer');
+    const content = document.getElementById('video-player-content');
+    const infoModal = document.getElementById('video-info-modal');
+    
+    if (video.isYouTube) {
+      // YouTube embed
+      content.innerHTML = `
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+        </div>
+      `;
+    } else {
+      // Direct video file
+      content.innerHTML = `<video src="${video.videoUrl}" controls autoplay></video>`;
+    }
+    
+    infoModal.innerHTML = `
+      <h3>${video.title}</h3>
+      <p>${video.description}</p>
+    `;
+    
+    player.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeVideoPlayer() {
+    const player = document.getElementById('videoPlayer');
+    player.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Stop video playback
+    const content = document.getElementById('video-player-content');
+    content.innerHTML = '';
+  }
+
+  function loadMoreVideos() {
+    loadVideos(currentVideoPage + 1);
+  }
+
+  // Keyboard shortcut to close player
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeVideoPlayer();
+    }
+  });
+
+  function showLoading(container) {
+    container.innerHTML = '<div class="spinner"></div>';
+  }
+</script>
+
+</body>
+</html>
