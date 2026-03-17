@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Admin Dashboard - Asom Hindi Bhasi Brahman Mahasabha">
+  <title>Admin Dashboard - AHBBM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    body {
+      background: #f4f7fc;
+      min-height: 100vh;
+    }
+    
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: all 0.3s;
+    }
+    
+    .sidebar-header {
+      padding: 25px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-header img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      border: 3px solid white;
+    }
+    
+    .sidebar-header h3 {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+    }
+    
+    .sidebar-header p {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+    
+    .menu-item {
+      padding: 12px 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    
+    .menu-item.active {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border-left: 4px solid white;
+    }
+    
+    .menu-item i {
+      width: 24px;
+      font-size: 1.2rem;
+    }
+    
+    .menu-item .badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 20px 30px;
+    }
+    
+    /* Top Bar */
+    .top-bar {
+      background: white;
+      padding: 15px 30px;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .page-title h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .notifications {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .notifications i {
+      font-size: 1.3rem;
+      color: #666;
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      padding: 2px 5px;
+      border-radius: 50%;
+    }
+    
+    .user-dropdown {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 5px 15px;
+      border-radius: 30px;
+      background: #f5f5f5;
+    }
+    
+    .user-dropdown img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+    }
+    
+    /* Dashboard Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-info h3 {
+      color: #666;
+      font-size: 0.9rem;
+      font-weight: 400;
+      margin-bottom: 5px;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+    
+    /* Charts */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .chart-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .chart-card h3 {
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    
+    /* Tables */
+    .recent-table {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .table-header h3 {
+      color: var(--primary);
+    }
+    
+    .view-all {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th {
+      text-align: left;
+      padding: 12px 10px;
+      background: #f8f9fa;
+      color: #666;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .status-approved {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .action-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin: 0 2px;
+    }
+    
+    .action-btn.edit {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .action-btn.view {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .action-btn.delete {
+      background: #dc3545;
+      color: white;
+    }
+    
+    /* Mobile menu toggle */
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--primary);
+    }
+    
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 80px;
+      }
+      
+      .sidebar-header h3,
+      .sidebar-header p,
+      .menu-item span {
+        display: none;
+      }
+      
+      .menu-item {
+        justify-content: center;
+        padding: 15px;
+      }
+      
+      .menu-item i {
+        margin: 0;
+      }
+      
+      .main-content {
+        margin-left: 80px;
+      }
+      
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        left: -280px;
+      }
+      
+      .sidebar.active {
+        left: 0;
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .menu-toggle {
+        display: block;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/80?text=🕉️'">
+        <h3>AHBBM Admin</h3>
+        <p>Asom Hindi Bhasi Brahman Mahasabha</p>
+      </div>
+      
+      <div class="sidebar-menu">
+        <a href="/admin/index.html" class="menu-item active">
+          <i class="fas fa-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/members.html" class="menu-item">
+          <i class="fas fa-users"></i>
+          <span>Members</span>
+          <span class="badge" id="pending-count">0</span>
+        </a>
+        <a href="/admin/events.html" class="menu-item">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Events</span>
+        </a>
+        <a href="/admin/news.html" class="menu-item">
+          <i class="fas fa-newspaper"></i>
+          <span>News</span>
+        </a>
+        <a href="/admin/gallery.html" class="menu-item">
+          <i class="fas fa-images"></i>
+          <span>Gallery</span>
+        </a>
+        <a href="/admin/donations.html" class="menu-item">
+          <i class="fas fa-hand-holding-heart"></i>
+          <span>Donations</span>
+        </a>
+        <a href="/admin/documents.html" class="menu-item">
+          <i class="fas fa-file-alt"></i>
+          <span>Documents</span>
+        </a>
+        <a href="/admin/committee.html" class="menu-item">
+          <i class="fas fa-user-tie"></i>
+          <span>Committee</span>
+        </a>
+        <a href="/admin/contacts.html" class="menu-item">
+          <i class="fas fa-envelope"></i>
+          <span>Messages</span>
+          <span class="badge" id="message-count">0</span>
+        </a>
+        <a href="/admin/settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="#" class="menu-item" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="page-title">
+          <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+          <h2>Dashboard</h2>
+        </div>
+        
+        <div class="user-info">
+          <div class="notifications" onclick="showNotifications()">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notification-count">0</span>
+          </div>
+          
+          <div class="user-dropdown" onclick="toggleUserMenu()">
+            <img src="https://via.placeholder.com/35?text=Admin" alt="Admin">
+            <span id="admin-name">Administrator</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Total Members</h3>
+            <div class="stat-number" id="total-members">0</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Pending Approvals</h3>
+            <div class="stat-number" id="pending-members">0</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Total Donations</h3>
+            <div class="stat-number" id="total-donations">₹0</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-rupee-sign"></i>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Upcoming Events</h3>
+            <div class="stat-number" id="upcoming-events">0</div>
+          </div>
+          <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Member Registration Trends</h3>
+          <canvas id="memberChart" style="width:100%; max-height:300px;"></canvas>
+        </div>
+        
+        <div class="chart-card">
+          <h3>Donation Distribution</h3>
+          <canvas id="donationChart" style="width:100%; max-height:300px;"></canvas>
+        </div>
+      </div>
+      
+      <!-- Recent Members -->
+      <div class="recent-table">
+        <div class="table-header">
+          <h3>Recent Member Registrations</h3>
+          <a href="/admin/members.html" class="view-all">View All →</a>
+        </div>
+        
+        <table id="recent-members-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>District</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="recent-members-body">
+            <tr>
+              <td colspan="6" style="text-align: center;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Recent Messages -->
+      <div class="recent-table" style="margin-top: 30px;">
+        <div class="table-header">
+          <h3>Recent Contact Messages</h3>
+          <a href="/admin/contacts.html" class="view-all">View All →</a>
+        </div>
+        
+        <table id="recent-messages-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="recent-messages-body">
+            <tr>
+              <td colspan="6" style="text-align: center;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- User Menu Dropdown (Hidden by default) -->
+  <div id="user-menu" style="display: none; position: absolute; right: 30px; top: 80px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 1000;">
+    <a href="/admin/profile.html" style="display: block; padding: 12px 25px; color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;">
+      <i class="fas fa-user"></i> My Profile
+    </a>
+    <a href="/admin/settings.html" style="display: block; padding: 12px 25px; color: #333; text-decoration: none; border-bottom: 1px solid #f0f0f0;">
+      <i class="fas fa-cog"></i> Settings
+    </a>
+    <a href="#" onclick="logout()" style="display: block; padding: 12px 25px; color: #dc3545; text-decoration: none;">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
+  
+  <script src="/js/supabase.js"></script>
+  <script>
+    let memberChart, donationChart;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check authentication
+      if (!db.auth.requireAuth()) {
+        return;
+      }
+      
+      // Load admin info
+      loadAdminInfo();
+      
+      // Load dashboard data
+      loadDashboardStats();
+      loadRecentMembers();
+      loadRecentMessages();
+      loadCharts();
+    });
+    
+    function loadAdminInfo() {
+      const admin = db.auth.getCurrentAdmin();
+      if (admin) {
+        document.getElementById('admin-name').textContent = admin.full_name || admin.username;
+      }
+    }
+    
+    async function loadDashboardStats() {
+      try {
+        // Get member stats
+        const approvedMembers = await db.members.getAll('approved', 1, 1);
+        const pendingMembers = await db.members.getAll('pending', 1, 1);
+        
+        document.getElementById('total-members').textContent = approvedMembers.count;
+        document.getElementById('pending-members').textContent = pendingMembers.count;
+        document.getElementById('pending-count').textContent = pendingMembers.count;
+        
+        // Get donation stats
+        const totalDonations = await db.donations.getTotal();
+        document.getElementById('total-donations').textContent = '₹' + totalDonations.toLocaleString('en-IN');
+        
+        // Get event stats
+        const upcomingEvents = await db.events.getUpcoming(100);
+        document.getElementById('upcoming-events').textContent = upcomingEvents.length;
+        
+        // Get unread messages count
+        const messages = await db.contacts.getAll(1000);
+        const unread = messages.data.filter(m => !m.is_read).length;
+        document.getElementById('message-count').textContent = unread;
+        document.getElementById('notification-count').textContent = unread;
+        
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    }
+    
+    async function loadRecentMembers() {
+      try {
+        const result = await db.members.getAll('all', 1, 5);
+        const members = result.data;
+        
+        const tbody = document.getElementById('recent-members-body');
+        tbody.innerHTML = '';
+        
+        if (!members || members.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No members found</td></tr>';
+          return;
+        }
+        
+        members.forEach(member => {
+          const row = document.createElement('tr');
+          const date = new Date(member.created_at).toLocaleDateString('en-IN');
+          
+          row.innerHTML = `
+            <td>${member.name}</td>
+            <td>${member.phone}</td>
+            <td>${member.district || 'N/A'}</td>
+            <td>${date}</td>
+            <td><span class="status-badge status-${member.status}">${member.status}</span></td>
+            <td>
+              <button class="action-btn view" onclick="viewMember('${member.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+              ${member.status === 'pending' ? `
+                <button class="action-btn edit" onclick="approveMember('${member.id}')">
+                  <i class="fas fa-check"></i>
+                </button>
+              ` : ''}
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+        
+      } catch (error) {
+        console.error('Error loading recent members:', error);
+      }
+    }
+    
+    async function loadRecentMessages() {
+      try {
+        const result = await db.contacts.getAll(5);
+        const messages = result.data;
+        
+        const tbody = document.getElementById('recent-messages-body');
+        tbody.innerHTML = '';
+        
+        if (!messages || messages.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No messages found</td></tr>';
+          return;
+        }
+        
+        messages.forEach(message => {
+          const row = document.createElement('tr');
+          const date = new Date(message.created_at).toLocaleDateString('en-IN');
+          
+          row.innerHTML = `
+            <td>${message.name}</td>
+            <td>${message.phone || 'N/A'}</td>
+            <td>${message.subject || 'General'}</td>
+            <td>${date}</td>
+            <td><span class="status-badge ${message.is_read ? 'status-approved' : 'status-pending'}">${message.is_read ? 'Read' : 'Unread'}</span></td>
+            <td>
+              <button class="action-btn view" onclick="viewMessage('${message.id}')">
+                <i class="fas fa-eye"></i>
+              </button>
+            </td>
+          `;
+          
+          tbody.appendChild(row);
+        });
+        
+      } catch (error) {
+        console.error('Error loading recent messages:', error);
+      }
+    }
+    
+    async function loadCharts() {
+      // Member registration chart
+      const ctx1 = document.getElementById('memberChart').getContext('2d');
+      
+      // Mock data - in production, fetch from database
+      memberChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'New Members',
+            data: [12, 19, 15, 25, 22, 30],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+      
+      // Donation distribution chart
+      const ctx2 = document.getElementById('donationChart').getContext('2d');
+      donationChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['General Fund', 'Scholarship', 'Temple', 'Community Kitchen'],
+          datasets: [{
+            data: [45, 25, 20, 10],
+            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f9ca7f']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+    
+    function viewMember(id) {
+      window.location.href = `/admin/members.html?view=${id}`;
+    }
+    
+    async function approveMember(id) {
+      if (confirm('Approve this member?')) {
+        try {
+          await db.members.approve(id);
+          showNotification('Member approved successfully', 'success');
+          loadRecentMembers();
+          loadDashboardStats();
+        } catch (error) {
+          showNotification('Failed to approve member', 'error');
+        }
+      }
+    }
+    
+    function viewMessage(id) {
+      window.location.href = `/admin/contacts.html?view=${id}`;
+    }
+    
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+    
+    function toggleUserMenu() {
+      const menu = document.getElementById('user-menu');
+      if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'block';
+      } else {
+        menu.style.display = 'none';
+      }
+    }
+    
+    function showNotifications() {
+      window.location.href = '/admin/contacts.html';
+    }
+    
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        db.auth.logout();
+      }
+    }
+    
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('user-menu');
+      const userDropdown = document.querySelector('.user-dropdown');
+      
+      if (menu && userDropdown && !userDropdown.contains(event.target) && !menu.contains(event.target)) {
+        menu.style.display = 'none';
+      }
+    });
+    
+    function showNotification(message, type) {
+      // Reuse the notification function from app.js
+      if (window.showNotification) {
+        window.showNotification(message, type);
+      } else {
+        alert(message);
+      }
+    }
+  </script>
+</body>
+</html>
