@@ -10,7 +10,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Copy the login styles from previous message */
+        /* Copy all the styles from previous login.html */
         * {
             margin: 0;
             padding: 0;
@@ -295,7 +295,7 @@
                 <span id="successText"></span>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)">
+            <form id="loginForm">
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-group">
@@ -317,7 +317,7 @@
                     <label class="remember-me">
                         <input type="checkbox" id="remember"> Remember me
                     </label>
-                    <a href="#" class="forgot-password" onclick="forgotPassword()">Forgot Password?</a>
+                    <a href="#" class="forgot-password" onclick="forgotPassword(event)">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="login-btn" id="loginBtn">
@@ -336,168 +336,182 @@
     </div>
 
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-        
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Wrap everything in an IIFE to avoid global scope pollution
+        (function() {
+            // Supabase configuration
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            // Initialize Supabase client
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Toggle password visibility
-        function togglePassword() {
+            // DOM Elements
+            const loginForm = document.getElementById('loginForm');
+            const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
-            const toggleIcon = document.querySelector('.toggle-password');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorDiv.classList.add('show');
-            
-            setTimeout(() => {
-                errorDiv.classList.remove('show');
-            }, 5000);
-        }
-
-        // Show success message
-        function showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            const successText = document.getElementById('successText');
-            successText.textContent = message;
-            successDiv.classList.add('show');
-            
-            document.getElementById('errorMessage').classList.remove('show');
-        }
-
-        // Handle login form submission
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const remember = document.getElementById('remember').checked;
+            const rememberCheck = document.getElementById('remember');
             const loginBtn = document.getElementById('loginBtn');
-            
-            if (!email || !password) {
-                showError('Please enter both email and password');
-                return;
-            }
-            
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-            
-            try {
-                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const successMessage = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+
+            // Toggle password visibility
+            window.togglePassword = function() {
+                const toggleIcon = document.querySelector('.toggle-password');
                 
-                if (authError) throw authError;
-                
-                if (authData.user) {
-                    const { data: adminData, error: adminError } = await supabase
-                        .from('admins')
-                        .select('*')
-                        .eq('id', authData.user.id)
-                        .eq('is_active', true)
-                        .single();
-                    
-                    if (adminError || !adminData) {
-                        await supabase.auth.signOut();
-                        throw new Error('Unauthorized access. Admin privileges required.');
-                    }
-                    
-                    sessionStorage.setItem('adminInfo', JSON.stringify({
-                        id: adminData.id,
-                        name: adminData.name,
-                        email: adminData.email,
-                        role: adminData.role
-                    }));
-                    
-                    showSuccess('Login successful! Redirecting...');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1500);
-                }
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                if (error.message.includes('Invalid login credentials')) {
-                    showError('Invalid email or password');
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
                 } else {
-                    showError(error.message || 'Login failed. Please try again.');
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            };
+
+            // Show error message
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessage.classList.add('show');
+                successMessage.classList.remove('show');
+                
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 5000);
+            }
+
+            // Show success message
+            function showSuccess(message) {
+                successText.textContent = message;
+                successMessage.classList.add('show');
+                errorMessage.classList.remove('show');
+            }
+
+            // Handle login form submission
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const remember = rememberCheck.checked;
+                
+                if (!email || !password) {
+                    showError('Please enter both email and password');
+                    return;
                 }
                 
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
-            }
-        }
-
-        // Forgot password handler
-        async function forgotPassword(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            
-            if (!email) {
-                showError('Please enter your email address first');
-                return;
-            }
-            
-            try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: 'https://hindibhasi.vercel.app/admin/reset-password.html'
-                });
+                // Disable button
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
                 
-                if (error) throw error;
-                
-                showSuccess('Password reset link sent to your email');
-                
-            } catch (error) {
-                console.error('Reset error:', error);
-                showError('Failed to send reset link. Please try again.');
-            }
-        }
-
-        // Check if already logged in
-        async function checkExistingSession() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                
-                if (session) {
-                    const { data: adminData, error } = await supabase
-                        .from('admins')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .eq('is_active', true)
-                        .single();
+                try {
+                    // Sign in with Supabase
+                    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
                     
-                    if (adminData && !error) {
-                        window.location.href = 'dashboard.html';
-                    } else {
-                        await supabase.auth.signOut();
+                    if (authError) throw authError;
+                    
+                    if (authData.user) {
+                        // Check if user is admin
+                        const { data: adminData, error: adminError } = await supabase
+                            .from('admins')
+                            .select('*')
+                            .eq('id', authData.user.id)
+                            .eq('is_active', true)
+                            .single();
+                        
+                        if (adminError || !adminData) {
+                            // Not an admin, sign out
+                            await supabase.auth.signOut();
+                            throw new Error('Unauthorized access. Admin privileges required.');
+                        }
+                        
+                        // Store admin info
+                        sessionStorage.setItem('adminInfo', JSON.stringify({
+                            id: adminData.id,
+                            name: adminData.name,
+                            email: adminData.email,
+                            role: adminData.role
+                        }));
+                        
+                        showSuccess('Login successful! Redirecting...');
+                        
+                        // Redirect to dashboard
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
                     }
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    
+                    if (error.message.includes('Invalid login credentials')) {
+                        showError('Invalid email or password');
+                    } else {
+                        showError(error.message || 'Login failed. Please try again.');
+                    }
+                    
+                    // Re-enable button
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
                 }
-            } catch (error) {
-                console.error('Session check error:', error);
-            }
-        }
+            });
 
-        document.addEventListener('DOMContentLoaded', checkExistingSession);
+            // Forgot password handler
+            window.forgotPassword = async function(e) {
+                e.preventDefault();
+                
+                const email = emailInput.value.trim();
+                
+                if (!email) {
+                    showError('Please enter your email address first');
+                    return;
+                }
+                
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: 'https://hindibhasi.vercel.app/admin/reset-password.html'
+                    });
+                    
+                    if (error) throw error;
+                    
+                    showSuccess('Password reset link sent to your email');
+                    
+                } catch (error) {
+                    console.error('Reset error:', error);
+                    showError('Failed to send reset link. Please try again.');
+                }
+            };
+
+            // Check if already logged in
+            async function checkExistingSession() {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    
+                    if (session) {
+                        const { data: adminData, error } = await supabase
+                            .from('admins')
+                            .select('*')
+                            .eq('id', session.user.id)
+                            .eq('is_active', true)
+                            .single();
+                        
+                        if (adminData && !error) {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Session check error:', error);
+                }
+            }
+
+            // Run on page load
+            checkExistingSession();
+        })();
     </script>
 </body>
 </html>
