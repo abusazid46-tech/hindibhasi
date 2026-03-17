@@ -582,59 +582,77 @@
             });
 
             async function loadEvents() {
-                const tbody = document.getElementById('eventsTableBody');
-                
-                const result = await EventsModule.getAllEventsForAdmin(currentFilters, currentPage, 10);
-                
-                if (result.success) {
-                    const { data, totalPages: pages } = result;
-                    totalPages = pages;
-                    
-                    if (data && data.length > 0) {
-                        tbody.innerHTML = data.map(event => `
-                            <tr>
-                                <td>
-                                    <img src="${event.image_url || 'https://placehold.co/60x60?text=Event'}" 
-                                         class="event-image"
-                                         onerror="this.src='https://via.placeholder.com/60'">
-                                </td>
-                                <td>
-                                    <strong>${EventsModule.helpers.escapeHtml(event.title)}</strong>
-                                </td>
-                                <td>${EventsModule.helpers.formatDate(event.event_date)}<br>
-                                    <small>${event.event_time || 'Time TBA'}</small>
-                                </td>
-                                <td>${EventsModule.helpers.escapeHtml(event.venue)}</td>
-                                <td>
-                                    <span class="status-badge status-${event.status}">
-                                        ${event.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="action-btn featured-btn" onclick="toggleFeatured('${event.id}', ${event.is_featured})">
-                                        ${event.is_featured ? '★ Featured' : '☆ Feature'}
-                                    </button>
-                                </td>
-                                <td>
-                                    <div class="action-btns">
-                                        <button class="action-btn edit-btn" onclick="editEvent('${event.id}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="action-btn delete-btn" onclick="deleteEvent('${event.id}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('');
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No events found</td></tr>';
-                    }
-                    
-                    renderPagination();
-                }
-            }
-
+    const tbody = document.getElementById('eventsTableBody');
+    
+    const result = await EventsModule.getAllEventsForAdmin(currentFilters, currentPage, 10);
+    
+    if (result.success) {
+        const { data, totalPages: pages } = result;
+        totalPages = pages;
+        
+        if (data && data.length > 0) {
+            tbody.innerHTML = data.map(event => `
+                <tr>
+                    <td>
+                        <div style="position: relative; width: 60px; height: 60px;">
+                            ${event.image_url ? 
+                                `<img src="${event.image_url}" 
+                                     style="width:60px; height:60px; object-fit:cover; border-radius:10px;"
+                                     onerror="this.style.display='none'; this.parentElement.querySelector('.fallback-icon').style.display='flex';">` 
+                                : ''
+                            }
+                            <div class="fallback-icon" 
+                                 style="display: ${event.image_url ? 'none' : 'flex'}; 
+                                        width:60px; 
+                                        height:60px; 
+                                        background: linear-gradient(135deg, #3498db, #2980b9); 
+                                        border-radius:10px; 
+                                        align-items:center; 
+                                        justify-content:center; 
+                                        color:white;
+                                        font-size:24px;">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>${EventsModule.helpers.escapeHtml(event.title)}</strong>
+                    </td>
+                    <td>${EventsModule.helpers.formatDate(event.event_date)}<br>
+                        <small>${event.event_time || 'Time TBA'}</small>
+                    </td>
+                    <td>${EventsModule.helpers.escapeHtml(event.venue)}</td>
+                    <td>
+                        <span class="status-badge status-${event.status}">
+                            ${event.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn featured-btn" onclick="toggleFeatured('${event.id}', ${event.is_featured})">
+                            ${event.is_featured ? '★ Featured' : '☆ Feature'}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn edit-btn" onclick="editEvent('${event.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteEvent('${event.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;"><i class="fas fa-calendar-times"></i> No events found</td></tr>';
+        }
+        
+        renderPagination();
+    } else {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #e74c3c;">Error loading events: ' + result.error + '</td></tr>';
+    }
+}
             function renderPagination() {
                 const pagination = document.getElementById('pagination');
                 
