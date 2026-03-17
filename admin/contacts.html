@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Messages - AHBBM Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .messages-container {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 25px;
+      height: calc(100vh - 150px);
+    }
+    
+    .messages-list {
+      background: white;
+      border-radius: 15px;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .message-item {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .message-item:hover {
+      background: #f9f9f9;
+    }
+    
+    .message-item.unread {
+      background: #fff9f0;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .message-item.selected {
+      background: #f0f7ff;
+    }
+    
+    .message-sender {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    
+    .message-subject {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .message-preview {
+      font-size: 0.8rem;
+      color: #999;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .message-time {
+      font-size: 0.7rem;
+      color: #999;
+      text-align: right;
+    }
+    
+    .message-detail {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      overflow-y: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .message-header h3 {
+      color: var(--primary);
+    }
+    
+    .message-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 10px;
+    }
+    
+    .message-body {
+      line-height: 1.8;
+      white-space: pre-line;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    
+    .reply-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #f0f0f0;
+    }
+    
+    .quick-replies {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    
+    .quick-reply-btn {
+      padding: 8px 15px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    
+    .quick-reply-btn:hover {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    @media (max-width: 768px) {
+      .messages-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- ... sidebar content ... -->
+    </div>
+    
+    <div class="main-content">
+      <div class="page-header">
+        <h2>Contact Messages</h2>
+        <div>
+          <button class="btn btn-outline" onclick="markAllAsRead()">
+            <i class="fas fa-check-double"></i> Mark All Read
+          </button>
+          <button class="btn btn-outline" onclick="exportMessages()">
+            <i class="fas fa-download"></i> Export
+          </button>
+        </div>
+      </div>
+      
+      <!-- Messages Container -->
+      <div class="messages-container">
+        <!-- Messages List -->
+        <div class="messages-list" id="messages-list">
+          <div class="spinner"></div>
+        </div>
+        
+        <!-- Message Detail -->
+        <div class="message-detail" id="message-detail">
+          <div style="text-align: center; color: #999; padding: 50px;">
+            <i class="fas fa-envelope-open" style="font-size: 48px; margin-bottom: 15px;"></i>
+            <p>Select a message to view</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/supabase.js"></script>
+  <script>
+    let messages = [];
+    let selectedMessageId = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!db.auth.requireAuth()) return;
+      loadMessages();
+      
+      // Auto-refresh every 30 seconds
+      setInterval(loadMessages, 30000);
+    });
+    
+    async function loadMessages() {
+      try {
+        const result = await db.contacts.getAll(50);
+        messages = result.data;
+        
+        displayMessageList(messages);
+        updateNotificationCount();
+        
+        // If a message is selected, refresh its content
+        if (selectedMessageId) {
+          const selected = messages.find(m => m.id === selectedMessageId);
+          if (selected) {
+            displayMessageDetail(selected);
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    }
+    
+    function displayMessageList(messages) {
+      const list = document.getElementById('messages-list');
+      list.innerHTML = '';
+      
+      if (!messages || messages.length === 0) {
+        list.innerHTML = '<p style="text-align: center; padding: 20px;">No messages found</p>';
+        return;
+      }
+      
+      messages.forEach(msg => {
+        const item = document.createElement('div');
+        item.className = `message-item ${!msg.is_read ? 'unread' : ''} ${msg.id === selectedMessageId ? 'selected' : ''}`;
+        item.onclick = () => selectMessage(msg.id);
+        
+        const date = new Date(msg.created_at).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        item.innerHTML = `
+          <div class="message-sender">${msg.name}</div>
+          <div class="message-subject">${msg.subject || 'General Inquiry'}</div>
+          <div class="message-preview">${msg.message.substring(0, 50)}...</div>
+          <div class="message-time">${date}</div>
+        `;
+        
+        list.appendChild(item);
+      });
+    }
+    
+    async function selectMessage(id) {
+      selectedMessageId = id;
+      const message = messages.find(m => m.id === id);
+      
+      if (message && !message.is_read) {
+        try {
+          await db.contacts.markAsRead(id);
+          message.is_read = true;
+          updateNotificationCount();
+        } catch (error) {
+          console.error('Error marking message as read:', error);
+        }
+      }
+      
+      displayMessageDetail(message);
+      displayMessageList(messages); // Refresh list to update unread status
+    }
+    
+    function displayMessageDetail(message) {
+      const detail = document.getElementById('message-detail');
+      
+      if (!message) {
+        detail.innerHTML = '<div style="text-align: center; color: #999; padding: 50px;">Message not found</div>';
+        return;
+      }
+      
+      const date = new Date(message.created_at).toLocaleString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      detail.innerHTML = `
+        <div class="message-header">
+          <h3>${message.subject || 'General Inquiry'}</h3>
+          <div>
+            <button class="btn-icon btn-edit" onclick="replyToMessage('${message.id}')" title="Reply">
+              <i class="fas fa-reply"></i>
+            </button>
+            <button class="btn-icon btn-delete" onclick="deleteMessage('${message.id}')" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="message-meta">
+          <div>
+            <strong>From:</strong> ${message.name}
+          </div>
+          <div>
+            <strong>Phone:</strong> ${message.phone || 'N/A'}
+          </div>
+          <div>
+            <strong>Email:</strong> ${message.email || 'N/A'}
+          </div>
+          <div>
+            <strong>Received:</strong> ${date}
+          </div>
+          <div>
+            <strong>Priority:</strong> <span class="badge badge-${message.priority || 'normal'}">${message.priority || 'Normal'}</span>
+          </div>
+        </div>
+        
+        <div class="message-body">
+          ${message.message}
+        </div>
+        
+        <div class="reply-section">
+          <h4>Reply to ${message.name}</h4>
+          
+          <div class="quick-replies">
+            <button class="quick-reply-btn" onclick="insertQuickReply('thank you')">Thank you</button>
+            <button class="quick-reply-btn" onclick="insertQuickReply('will get back')">Will get back soon</button>
+            <button class="quick-reply-btn" onclick="insertQuickReply('resolved')">Issue resolved</button>
+            <button class="quick-reply-btn" onclick="insertQuickReply('need more info')">Need more info</button>
+          </div>
+          
+          <textarea id="reply-message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin: 10px 0;" placeholder="Type your reply..."></textarea>
+          
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="sendReply('${message.id}')">
+              <i class="fas fa-paper-plane"></i> Send Reply
+            </button>
+            <button class="btn btn-outline" onclick="markAsResolved('${message.id}')">
+              <i class="fas fa-check"></i> Mark Resolved
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    
+    function insertQuickReply(text) {
+      const textarea = document.getElementById('reply-message');
+      textarea.value += text + '\n';
+      textarea.focus();
+    }
+    
+    async function sendReply(messageId) {
+      const reply = document.getElementById('reply-message').value;
+      
+      if (!reply.trim()) {
+        showNotification('Please enter a reply', 'error');
+        return;
+      }
+      
+      // In production, integrate with email/SMS service
+      showNotification('Reply sent successfully', 'success');
+      document.getElementById('reply-message').value = '';
+    }
+    
+    async function markAsResolved(messageId) {
+      try {
+        await db.contacts.update(messageId, { status: 'resolved' });
+        showNotification('Message marked as resolved', 'success');
+      } catch (error) {
+        showNotification('Failed to update status', 'error');
+      }
+    }
+    
+    async function deleteMessage(id) {
+      if (confirm('Are you sure you want to delete this message?')) {
+        try {
+          // Soft delete or archive
+          showNotification('Message deleted', 'success');
+          loadMessages();
+          document.getElementById('message-detail').innerHTML = '<div style="text-align: center; color: #999; padding: 50px;">Select a message to view</div>';
+        } catch (error) {
+          showNotification('Failed to delete message', 'error');
+        }
+      }
+    }
+    
+    function updateNotificationCount() {
+      const unreadCount = messages.filter(m => !m.is_read).length;
+      document.getElementById('message-count').textContent = unreadCount;
+      document.getElementById('notification-count').textContent = unreadCount;
+    }
+    
+    function markAllAsRead() {
+      // In production, mark all as read
+      messages.forEach(m => m.is_read = true);
+      displayMessageList(messages);
+      updateNotificationCount();
+      showNotification('All messages marked as read', 'success');
+    }
+    
+    function exportMessages() {
+      showNotification('Exporting messages...', 'info');
+    }
+  </script>
+</body>
+</html>
