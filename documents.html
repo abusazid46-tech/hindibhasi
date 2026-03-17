@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Documents and Downloads - Asom Hindi Bhasi Brahman Mahasabha">
+  <meta name="theme-color" content="#b3412e">
+  <link rel="manifest" href="/manifest.json">
+  <title>Documents - Asom Hindi Bhasi Brahman Mahasabha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .documents-header {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 50px;
+    }
+    
+    .documents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+    
+    .document-card {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .document-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .document-icon {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+    
+    .document-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    
+    .document-description {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .document-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #999;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .document-size {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .document-type-badge {
+      background: var(--secondary);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    
+    .download-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .download-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .category-section {
+      margin-bottom: 50px;
+    }
+    
+    .category-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--secondary);
+      display: inline-block;
+    }
+    
+    .search-documents {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+    
+    .search-box-docs {
+      display: flex;
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .search-box-docs input {
+      flex: 1;
+    }
+    
+    .file-preview-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .file-preview-modal.show {
+      display: flex;
+    }
+    
+    .preview-content {
+      background: white;
+      width: 90%;
+      max-width: 1000px;
+      max-height: 90vh;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    
+    .preview-header {
+      padding: 20px;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .preview-header h3 {
+      margin: 0;
+    }
+    
+    .preview-header .close {
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    .preview-body {
+      padding: 20px;
+      max-height: calc(90vh - 100px);
+      overflow: auto;
+    }
+    
+    .preview-body iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    
+    .document-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin: 40px 0;
+      text-align: center;
+    }
+    
+    .stat-box {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      color: #666;
+    }
+    
+    @media (max-width: 768px) {
+      .documents-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .document-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-box-docs {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+  </div>
+  <div class="right-controls">
+    <div class="lang-switch">
+      <button class="lang-option en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
+      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
+    </div>
+    <div class="menu-dropdown">
+      <div class="hamburger" aria-label="menu" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="dropdown-content">
+        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="/about.html"><i class="fas fa-users"></i> About Us</a>
+        <a href="/members.html"><i class="fas fa-id-card"></i> Members</a>
+        <a href="/events.html"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
+        <a href="/gallery.html"><i class="fas fa-images"></i> Gallery</a>
+        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        <a href="/contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
+        <a href="/register.html"><i class="fas fa-user-plus"></i> Register</a>
+        <a href="/documents.html"><i class="fas fa-file-alt"></i> Documents</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Page Banner -->
+<section class="hero" style="height: 30vh; min-height: 200px; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1565019011458-57842e4b2b07?q=80&w=2070&auto=format&fit=crop') center/cover;">
+  <h1>Documents & Downloads</h1>
+  <p>Access important documents, forms, and resources</p>
+</section>
+
+<!-- Main Content -->
+<section class="section">
+  <!-- Document Stats -->
+  <div class="document-stats">
+    <div class="stat-box">
+      <div class="stat-number" id="total-docs">25+</div>
+      <div class="stat-label">Total Documents</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number" id="total-forms">8</div>
+      <div class="stat-label">Application Forms</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number" id="total-reports">12</div>
+      <div class="stat-label">Annual Reports</div>
+    </div>
+  </div>
+  
+  <!-- Search Section -->
+  <div class="search-documents">
+    <h3 style="margin-bottom: 20px; color: var(--primary);">
+      <i class="fas fa-search"></i> Search Documents
+    </h3>
+    <div class="search-box-docs">
+      <input type="text" id="doc-search" placeholder="Search by title or description...">
+      <button class="btn" onclick="searchDocuments()">Search</button>
+      <button class="btn btn-outline" onclick="resetSearch()">Reset</button>
+    </div>
+  </div>
+  
+  <!-- Constitution Section -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-gavel"></i> Constitution & Bye-laws</h2>
+    <div class="documents-grid" id="constitution-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  
+  <!-- Membership Forms -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-user-plus"></i> Membership Forms</h2>
+    <div class="documents-grid" id="membership-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  
+  <!-- Meeting Minutes -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-clipboard-list"></i> Meeting Minutes</h2>
+    <div class="documents-grid" id="minutes-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  
+  <!-- Annual Reports -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-chart-bar"></i> Annual Reports</h2>
+    <div class="documents-grid" id="reports-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  
+  <!-- Financial Documents -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-rupee-sign"></i> Financial Documents</h2>
+    <div class="documents-grid" id="financial-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  
+  <!-- Other Documents -->
+  <div class="category-section">
+    <h2 class="category-title"><i class="fas fa-folder"></i> Other Resources</h2>
+    <div class="documents-grid" id="other-docs">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- File Preview Modal -->
+<div class="file-preview-modal" id="filePreview">
+  <div class="preview-content">
+    <div class="preview-header">
+      <h3 id="preview-title">Document Preview</h3>
+      <span class="close" onclick="closePreview()">&times;</span>
+    </div>
+    <div class="preview-body" id="preview-body">
+      <!-- Preview content loaded here -->
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>About Us</h4>
+      <p>Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
+    </div>
+    <div class="footer-section">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/members.html">Members Directory</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li><a href="/news.html">News</a></li>
+        <li><a href="/donate.html">Donate</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="copyright">
+    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
+  </div>
+</footer>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script src="/js/supabase.js"></script>
+<script src="/js/app.js"></script>
+
+<script>
+  let allDocuments = [];
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadDocuments();
+    updateDocumentStats();
+  });
+
+  function loadDocuments() {
+    // Mock data - in production, fetch from Supabase
+    const mockDocuments = [
+      // Constitution
+      {
+        id: 1,
+        title: 'Organization Constitution',
+        description: 'Official constitution and bye-laws of Asom Hindi Bhasi Brahman Mahasabha',
+        category: 'constitution',
+        fileType: 'pdf',
+        fileSize: '2.5 MB',
+        fileUrl: '#',
+        uploadDate: '2025-01-15',
+        language: 'English'
+      },
+      {
+        id: 2,
+        title: 'संविधान एवं नियम',
+        description: 'संगठन का आधिकारिक संविधान और उपनियम',
+        category: 'constitution',
+        fileType: 'pdf',
+        fileSize: '2.8 MB',
+        fileUrl: '#',
+        uploadDate: '2025-01-15',
+        language: 'Hindi'
+      },
+      
+      // Membership Forms
+      {
+        id: 3,
+        title: 'Membership Application Form',
+        description: 'Form for new membership registration',
+        category: 'forms',
+        fileType: 'pdf',
+        fileSize: '500 KB',
+        fileUrl: '#',
+        uploadDate: '2026-01-10'
+      },
+      {
+        id: 4,
+        title: 'Membership Renewal Form',
+        description: 'Form for renewing annual membership',
+        category: 'forms',
+        fileType: 'docx',
+        fileSize: '350 KB',
+        fileUrl: '#',
+        uploadDate: '2026-01-10'
+      },
+      
+      // Meeting Minutes
+      {
+        id: 5,
+        title: 'Executive Committee Meeting - March 2026',
+        description: 'Minutes of the executive committee meeting held on March 15, 2026',
+        category: 'minutes',
+        fileType: 'pdf',
+        fileSize: '1.2 MB',
+        fileUrl: '#',
+        uploadDate: '2026-03-16'
+      },
+      {
+        id: 6,
+        title: 'General Body Meeting - January 2026',
+        description: 'Minutes of the annual general body meeting',
+        category: 'minutes',
+        fileType: 'pdf',
+        fileSize: '1.8 MB',
+        fileUrl: '#',
+        uploadDate: '2026-01-20'
+      },
+      
+      // Annual Reports
+      {
+        id: 7,
+        title: 'Annual Report 2025-2026',
+        description: 'Complete annual report including activities, finances, and achievements',
+        category: 'reports',
+        fileType: 'pdf',
+        fileSize: '5.2 MB',
+        fileUrl: '#',
+        uploadDate: '2026-03-31'
+      },
+      {
+        id: 8,
+        title: 'Annual Report 2024-2025',
+        description: 'Previous year annual report',
+        category: 'reports',
+        fileType: 'pdf',
+        fileSize: '4.8 MB',
+        fileUrl: '#',
+        uploadDate: '2025-03-31'
+      },
+      
+      // Financial Documents
+      {
+        id: 9,
+        title: 'Audited Accounts 2025-2026',
+        description: 'Audited financial statements for the fiscal year',
+        category: 'financial',
+        fileType: 'pdf',
+        fileSize: '3.1 MB',
+        fileUrl: '#',
+        uploadDate: '2026-03-31'
+      },
+      {
+        id: 10,
+        title: 'Income Tax Exemption Certificate',
+        description: '80G Certificate for tax exemption',
+        category: 'financial',
+        fileType: 'pdf',
+        fileSize: '750 KB',
+        fileUrl: '#',
+        uploadDate: '2025-04-01'
+      },
+      
+      // Other Resources
+      {
+        id: 11,
+        title: 'Vedic Rituals Handbook',
+        description: 'Guide to common Vedic rituals and ceremonies',
+        category: 'other',
+        fileType: 'pdf',
+        fileSize: '4.2 MB',
+        fileUrl: '#',
+        uploadDate: '2026-02-15'
+      },
+      {
+        id: 12,
+        title: 'Community Directory 2026',
+        description: 'Directory of all active members',
+        category: 'other',
+        fileType: 'pdf',
+        fileSize: '2.3 MB',
+        fileUrl: '#',
+        uploadDate: '2026-01-05'
+      }
+    ];
+    
+    allDocuments = mockDocuments;
+    displayDocumentsByCategory(mockDocuments);
+  }
+
+  function displayDocumentsByCategory(documents) {
+    const categories = {
+      constitution: 'constitution-docs',
+      forms: 'membership-docs',
+      minutes: 'minutes-docs',
+      reports: 'reports-docs',
+      financial: 'financial-docs',
+      other: 'other-docs'
+    };
+    
+    // Clear all containers
+    Object.values(categories).forEach(id => {
+      document.getElementById(id).innerHTML = '';
+    });
+    
+    // Group documents by category
+    documents.forEach(doc => {
+      const containerId = categories[doc.category];
+      if (containerId) {
+        document.getElementById(containerId).appendChild(createDocumentCard(doc));
+      }
+    });
+    
+    // Show "No documents" message for empty categories
+    Object.entries(categories).forEach(([category, id]) => {
+      const container = document.getElementById(id);
+      if (container.children.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f9f9f9; border-radius: 20px;">
+            <i class="fas fa-folder-open" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
+            <p style="color: #999;">No documents in this category</p>
+          </div>
+        `;
+      }
+    });
+  }
+
+  function createDocumentCard(doc) {
+    const div = document.createElement('div');
+    div.className = 'document-card';
+    
+    // Get icon based on file type
+    let icon = 'fa-file-pdf';
+    if (doc.fileType === 'docx') icon = 'fa-file-word';
+    else if (doc.fileType === 'xlsx') icon = 'fa-file-excel';
+    else if (doc.fileType === 'txt') icon = 'fa-file-alt';
+    
+    div.innerHTML = `
+      <div class="document-icon"><i class="fas ${icon}"></i></div>
+      <span class="document-type-badge">${doc.fileType.toUpperCase()}</span>
+      <h3 class="document-title">${doc.title}</h3>
+      <p class="document-description">${doc.description}</p>
+      <div class="document-meta">
+        <span><i class="far fa-calendar"></i> ${doc.uploadDate}</span>
+        <span class="document-size"><i class="fas fa-database"></i> ${doc.fileSize}</span>
+      </div>
+      <button class="download-btn" onclick="downloadDocument('${doc.id}')">
+        <i class="fas fa-download"></i> Download
+      </button>
+      ${doc.fileType === 'pdf' ? `
+        <button class="download-btn" style="margin-top: 10px; background: var(--secondary);" onclick="previewDocument('${doc.id}')">
+          <i class="fas fa-eye"></i> Preview
+        </button>
+      ` : ''}
+    `;
+    
+    return div;
+  }
+
+  function downloadDocument(docId) {
+    const doc = allDocuments.find(d => d.id == docId);
+    if (doc) {
+      showNotification(`Downloading ${doc.title}...`, 'info');
+      // In production, trigger actual download
+      setTimeout(() => {
+        showNotification('Download started!', 'success');
+      }, 1000);
+    }
+  }
+
+  function previewDocument(docId) {
+    const doc = allDocuments.find(d => d.id == docId);
+    if (!doc) return;
+    
+    const modal = document.getElementById('filePreview');
+    document.getElementById('preview-title').textContent = doc.title;
+    
+    const previewBody = document.getElementById('preview-body');
+    previewBody.innerHTML = `
+      <iframe src="https://docs.google.com/gview?url=${encodeURIComponent(doc.fileUrl)}&embedded=true"></iframe>
+    `;
+    
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePreview() {
+    document.getElementById('filePreview').classList.remove('show');
+    document.body.style.overflow = '';
+    document.getElementById('preview-body').innerHTML = '';
+  }
+
+  function searchDocuments() {
+    const searchTerm = document.getElementById('doc-search').value.toLowerCase();
+    
+    if (!searchTerm) {
+      displayDocumentsByCategory(allDocuments);
+      return;
+    }
+    
+    const filtered = allDocuments.filter(doc => 
+      doc.title.toLowerCase().includes(searchTerm) || 
+      doc.description.toLowerCase().includes(searchTerm)
+    );
+    
+    displayDocumentsByCategory(filtered);
+    
+    if (filtered.length === 0) {
+      showNotification('No documents found matching your search', 'info');
+    }
+  }
+
+  function resetSearch() {
+    document.getElementById('doc-search').value = '';
+    displayDocumentsByCategory(allDocuments);
+  }
+
+  function updateDocumentStats() {
+    // In production, calculate from actual data
+    document.getElementById('total-docs').textContent = '25+';
+    document.getElementById('total-forms').textContent = '8';
+    document.getElementById('total-reports').textContent = '12';
+  }
+
+  // Keyboard shortcut to close modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closePreview();
+    }
+  });
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('filePreview');
+    if (event.target === modal) {
+      closePreview();
+    }
+  }
+</script>
+
+</body>
+</html>
