@@ -12,7 +12,6 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Copy all the dashboard styles from previous message */
         * {
             margin: 0;
             padding: 0;
@@ -74,7 +73,6 @@
             color: rgba(255,255,255,0.8);
             text-decoration: none;
             transition: all 0.3s;
-            cursor: pointer;
             border-left: 4px solid transparent;
         }
 
@@ -209,10 +207,12 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
             border-left: 6px solid;
             transition: transform 0.3s;
+            cursor: pointer;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(180,60,20,0.15);
         }
 
         .stat-card.pending { border-left-color: #f39c12; }
@@ -430,6 +430,7 @@
             text-decoration: none;
             transition: all 0.3s;
             border: 2px solid transparent;
+            display: block;
         }
 
         .quick-action-card:hover {
@@ -467,6 +468,24 @@
             margin-bottom: 10px;
         }
 
+        /* Error Message */
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* No Data */
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -489,6 +508,10 @@
             .menu-item i {
                 margin: 0;
             }
+            
+            .menu-item .badge {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
@@ -499,6 +522,8 @@
             
             .sidebar {
                 transform: translateX(-100%);
+                position: fixed;
+                z-index: 2000;
             }
             
             .sidebar.show {
@@ -527,6 +552,10 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            #menuToggle {
+                display: block !important;
+            }
         }
 
         @media (max-width: 480px) {
@@ -543,20 +572,15 @@
                 flex-direction: column;
                 gap: 5px;
             }
-        }
-
-        .coming-soon {
-            text-align: center;
-            padding: 60px;
-            background: white;
-            border-radius: 30px 10px 30px 10px;
-            color: #666;
-        }
-
-        .coming-soon i {
-            font-size: 60px;
-            color: #b3412e;
-            margin-bottom: 20px;
+            
+            .chart-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .chart-header select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -570,36 +594,36 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="#" class="menu-item active" onclick="loadSection('dashboard')">
+            <a href="dashboard.html" class="menu-item active">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('members')">
+            <a href="members.html" class="menu-item">
                 <i class="fas fa-users"></i>
                 <span>Members</span>
                 <span class="badge" id="pendingBadge">0</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('events')">
+            <a href="events.html" class="menu-item">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Events</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('news')">
+            <a href="news.html" class="menu-item">
                 <i class="fas fa-newspaper"></i>
                 <span>News</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('gallery')">
+            <a href="gallery.html" class="menu-item">
                 <i class="fas fa-images"></i>
                 <span>Gallery</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('donations')">
+            <a href="donations.html" class="menu-item">
                 <i class="fas fa-hand-holding-heart"></i>
                 <span>Donations</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('documents')">
+            <a href="documents.html" class="menu-item">
                 <i class="fas fa-file-pdf"></i>
                 <span>Documents</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('contacts')">
+            <a href="contacts.html" class="menu-item">
                 <i class="fas fa-envelope"></i>
                 <span>Messages</span>
                 <span class="badge" id="messageBadge">0</span>
@@ -607,11 +631,11 @@
             
             <div class="menu-divider"></div>
             
-            <a href="#" class="menu-item" onclick="loadSection('committee')">
+            <a href="committee.html" class="menu-item">
                 <i class="fas fa-user-tie"></i>
                 <span>Committee</span>
             </a>
-            <a href="#" class="menu-item" onclick="loadSection('settings')">
+            <a href="settings.html" class="menu-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
@@ -628,7 +652,7 @@
         <div class="top-bar">
             <div class="page-title">
                 <i class="fas fa-bars" onclick="toggleSidebar()" style="cursor: pointer; display: none;" id="menuToggle"></i>
-                <span id="currentSection">Dashboard</span>
+                <span>Dashboard</span>
             </div>
             
             <div class="admin-profile">
@@ -645,31 +669,145 @@
 
         <!-- Dynamic Content Area -->
         <div id="contentArea">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading dashboard...</p>
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card pending" onclick="window.location.href='members.html?filter=pending'">
+                    <div class="stat-header">
+                        <span class="stat-title">Pending Members</span>
+                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
+                    </div>
+                    <div class="stat-value" id="pendingMembersCount">0</div>
+                    <div class="stat-change">
+                        <i class="fas fa-clock"></i> Awaiting approval
+                    </div>
+                </div>
+                
+                <div class="stat-card members" onclick="window.location.href='members.html'">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Members</span>
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="stat-value" id="totalMembersCount">0</div>
+                    <div class="stat-change">
+                        <i class="fas fa-arrow-up"></i> Active community
+                    </div>
+                </div>
+                
+                <div class="stat-card events" onclick="window.location.href='events.html'">
+                    <div class="stat-header">
+                        <span class="stat-title">Upcoming Events</span>
+                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                    </div>
+                    <div class="stat-value" id="upcomingEventsCount">0</div>
+                    <div class="stat-change">
+                        <i class="fas fa-calendar-check"></i> This month
+                    </div>
+                </div>
+                
+                <div class="stat-card donations" onclick="window.location.href='donations.html'">
+                    <div class="stat-header">
+                        <span class="stat-title">Monthly Donations</span>
+                        <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                    </div>
+                    <div class="stat-value" id="monthlyDonationsAmount">₹0</div>
+                    <div class="stat-change">
+                        <i class="fas fa-arrow-up"></i> <span id="monthlyDonationsCount">0</span> donations
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Member Registration Trend</h3>
+                        <select id="memberChartPeriod">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="memberChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Donation Overview</h3>
+                        <select id="donationChartPeriod">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="donationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <div class="section-header">
+                    <h3>Recent Activity</h3>
+                    <a href="members.html" class="view-all">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                
+                <div class="activity-list" id="activityList">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i> Loading activities...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="members.html?filter=pending" class="quick-action-card">
+                    <i class="fas fa-user-check"></i>
+                    <h4>Approve Members</h4>
+                    <p id="pendingCount">0 pending</p>
+                </a>
+                
+                <a href="events.html?action=new" class="quick-action-card">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h4>Add Event</h4>
+                    <p>Create new event</p>
+                </a>
+                
+                <a href="news.html?action=new" class="quick-action-card">
+                    <i class="fas fa-newspaper"></i>
+                    <h4>Post News</h4>
+                    <p>Share update</p>
+                </a>
+                
+                <a href="gallery.html?action=upload" class="quick-action-card">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h4>Upload Photos</h4>
+                    <p>Add to gallery</p>
+                </a>
             </div>
         </div>
     </div>
-<script>
-    // Use a single IIFE to contain all code and avoid global conflicts
-    (function() {
-        // Supabase configuration - declared only once inside this function
+
+    <script>
+        // Supabase configuration
         const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
         
-        // Initialize Supabase client - only once
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Variables
+        // State
         let currentAdmin = null;
         let dashboardCharts = {};
 
         // Check authentication on load
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
-            loadDashboard();
-            loadBadges();
+            await loadDashboardData();
+            await loadBadges();
             setupRealtimeSubscriptions();
         });
 
@@ -688,24 +826,23 @@
                 if (storedAdmin) {
                     currentAdmin = JSON.parse(storedAdmin);
                 } else {
-                    // If RLS is disabled, this will work
+                    // Try to get from database
                     const { data: adminData, error } = await supabase
                         .from('admins')
                         .select('*')
                         .eq('id', session.user.id)
                         .single();
                     
-                    if (error || !adminData) {
-                        console.warn('Admin record not found, but RLS is disabled - allowing access');
-                        // Create a default admin object
+                    if (!error && adminData) {
+                        currentAdmin = adminData;
+                    } else {
+                        // Create default admin object
                         currentAdmin = {
                             id: session.user.id,
                             name: session.user.email?.split('@')[0] || 'Admin',
                             email: session.user.email,
                             role: 'super_admin'
                         };
-                    } else {
-                        currentAdmin = adminData;
                     }
                     
                     sessionStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
@@ -720,14 +857,132 @@
                 
             } catch (error) {
                 console.error('Auth check error:', error);
-                // Still allow access if RLS is disabled
-                console.warn('Proceeding despite error - RLS may be disabled');
             }
         }
 
-        // Load badges (pending counts)
+        // Load all dashboard data
+        async function loadDashboardData() {
+            try {
+                // Get dashboard stats
+                const { data: stats, error: statsError } = await supabase
+                    .from('dashboard_stats')
+                    .select('*')
+                    .single();
+                
+                if (!statsError && stats) {
+                    document.getElementById('pendingMembersCount').textContent = stats.pending_members || 0;
+                    document.getElementById('totalMembersCount').textContent = stats.total_members || 0;
+                    document.getElementById('upcomingEventsCount').textContent = stats.upcoming_events || 0;
+                    
+                    const monthlyDonations = stats.monthly_donations || 0;
+                    document.getElementById('monthlyDonationsAmount').textContent = `₹${monthlyDonations.toLocaleString('en-IN')}`;
+                    document.getElementById('monthlyDonationsCount').textContent = stats.monthly_donation_count || 0;
+                    
+                    // Update pending count in quick action
+                    document.getElementById('pendingCount').textContent = (stats.pending_members || 0) + ' pending';
+                }
+                
+                // Get recent activity
+                await loadRecentActivity();
+                
+                // Initialize charts
+                initMemberChart();
+                initDonationChart();
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            const activityList = document.getElementById('activityList');
+            
+            try {
+                // Get recent members
+                const { data: recentMembers } = await supabase
+                    .from('members')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                // Get recent contacts
+                const { data: recentContacts } = await supabase
+                    .from('contacts')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                // Combine and sort activities
+                const activities = [
+                    ...(recentMembers || []).map(m => ({
+                        type: 'member',
+                        icon: 'fas fa-user-plus',
+                        title: `New member registration: ${m.name}`,
+                        time: new Date(m.created_at),
+                        timeStr: formatTimeAgo(m.created_at),
+                        status: m.status,
+                        statusClass: `status-${m.status}`
+                    })),
+                    ...(recentContacts || []).map(c => ({
+                        type: 'contact',
+                        icon: 'fas fa-envelope',
+                        title: `New message from: ${c.name}`,
+                        time: new Date(c.created_at),
+                        timeStr: formatTimeAgo(c.created_at),
+                        status: c.status,
+                        statusClass: `status-${c.status}`
+                    }))
+                ].sort((a, b) => b.time - a.time).slice(0, 5);
+                
+                if (activities.length > 0) {
+                    activityList.innerHTML = activities.map(activity => `
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="${activity.icon}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">${escapeHtml(activity.title)}</div>
+                                <div class="activity-meta">
+                                    <span><i class="far fa-clock"></i> ${activity.timeStr}</span>
+                                </div>
+                            </div>
+                            <div class="activity-status ${activity.statusClass}">
+                                ${activity.status}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    activityList.innerHTML = '<div class="no-data">No recent activity</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                activityList.innerHTML = '<div class="error-message">Failed to load activities</div>';
+            }
+        }
+
+        // Format time ago
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            
+            return date.toLocaleDateString();
+        }
+
+        // Load badges
         async function loadBadges() {
             try {
+                // Pending members count
                 const { count: pendingCount } = await supabase
                     .from('members')
                     .select('*', { count: 'exact', head: true })
@@ -735,6 +990,7 @@
                 
                 document.getElementById('pendingBadge').textContent = pendingCount || 0;
                 
+                // New messages count
                 const { count: messageCount } = await supabase
                     .from('contacts')
                     .select('*', { count: 'exact', head: true })
@@ -749,23 +1005,19 @@
 
         // Setup realtime subscriptions
         function setupRealtimeSubscriptions() {
-            try {
-                supabase
-                    .channel('member-changes')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => {
-                        loadBadges();
-                    })
-                    .subscribe();
-                
-                supabase
-                    .channel('contact-changes')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, () => {
-                        loadBadges();
-                    })
-                    .subscribe();
-            } catch (error) {
-                console.error('Realtime subscription error:', error);
-            }
+            supabase
+                .channel('dashboard-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => {
+                    loadBadges();
+                    loadDashboardData();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, () => {
+                    loadBadges();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, () => {
+                    loadDashboardData();
+                })
+                .subscribe();
         }
 
         // Toggle sidebar on mobile
@@ -784,201 +1036,230 @@
             }
         };
 
-        // Load dashboard section
-        async function loadDashboard() {
-            const contentArea = document.getElementById('contentArea');
-            contentArea.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>Loading dashboard...</p></div>';
+        // Initialize member chart
+        async function initMemberChart() {
+            const ctx = document.getElementById('memberChart').getContext('2d');
+            const period = document.getElementById('memberChartPeriod').value;
+            
+            // Destroy existing chart if any
+            if (dashboardCharts.memberChart) {
+                dashboardCharts.memberChart.destroy();
+            }
             
             try {
-                // Try to get stats, but don't fail if table doesn't exist
-                let stats = {
-                    pending_members: 0,
-                    total_members: 0,
-                    upcoming_events: 0,
-                    monthly_donations: 0,
-                    monthly_donation_count: 0
-                };
+                // Get registration data for the period
+                const days = parseInt(period);
+                const data = await getRegistrationTrend(days);
                 
-                try {
-                    const { data: statsData } = await supabase
-                        .from('dashboard_stats')
-                        .select('*')
-                        .single();
-                    
-                    if (statsData) stats = statsData;
-                } catch (statsError) {
-                    console.warn('Could not load dashboard_stats:', statsError);
-                }
+                dashboardCharts.memberChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'New Members',
+                            data: data.map(d => d.count),
+                            borderColor: '#b3412e',
+                            backgroundColor: 'rgba(180, 65, 46, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#b3412e',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.parsed.y} new member${context.parsed.y !== 1 ? 's' : ''}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    callback: function(value) {
+                                        if (Math.floor(value) === value) return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
                 
-                // Get recent members
-                let recentMembers = [];
-                try {
-                    const { data: members } = await supabase
-                        .from('members')
-                        .select('*')
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-                    
-                    if (members) recentMembers = members;
-                } catch (membersError) {
-                    console.warn('Could not load members:', membersError);
-                }
-                
-                // Get recent contacts
-                let recentContacts = [];
-                try {
-                    const { data: contacts } = await supabase
-                        .from('contacts')
-                        .select('*')
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-                    
-                    if (contacts) recentContacts = contacts;
-                } catch (contactsError) {
-                    console.warn('Could not load contacts:', contactsError);
-                }
-                
-                // Combine activities
-                const activities = [
-                    ...recentMembers.map(m => ({
-                        icon: 'fas fa-user-plus',
-                        title: `New member registration: ${m.name || 'Unknown'}`,
-                        time: m.created_at ? new Date(m.created_at).toLocaleString() : 'Unknown',
-                        status: m.status || 'pending',
-                        statusClass: `status-${m.status || 'pending'}`
-                    })),
-                    ...recentContacts.map(c => ({
-                        icon: 'fas fa-envelope',
-                        title: `New message from: ${c.name || 'Unknown'}`,
-                        time: c.created_at ? new Date(c.created_at).toLocaleString() : 'Unknown',
-                        status: c.status || 'new',
-                        statusClass: `status-${c.status || 'new'}`
-                    }))
-                ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
-
-                // Build dashboard HTML
-                contentArea.innerHTML = `
-                    <div class="stats-grid">
-                        <div class="stat-card pending">
-                            <div class="stat-header">
-                                <span class="stat-title">Pending Members</span>
-                                <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
-                            </div>
-                            <div class="stat-value">${stats.pending_members || 0}</div>
-                        </div>
-                        
-                        <div class="stat-card members">
-                            <div class="stat-header">
-                                <span class="stat-title">Total Members</span>
-                                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                            </div>
-                            <div class="stat-value">${stats.total_members || 0}</div>
-                        </div>
-                        
-                        <div class="stat-card events">
-                            <div class="stat-header">
-                                <span class="stat-title">Upcoming Events</span>
-                                <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                            </div>
-                            <div class="stat-value">${stats.upcoming_events || 0}</div>
-                        </div>
-                        
-                        <div class="stat-card donations">
-                            <div class="stat-header">
-                                <span class="stat-title">Monthly Donations</span>
-                                <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
-                            </div>
-                            <div class="stat-value">₹${(stats.monthly_donations || 0).toLocaleString()}</div>
-                        </div>
-                    </div>
-
-                    <div class="recent-activity">
-                        <div class="section-header">
-                            <h3>Recent Activity</h3>
-                        </div>
-                        
-                        <div class="activity-list">
-                            ${activities.length > 0 ? activities.map(activity => `
-                                <div class="activity-item">
-                                    <div class="activity-icon"><i class="${activity.icon}"></i></div>
-                                    <div class="activity-content">
-                                        <div class="activity-title">${activity.title}</div>
-                                        <div class="activity-meta"><i class="far fa-clock"></i> ${activity.time}</div>
-                                    </div>
-                                    <div class="activity-status ${activity.statusClass}">${activity.status}</div>
-                                </div>
-                            `).join('') : '<p>No recent activity</p>'}
-                        </div>
-                    </div>
-
-                    <div class="quick-actions">
-                        <a href="#" class="quick-action-card" onclick="loadSection('members', 'pending')">
-                            <i class="fas fa-user-check"></i>
-                            <h4>Approve Members</h4>
-                            <p>${stats.pending_members || 0} pending</p>
-                        </a>
-                        
-                        <a href="#" class="quick-action-card" onclick="loadSection('events')">
-                            <i class="fas fa-calendar-plus"></i>
-                            <h4>Add Event</h4>
-                            <p>Create new event</p>
-                        </a>
-                        
-                        <a href="#" class="quick-action-card" onclick="loadSection('news')">
-                            <i class="fas fa-newspaper"></i>
-                            <h4>Post News</h4>
-                            <p>Share update</p>
-                        </a>
-                        
-                        <a href="#" class="quick-action-card" onclick="loadSection('gallery')">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h4>Upload Photos</h4>
-                            <p>Add to gallery</p>
-                        </a>
-                    </div>
-                `;
-
             } catch (error) {
-                console.error('Error loading dashboard:', error);
-                contentArea.innerHTML = '<div class="error-message">Failed to load dashboard. Please refresh.</div>';
+                console.error('Error initializing member chart:', error);
+                ctx.canvas.parentNode.innerHTML = '<div class="error-message">Failed to load chart data</div>';
             }
         }
 
-        // Load different sections
-        window.loadSection = function(section) {
-            // Update active menu
-            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-            event.target.closest('.menu-item').classList.add('active');
+        // Initialize donation chart
+        async function initDonationChart() {
+            const ctx = document.getElementById('donationChart').getContext('2d');
+            const period = document.getElementById('donationChartPeriod').value;
             
-            const titles = {
-                'dashboard': 'Dashboard',
-                'members': 'Member Management',
-                'events': 'Event Management',
-                'news': 'News Management',
-                'gallery': 'Gallery Management',
-                'donations': 'Donation Reports',
-                'documents': 'Document Management',
-                'contacts': 'Contact Messages',
-                'committee': 'Committee Management',
-                'settings': 'Settings'
-            };
-            
-            document.getElementById('currentSection').textContent = titles[section] || section;
-            
-            if (section === 'dashboard') {
-                loadDashboard();
-            } else {
-                document.getElementById('contentArea').innerHTML = `
-                    <div class="coming-soon">
-                        <i class="fas fa-tools"></i>
-                        <h3>${titles[section]} Coming Soon</h3>
-                        <p>This section is under development</p>
-                    </div>
-                `;
+            if (dashboardCharts.donationChart) {
+                dashboardCharts.donationChart.destroy();
             }
-        };
-    })();
-</script>
-    
+            
+            try {
+                const days = parseInt(period);
+                const data = await getDonationTrend(days);
+                
+                dashboardCharts.donationChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Donations (₹)',
+                            data: data.map(d => d.amount),
+                            backgroundColor: '#f39c12',
+                            borderRadius: 5,
+                            barPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ₹${context.parsed.y.toLocaleString('en-IN')}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString('en-IN');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error initializing donation chart:', error);
+                ctx.canvas.parentNode.innerHTML = '<div class="error-message">Failed to load chart data</div>';
+            }
+        }
+
+        // Get registration trend data
+        async function getRegistrationTrend(days) {
+            const data = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+                
+                const { count } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', startOfDay)
+                    .lte('created_at', endOfDay);
+                
+                data.push({
+                    date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+                    count: count || 0
+                });
+            }
+            
+            return data;
+        }
+
+        // Get donation trend data
+        async function getDonationTrend(days) {
+            const data = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+                const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+                
+                const { data: donations } = await supabase
+                    .from('donations')
+                    .select('amount')
+                    .eq('payment_status', 'completed')
+                    .gte('created_at', startOfDay)
+                    .lte('created_at', endOfDay);
+                
+                const total = donations?.reduce((sum, d) => sum + d.amount, 0) || 0;
+                
+                data.push({
+                    date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+                    amount: total
+                });
+            }
+            
+            return data;
+        }
+
+        // Chart period change handlers
+        document.getElementById('memberChartPeriod').addEventListener('change', function() {
+            initMemberChart();
+        });
+
+        document.getElementById('donationChartPeriod').addEventListener('change', function() {
+            initDonationChart();
+        });
+
+        // Helper: Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Handle window resize for charts
+        window.addEventListener('resize', function() {
+            if (dashboardCharts.memberChart) {
+                dashboardCharts.memberChart.resize();
+            }
+            if (dashboardCharts.donationChart) {
+                dashboardCharts.donationChart.resize();
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('show') && 
+                !sidebar.contains(event.target) && 
+                !menuToggle.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
 </body>
 </html>
