@@ -401,162 +401,130 @@
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!-- At the bottom of membership-registration.html -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/members.js"></script>
+<script>
+    // Supabase configuration
+    const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let selectedFile = null;
-        let registeredMemberId = null;
+    // Initialize MembersModule
+    MembersModule.init(supabase);
 
-        // Preview photo before upload
-        window.previewPhoto = function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('File size must be less than 2MB');
-                    return;
-                }
-                
-                selectedFile = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('photoPreview');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+    let selectedFile = null;
+    let registeredMemberId = null;
+
+    // Preview photo before upload
+    window.previewPhoto = function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size must be less than 2MB');
+                return;
             }
-        };
+            
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-        // Handle registration form submission
-        window.handleRegistration = async function(event) {
-            event.preventDefault();
+    // Handle registration form submission using module
+    window.handleRegistration = async function(event) {
+        event.preventDefault();
+        
+        const registerBtn = document.getElementById('registerBtn');
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        try {
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value,
+                district: document.getElementById('district').value,
+                village: document.getElementById('village').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                occupation: document.getElementById('occupation').value,
+                dob: document.getElementById('dob').value,
+                blood_group: document.getElementById('bloodGroup').value,
+                address: document.getElementById('address').value,
+                emergency_phone: document.getElementById('emergencyPhone').value
+            };
             
-            const registerBtn = document.getElementById('registerBtn');
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-            try {
-                // Get form data
-                const formData = {
-                    name: document.getElementById('name').value,
-                    district: document.getElementById('district').value,
-                    village: document.getElementById('village').value,
-                    phone: document.getElementById('phone').value,
-                    email: document.getElementById('email').value,
-                    occupation: document.getElementById('occupation').value,
-                    dob: document.getElementById('dob').value,
-                    blood_group: document.getElementById('bloodGroup').value,
-                    address: document.getElementById('address').value,
-                    emergency_phone: document.getElementById('emergencyPhone').value
-                };
-                
-                // Validate required fields
-                if (!formData.name || !formData.district || !formData.village || !formData.phone) {
-                    alert('Please fill all required fields');
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-                    return;
-                }
-                
-                // Validate phone number
-                if (!/^\d{10}$/.test(formData.phone)) {
-                    alert('Please enter a valid 10-digit phone number');
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-                    return;
-                }
-                
-                // Step 1: Register member in database
-                const { data: memberData, error: memberError } = await supabase
-                    .from('members')
-                    .insert([{
-                        name: formData.name,
-                        district: formData.district,
-                        village: formData.village,
-                        phone: formData.phone,
-                        email: formData.email || null,
-                        occupation: formData.occupation || null,
-                        date_of_birth: formData.dob || null,
-                        blood_group: formData.blood_group || null,
-                        address: formData.address || null,
-                        emergency_contact: formData.emergency_phone || null,
-                        status: 'pending',
-                        registration_fee_paid: false
-                    }])
-                    .select()
-                    .single();
-                
-                if (memberError) throw memberError;
-                
-                registeredMemberId = memberData.id;
-                
-                // Step 2: Upload photo if selected
-                if (selectedFile) {
-                    const fileExt = selectedFile.name.split('.').pop();
-                    const fileName = `member-photos/${memberData.id}-${Date.now()}.${fileExt}`;
-                    
-                    const { error: uploadError } = await supabase.storage
-                        .from('member-photos')
-                        .upload(fileName, selectedFile);
-                    
-                    if (!uploadError) {
-                        const { data: { publicUrl } } = supabase.storage
-                            .from('member-photos')
-                            .getPublicUrl(fileName);
-                        
-                        // Update member with photo URL
-                        await supabase
-                            .from('members')
-                            .update({ photo_url: publicUrl })
-                            .eq('id', memberData.id);
-                    }
-                }
-                
-                // Step 3: Show payment section (Razorpay integration)
-                document.getElementById('paymentSection').classList.add('show');
-                
-                // Step 4: Simulate payment (replace with actual Razorpay)
-                setTimeout(() => {
-                    completePayment();
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert('Registration failed. Please try again.');
-                
+            // Validate required fields
+            if (!formData.name || !formData.district || !formData.village || !formData.phone) {
+                alert('Please fill all required fields');
                 registerBtn.disabled = false;
                 registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
+                return;
             }
-        };
+            
+            // Validate phone number
+            if (!/^\d{10}$/.test(formData.phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
+                return;
+            }
+            
+            // Register member using module
+            const result = await MembersModule.registerMember(formData, selectedFile);
+            
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            registeredMemberId = result.data.id;
+            
+            // Show payment section
+            document.getElementById('paymentSection').classList.add('show');
+            
+            // Simulate payment (replace with actual Razorpay)
+            setTimeout(() => {
+                completePayment();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            alert('Registration failed: ' + error.message);
+            
+            registerBtn.disabled = false;
+            registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
+        }
+    };
 
-        // Complete payment (mock function - replace with actual Razorpay)
-        async function completePayment() {
-            try {
-                // Update payment status
-                await supabase
-                    .from('members')
-                    .update({ 
-                        registration_fee_paid: true,
-                        payment_transaction_id: 'TXN' + Date.now()
-                    })
-                    .eq('id', registeredMemberId);
-                
+    // Complete payment using module
+    async function completePayment() {
+        try {
+            // Mock transaction ID
+            const transactionId = 'TXN' + Date.now();
+            
+            // Update payment status using module
+            const result = await MembersModule.updatePaymentStatus(registeredMemberId, transactionId);
+            
+            if (result.success) {
                 // Hide form and show success message
                 document.getElementById('registrationForm').style.display = 'none';
                 document.getElementById('paymentSection').classList.remove('show');
                 document.getElementById('successMessage').classList.add('show');
-                
-            } catch (error) {
-                console.error('Payment update error:', error);
-                alert('Payment recorded but there was an error. Please contact admin.');
+            } else {
+                throw new Error(result.error);
             }
+            
+        } catch (error) {
+            console.error('Payment update error:', error);
+            alert('Payment recorded but there was an error. Please contact admin.');
         }
-
-        // Load districts (you can expand this list)
-        // Already in HTML select
-    </script>
+    }
+</script>
 </body>
 </html>
