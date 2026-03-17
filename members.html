@@ -1,475 +1,585 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <meta name="description" content="Member Directory - Asom Hindi Bhasi Brahman Mahasabha">
-  <meta name="theme-color" content="#b3412e">
-  <link rel="manifest" href="/manifest.json">
-  <title>Member Directory - Asom Hindi Bhasi Brahman Mahasabha</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    /* Members page specific styles */
-    .member-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 25px;
-      margin: 30px 0;
-    }
-    
-    .member-card {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-      transition: transform 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .member-card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .member-card.approved {
-      border-top: 4px solid var(--success);
-    }
-    
-    .member-photo {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--secondary);
-      margin: 0 auto 15px;
-      display: block;
-    }
-    
-    .member-info {
-      text-align: center;
-    }
-    
-    .member-name {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 5px;
-    }
-    
-    .member-id {
-      font-size: 0.8rem;
-      color: #999;
-      font-family: monospace;
-      margin-bottom: 10px;
-      padding: 3px 8px;
-      background: #f5f5f5;
-      border-radius: 30px;
-      display: inline-block;
-    }
-    
-    .member-details {
-      text-align: left;
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-    }
-    
-    .member-details p {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      color: #555;
-    }
-    
-    .member-details i {
-      width: 20px;
-      color: var(--secondary);
-    }
-    
-    .filter-section {
-      background: white;
-      padding: 25px;
-      border-radius: 20px;
-      margin-bottom: 30px;
-      box-shadow: var(--shadow);
-    }
-    
-    .filter-row {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-    }
-    
-    .filter-group {
-      flex: 1;
-      min-width: 200px;
-    }
-    
-    .filter-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 500;
-      color: var(--primary);
-    }
-    
-    .pagination-info {
-      text-align: center;
-      margin: 20px 0;
-      color: #666;
-    }
-    
-    .no-results {
-      text-align: center;
-      padding: 50px;
-      background: white;
-      border-radius: 20px;
-      color: #999;
-    }
-    
-    .no-results i {
-      font-size: 48px;
-      margin-bottom: 15px;
-      color: #ddd;
-    }
-    
-    @media (max-width: 768px) {
-      .filter-row {
-        flex-direction: column;
-        gap: 10px;
-      }
-      
-      .filter-group {
-        width: 100%;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Directory - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Additional styles for member directory */
+        .directory-header {
+            background: linear-gradient(135deg, #b3412e, #c94b1f);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .directory-header h1 {
+            font-size: clamp(28px, 6vw, 42px);
+            margin-bottom: 10px;
+        }
+
+        .directory-header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+            background: #fffcf5;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #f28c38;
+        }
+
+        .search-btn {
+            background: #b3412e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            height: 48px;
+        }
+
+        .search-btn:hover {
+            background: #8b2c1d;
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            height: 48px;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .member-card {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-left: 4px solid #f28c38;
+        }
+
+        .member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(180,60,20,0.15);
+        }
+
+        .member-photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 3px solid #f3a446;
+        }
+
+        .member-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .member-info h3 {
+            color: #2d1f00;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+
+        .member-id {
+            background: #fce3d5;
+            color: #b3412e;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .member-details {
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .member-details p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .member-details i {
+            width: 20px;
+            color: #b3412e;
+        }
+
+        .view-profile-btn {
+            background: linear-gradient(45deg, #b3412e, #c94b1f);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .view-profile-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: white;
+            border: 2px solid #f3b28a;
+            color: #b3412e;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-btn.active {
+            background: #b3412e;
+            color: white;
+            border-color: #b3412e;
+        }
+
+        .page-btn:hover:not(.active) {
+            background: #fce3d5;
+        }
+
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 30px;
+            color: #666;
+        }
+
+        .no-results i {
+            font-size: 50px;
+            color: #b3412e;
+            margin-bottom: 20px;
+        }
+
+        .member-count {
+            text-align: right;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .search-btn, .reset-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<header>
-  <div class="logo-area">
-    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Brahman Mahasabha logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
-    <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
-  </div>
-  <div class="right-controls">
-    <div class="lang-switch">
-      <button class="lang-option en" onclick="setLanguage('en')">EN</button>
-      <button class="lang-option hi" onclick="setLanguage('hi')">HI</button>
-      <button class="lang-option as" onclick="setLanguage('as')">AS</button>
-    </div>
-    <div class="menu-dropdown">
-      <div class="hamburger" aria-label="menu" role="button" tabindex="0">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <div class="dropdown-content">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
-        <a href="/about.html"><i class="fas fa-users"></i> About Us</a>
-        <a href="/members.html"><i class="fas fa-id-card"></i> Members</a>
-        <a href="/events.html"><i class="fas fa-calendar-alt"></i> Events</a>
-        <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
-        <a href="/gallery.html"><i class="fas fa-images"></i> Gallery</a>
-        <a href="/donate.html"><i class="fas fa-hand-holding-heart"></i> Donate</a>
-        <a href="/contact.html"><i class="fas fa-phone-alt"></i> Contact</a>
-        <a href="/register.html"><i class="fas fa-user-plus"></i> Register</a>
-        <a href="/documents.html"><i class="fas fa-file-alt"></i> Documents</a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- Page Banner -->
-<section class="hero" style="height: 30vh; min-height: 200px; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=2070&auto=format&fit=crop') center/cover;">
-  <h1>Member Directory</h1>
-  <p>Connect with our community members</p>
-</section>
-
-<!-- Main Content -->
-<section class="section">
-  <div class="filter-section">
-    <h3 style="margin-bottom: 20px; color: var(--primary);">
-      <i class="fas fa-search"></i> Search Members
-    </h3>
-    
-    <div class="filter-row">
-      <div class="filter-group">
-        <label for="search-input">Search by Name or Membership ID</label>
-        <input type="text" id="search-input" placeholder="Type to search..." class="search-box">
-      </div>
-      
-      <div class="filter-group">
-        <label for="district-filter">Filter by District</label>
-        <select id="district-filter" class="search-box">
-          <option value="">All Districts</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <button class="btn" onclick="searchMembers()" style="width: 100%;">
-          <i class="fas fa-search"></i> Search
-        </button>
-      </div>
-      
-      <div class="filter-group">
-        <button class="btn btn-outline" onclick="resetFilters()" style="width: 100%;">
-          <i class="fas fa-redo"></i> Reset
-        </button>
-      </div>
-    </div>
-  </div>
-  
-  <div class="pagination-info" id="pagination-info">
-    Showing <span id="showing-start">0</span> - <span id="showing-end">0</span> of <span id="total-members">0</span> members
-  </div>
-  
-  <div id="members-container" class="member-grid">
-    <div class="spinner"></div>
-  </div>
-  
-  <div class="pagination" id="pagination"></div>
-</section>
-
-<!-- Footer -->
-<footer>
-  <div class="footer-content">
-    <div class="footer-section">
-      <h4>About Us</h4>
-      <p>Asom Hindi Bhasi Brahman Mahasabha is a non-profit organization working for cultural and social welfare since 1980.</p>
-    </div>
-    <div class="footer-section">
-      <h4>Quick Links</h4>
-      <ul>
-        <li><a href="/members.html">Members Directory</a></li>
-        <li><a href="/events.html">Events</a></li>
-        <li><a href="/news.html">News</a></li>
-        <li><a href="/donate.html">Donate</a></li>
-      </ul>
-    </div>
-    <div class="footer-section">
-      <h4>Contact Us</h4>
-      <p><i class="fas fa-phone"></i> +91 98765 43210</p>
-      <p><i class="fas fa-envelope"></i> info@ahbbm.org</p>
-      <div class="social-links">
-        <a href="#"><i class="fab fa-facebook"></i></a>
-        <a href="#"><i class="fab fa-twitter"></i></a>
-        <a href="#"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-youtube"></i></a>
-      </div>
-    </div>
-  </div>
-  <div class="copyright">
-    © 2026 Asom Hindi Bhasi Brahman Mahasabha. All rights reserved.
-  </div>
-</footer>
-
-<!-- WhatsApp Button -->
-<a href="https://wa.me/919876543210" class="whatsapp" aria-label="Chat on WhatsApp" target="_blank">
-  <i class="fab fa-whatsapp"></i>
-</a>
-
-<script src="/js/supabase.js"></script>
-<script src="/js/app.js"></script>
-
-<script>
-  let currentPage = 1;
-  const itemsPerPage = 12;
-  let totalMembers = 0;
-  let districts = [];
-  let currentSearchTerm = '';
-  let currentDistrict = '';
-
-  document.addEventListener('DOMContentLoaded', async function() {
-    await loadDistricts();
-    await loadMembers();
-    
-    // Add event listeners
-    document.getElementById('search-input').addEventListener('keyup', function(e) {
-      if (e.key === 'Enter') {
-        searchMembers();
-      }
-    });
-    
-    document.getElementById('district-filter').addEventListener('change', function() {
-      searchMembers();
-    });
-  });
-
-  async function loadDistricts() {
-    try {
-      districts = await db.members.getDistricts();
-      const districtFilter = document.getElementById('district-filter');
-      
-      districts.forEach(district => {
-        if (district) {
-          const option = document.createElement('option');
-          option.value = district;
-          option.textContent = district;
-          districtFilter.appendChild(option);
-        }
-      });
-    } catch (error) {
-      console.error('Error loading districts:', error);
-    }
-  }
-
-  async function loadMembers(page = 1) {
-    try {
-      const container = document.getElementById('members-container');
-      showLoading(container);
-      
-      let result;
-      if (currentSearchTerm || currentDistrict) {
-        result = await db.members.search(currentSearchTerm, currentDistrict, page, itemsPerPage);
-      } else {
-        result = await db.members.getAll('approved', page, itemsPerPage);
-      }
-      
-      totalMembers = result.count;
-      currentPage = page;
-      
-      updatePaginationInfo();
-      displayMembers(result.data);
-      updatePagination();
-      
-    } catch (error) {
-      console.error('Error loading members:', error);
-      document.getElementById('members-container').innerHTML = 
-        '<div class="no-results"><i class="fas fa-exclamation-circle"></i><p>Failed to load members</p></div>';
-    }
-  }
-
-  function displayMembers(members) {
-    const container = document.getElementById('members-container');
-    container.innerHTML = '';
-    
-    if (!members || members.length === 0) {
-      container.innerHTML = `
-        <div class="no-results">
-          <i class="fas fa-users-slash"></i>
-          <p>No members found</p>
+    <!-- Header (same as index.html) -->
+    <header>
+        <div class="logo-area">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
         </div>
-      `;
-      return;
-    }
-    
-    members.forEach(member => {
-      container.appendChild(createMemberCard(member));
-    });
-  }
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active">EN</button>
+                <button class="lang-option hi">HI</button>
+                <button class="lang-option as">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About Us</a>
+                    <a href="members.html" class="active">Member Directory</a>
+                    <a href="membership-registration.html">Join Membership</a>
+                    <a href="events.html">Events</a>
+                    <a href="news.html">News</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="donation.html">Donate</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-  function createMemberCard(member) {
-    const div = document.createElement('div');
-    div.className = 'member-card approved';
-    
-    const photoUrl = member.photo_url || 'https://via.placeholder.com/120x120?text=🕉️';
-    
-    div.innerHTML = `
-      <img src="${photoUrl}" alt="${member.name}" class="member-photo" 
-           onerror="this.src='https://via.placeholder.com/120x120?text=🕉️'">
-      <div class="member-info">
-        <h3 class="member-name">${member.name}</h3>
-        <span class="member-id">${member.membership_id || 'Pending'}</span>
+    <!-- Directory Header -->
+    <div class="directory-header">
+        <h1>Member Directory</h1>
+        <p>View our verified community members</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="section">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label><i class="fas fa-search"></i> Search by Name or Village</label>
+                <input type="text" id="searchInput" placeholder="Enter name or village...">
+            </div>
+            
+            <div class="filter-group">
+                <label><i class="fas fa-map-marker-alt"></i> Filter by District</label>
+                <select id="districtFilter">
+                    <option value="all">All Districts</option>
+                </select>
+            </div>
+            
+            <button class="search-btn" onclick="applyFilters()">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            
+            <button class="reset-btn" onclick="resetFilters()">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+
+        <!-- Member Count -->
+        <div class="member-count" id="memberCount">Loading members...</div>
+
+        <!-- Members Grid -->
+        <div id="membersGrid" class="members-grid">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading members...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Footer (same as index.html) -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Asom Hindi Bhasi Brahman Mahasabha</h3>
+                <p>Working for cultural preservation and community welfare</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Use</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
         
-        <div class="member-details">
-          ${member.district ? `
-            <p><i class="fas fa-map-marker-alt"></i> <strong>District:</strong> ${member.district}</p>
-          ` : ''}
-          ${member.village ? `
-            <p><i class="fas fa-home"></i> <strong>Village:</strong> ${member.village}</p>
-          ` : ''}
-          ${member.phone ? `
-            <p><i class="fas fa-phone"></i> <strong>Phone:</strong> ${member.phone}</p>
-          ` : ''}
-          ${member.email ? `
-            <p><i class="fas fa-envelope"></i> <strong>Email:</strong> ${member.email}</p>
-          ` : ''}
-        </div>
-      </div>
-    `;
-    
-    return div;
-  }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function updatePaginationInfo() {
-    const start = ((currentPage - 1) * itemsPerPage) + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalMembers);
-    
-    document.getElementById('showing-start').textContent = totalMembers > 0 ? start : 0;
-    document.getElementById('showing-end').textContent = end;
-    document.getElementById('total-members').textContent = totalMembers;
-  }
+        // State
+        let currentPage = 1;
+        let totalMembers = 0;
+        const pageSize = 12;
+        let currentFilters = {
+            search: '',
+            district: 'all'
+        };
+        let districts = [];
 
-  function updatePagination() {
-    const totalPages = Math.ceil(totalMembers / itemsPerPage);
-    const pagination = document.getElementById('pagination');
-    
-    if (totalPages <= 1) {
-      pagination.innerHTML = '';
-      return;
-    }
-    
-    let html = '';
-    
-    // Previous button
-    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-      <i class="fas fa-chevron-left"></i>
-    </button>`;
-    
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 || 
-        i === totalPages || 
-        (i >= currentPage - 2 && i <= currentPage + 2)
-      ) {
-        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-          ${i}
-        </button>`;
-      } else if (i === currentPage - 3 || i === currentPage + 3) {
-        html += `<span class="page-dots">...</span>`;
-      }
-    }
-    
-    // Next button
-    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-      <i class="fas fa-chevron-right"></i>
-    </button>`;
-    
-    pagination.innerHTML = html;
-  }
+        // Load districts on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDistricts();
+            await loadMembers();
+        });
 
-  function changePage(page) {
-    if (page < 1) return;
-    loadMembers(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+        // Load districts for filter dropdown
+        async function loadDistricts() {
+            try {
+                const { data, error } = await supabase
+                    .from('members')
+                    .select('district')
+                    .eq('status', 'approved')
+                    .order('district');
+                
+                if (error) throw error;
+                
+                districts = [...new Set(data.map(item => item.district))];
+                
+                const districtSelect = document.getElementById('districtFilter');
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading districts:', error);
+            }
+        }
 
-  function searchMembers() {
-    currentSearchTerm = document.getElementById('search-input').value;
-    currentDistrict = document.getElementById('district-filter').value;
-    loadMembers(1);
-  }
+        // Load members with current filters
+        async function loadMembers() {
+            const grid = document.getElementById('membersGrid');
+            const memberCountEl = document.getElementById('memberCount');
+            
+            try {
+                let query = supabase
+                    .from('members')
+                    .select('*', { count: 'exact' })
+                    .eq('status', 'approved')
+                    .order('name');
+                
+                // Apply search filter
+                if (currentFilters.search) {
+                    query = query.or(`name.ilike.%${currentFilters.search}%,village.ilike.%${currentFilters.search}%`);
+                }
+                
+                // Apply district filter
+                if (currentFilters.district && currentFilters.district !== 'all') {
+                    query = query.eq('district', currentFilters.district);
+                }
+                
+                // Get total count for pagination
+                const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
+                
+                if (countError) throw countError;
+                
+                totalMembers = count || 0;
+                
+                // Apply pagination
+                const from = (currentPage - 1) * pageSize;
+                const to = from + pageSize - 1;
+                
+                const { data, error } = await query.range(from, to);
+                
+                if (error) throw error;
+                
+                // Update member count
+                const start = totalMembers > 0 ? from + 1 : 0;
+                const end = Math.min(to + 1, totalMembers);
+                memberCountEl.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
+                
+                // Render members
+                if (data && data.length > 0) {
+                    grid.innerHTML = data.map(member => `
+                        <div class="member-card">
+                            <img src="${member.photo_url || 'https://via.placeholder.com/300x200?text=🕉️'}" 
+                                 alt="${member.name}" 
+                                 class="member-photo"
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=🕉️'">
+                            <div class="member-info">
+                                <h3>${escapeHtml(member.name)}</h3>
+                                <span class="member-id">ID: ${member.membership_id || 'Pending'}</span>
+                                <div class="member-details">
+                                    <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(member.district)}</p>
+                                    <p><i class="fas fa-home"></i> ${escapeHtml(member.village || 'N/A')}</p>
+                                    <p><i class="fas fa-phone"></i> ${escapeHtml(member.phone)}</p>
+                                </div>
+                                <button class="view-profile-btn" onclick="viewProfile('${member.id}')">
+                                    <i class="fas fa-user"></i> View Profile
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-users-slash"></i>
+                            <h3>No members found</h3>
+                            <p>Try adjusting your search filters</p>
+                        </div>
+                    `;
+                }
+                
+                // Render pagination
+                renderPagination();
+                
+            } catch (error) {
+                console.error('Error loading members:', error);
+                grid.innerHTML = '<div class="error-message">Failed to load members. Please refresh.</div>';
+            }
+        }
 
-  function resetFilters() {
-    document.getElementById('search-input').value = '';
-    document.getElementById('district-filter').value = '';
-    currentSearchTerm = '';
-    currentDistrict = '';
-    loadMembers(1);
-  }
+        // Render pagination controls
+        function renderPagination() {
+            const totalPages = Math.ceil(totalMembers / pageSize);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" 
+                    onclick="changePage(${currentPage - 1})" 
+                    ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>`;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (
+                    i === 1 || 
+                    i === totalPages || 
+                    (i >= currentPage - 2 && i <= currentPage + 2)
+                ) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="changePage(${i})">${i}</button>`;
+                } else if (
+                    i === currentPage - 3 || 
+                    i === currentPage + 3
+                ) {
+                    html += `<span class="page-dots">...</span>`;
+                }
+            }
+            
+            // Next button
+            html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+                    onclick="changePage(${currentPage + 1})"
+                    ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                </button>`;
+            
+            pagination.innerHTML = html;
+        }
 
-  function showLoading(container) {
-    container.innerHTML = '<div class="spinner"></div>';
-  }
-</script>
+        // Change page
+        window.changePage = function(page) {
+            const totalPages = Math.ceil(totalMembers / pageSize);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            loadMembers();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
+        // Apply filters
+        window.applyFilters = function() {
+            currentFilters.search = document.getElementById('searchInput').value;
+            currentFilters.district = document.getElementById('districtFilter').value;
+            currentPage = 1;
+            loadMembers();
+        };
+
+        // Reset filters
+        window.resetFilters = function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('districtFilter').value = 'all';
+            currentFilters = { search: '', district: 'all' };
+            currentPage = 1;
+            loadMembers();
+        };
+
+        // View profile (modal for now)
+        window.viewProfile = async function(memberId) {
+            // You can implement a modal or redirect to profile page
+            alert('Profile view coming soon! Member ID: ' + memberId);
+        };
+
+        // Helper: Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
