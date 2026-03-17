@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Asom Hindi Bhasi Brahman Mahasabha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .about-header {
+            background: linear-gradient(135deg, #b3412e, #c94b1f);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .about-header h1 {
+            font-size: clamp(28px, 6vw, 42px);
+            margin-bottom: 10px;
+        }
+
+        .about-header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .mission-vision {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .mission-card, .vision-card {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-left: 6px solid #f28c38;
+        }
+
+        .mission-card h2, .vision-card h2 {
+            color: #b3412e;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .mission-card p, .vision-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .committee-section {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .committee-title {
+            text-align: center;
+            color: #b3412e;
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .committee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .committee-card {
+            background: white;
+            border-radius: 30px 10px 30px 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 4px solid #f28c38;
+        }
+
+        .committee-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .committee-photo {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-bottom: 3px solid #f3a446;
+        }
+
+        .committee-info {
+            padding: 25px;
+            text-align: center;
+        }
+
+        .committee-info h3 {
+            color: #2d1f00;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .committee-designation {
+            color: #b3412e;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .committee-district {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .committee-contact {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .committee-contact a {
+            width: 35px;
+            height: 35px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b3412e;
+            transition: all 0.3s;
+        }
+
+        .committee-contact a:hover {
+            background: #b3412e;
+            color: white;
+        }
+
+        .loading-spinner {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .mission-vision {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+            <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
+        </div>
+        <div class="right-controls">
+            <div class="lang-switch">
+                <button class="lang-option en active">EN</button>
+                <button class="lang-option hi">HI</button>
+                <button class="lang-option as">AS</button>
+            </div>
+            <div class="menu-dropdown">
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="index.html">Home</a>
+                    <a href="about.html" class="active">About Us</a>
+                    <a href="members.html">Member Directory</a>
+                    <a href="membership-registration.html">Join Membership</a>
+                    <a href="events.html">Events</a>
+                    <a href="news.html">News</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="videos.html">Videos</a>
+                    <a href="donation.html">Donate</a>
+                    <a href="documents.html">Documents</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Header -->
+    <div class="about-header">
+        <h1>About Us</h1>
+        <p>Preserving culture, serving humanity</p>
+    </div>
+
+    <!-- Mission & Vision -->
+    <div class="mission-vision">
+        <div class="mission-card">
+            <h2>Our Mission</h2>
+            <p>To preserve and promote the rich cultural heritage of the Brahmin community while actively contributing to social welfare through education, healthcare, and community development programs. We strive to create a harmonious society based on the principles of dharma, knowledge, and service.</p>
+        </div>
+        <div class="vision-card">
+            <h2>Our Vision</h2>
+            <p>To build a united, prosperous, and culturally vibrant Brahmin community that leads by example in ethical living, scholarly pursuits, and compassionate service. We envision a future where traditional values and modern progress coexist for the betterment of all.</p>
+        </div>
+    </div>
+
+    <!-- Committee Section -->
+    <div class="committee-section">
+        <h2 class="committee-title">Our Office Bearers</h2>
+        <div class="committee-grid" id="committeeGrid">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading committee members...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Asom Hindi Bhasi Brahman Mahasabha</h3>
+                <p>Working for cultural preservation and community welfare</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Use</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Asom Hindi Bhasi Brahman Mahasabha | All Rights Reserved
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
+
+    <script src="js/committee.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Initialize CommitteeModule
+            CommitteeModule.init(supabase);
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadCommittee();
+            });
+
+            async function loadCommittee() {
+                const grid = document.getElementById('committeeGrid');
+                
+                const result = await CommitteeModule.getActiveCommittee();
+                
+                if (result.success && result.data.length > 0) {
+                    grid.innerHTML = result.data.map(member => `
+                        <div class="committee-card">
+                            <img src="${member.photo_url || 'https://via.placeholder.com/300x250?text=🕉️'}" 
+                                 alt="${CommitteeModule.helpers.escapeHtml(member.name)}" 
+                                 class="committee-photo"
+                                 onerror="this.src='https://via.placeholder.com/300x250?text=🕉️'">
+                            <div class="committee-info">
+                                <h3>${CommitteeModule.helpers.escapeHtml(member.name)}</h3>
+                                <div class="committee-designation">${CommitteeModule.helpers.escapeHtml(member.designation)}</div>
+                                <div class="committee-district">
+                                    <i class="fas fa-map-marker-alt"></i> ${CommitteeModule.helpers.escapeHtml(member.district || 'Assam')}
+                                </div>
+                                <div class="committee-contact">
+                                    ${member.phone ? `<a href="tel:${member.phone}"><i class="fas fa-phone"></i></a>` : ''}
+                                    ${member.email ? `<a href="mailto:${member.email}"><i class="fas fa-envelope"></i></a>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    grid.innerHTML = '<div class="no-data">No committee members found</div>';
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
