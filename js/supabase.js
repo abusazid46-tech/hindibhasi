@@ -504,7 +504,196 @@ const db = {
             return true;
         }
     },
+// Add to existing db object
 
+// Admin specific functions
+admin: {
+    async getDashboardStats() {
+        try {
+            const [members, pendingMembers, donations, events, messages] = await Promise.all([
+                supabase.from('members').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+                supabase.from('members').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+                supabase.from('donations').select('amount').eq('payment_status', 'completed'),
+                supabase.from('events').select('*', { count: 'exact', head: true }).gte('date', new Date().toISOString().split('T')[0]),
+                supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('is_read', false)
+            ]);
+            
+            const totalDonations = donations.data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+            
+            return {
+                totalMembers: members.count || 0,
+                pendingMembers: pendingMembers.count || 0,
+                totalDonations: totalDonations,
+                upcomingEvents: events.count || 0,
+                unreadMessages: messages.count || 0
+            };
+        } catch (error) {
+            console.error('Error getting dashboard stats:', error);
+            throw error;
+        }
+    },
+    
+    async getRecentActivity(limit = 10) {
+        try {
+            const [recentMembers, recentDonations, recentMessages] = await Promise.all([
+                supabase.from('members')
+                    .select('id, name, phone, status, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(limit),
+                supabase.from('donations')
+                    .select('id, name, amount, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(limit),
+                supabase.from('contacts')
+                    .select('id, name, message, is_read, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(limit)
+            ]);
+            
+            return {
+                members: recentMembers.data || [],
+                donations: recentDonations.data || [],
+                messages: recentMessages.data || []
+            };
+        } catch (error) {
+            console.error('Error getting recent activity:', error);
+            throw error;
+        }
+    },
+    
+    async getDonationReport(startDate, endDate) {
+        try {
+            let query = supabase
+                .from('donations')
+                .select('*')
+                .eq('payment_status', 'completed');
+            
+            if (startDate) {
+                query = query.gte('created_at', startDate);
+            }
+            if (endDate) {
+                query = query.lte('created_at', endDate);
+            }
+            
+            const { data, error } = await query.order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            // Calculate statistics
+            const total = data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+            const byMethod = {};
+            const byPurpose = {};
+            
+            data.forEach(d => {
+                byMethod[d.payment_method] = (byMethod[d.payment_method] || 0) + (parseFloat(d.amount) || 0);
+                byPurpose[d.purpose || 'general'] = (byPurpose[d.purpose || 'general'] || 0) + (parseFloat(d.amount) || 0);
+            });
+            
+            return {
+                donations: data,
+                total: total,
+                count: data.length,
+                average: data.length > 0 ? total / data.length : 0,
+                byMethod: byMethod,
+                byPurpose: byPurpose
+            };
+        } catch (error) {
+            console.error('Error getting donation report:', error);
+            throw error;
+        }
+    },
+    
+    async getMemberStats() {
+        try {
+            const { data, error } = await supabase
+                .from('members')
+                .select('district, status, created_at');
+            
+            if (error) throw error;
+            
+            const byDistrict = {};
+            const byStatus = { approved: 0, pending: 0, rejected: 0 };
+            const byMonth = {};
+            
+            data.forEach(m => {
+                // By district
+                if (m.district) {
+                    byDistrict[m.district] = (byDistrict[m.district] || 0) + 1;
+                }
+                
+                // By status
+                byStatus[m.status] = (byStatus[m.status] || 0) + 1;
+                
+                // By month
+                if (m.created_at) {
+                    const month = new Date(m.created_at).toLocaleString('default', { month: 'short', year: 'numeric' });
+                    byMonth[month] = (byMonth[month] || 0) + 1;
+                }
+            });
+            
+            return {
+                total: data.length,
+                byDistrict,
+                byStatus,
+                byMonth
+            };
+        } catch (error) {
+            console.error('Error getting member stats:', error);
+            throw error;
+        }
+    },
+    
+    async createBackup() {
+        try {
+            const tables = ['members', 'events', 'news', 'gallery', 'donations', 'documents', 'contacts', 'office_bearers'];
+            const backup = {};
+            
+            for (const table of tables) {
+                const { data, error } = await supabase.from(table).select('*');
+                if (error) throw error;
+                backup[table] = data;
+            }
+            
+            // Add metadata
+            backup.metadata = {
+                created_at: new Date().toISOString(),
+                version: '1.0',
+                tables: tables
+            };
+            
+            return backup;
+        } catch (error) {
+            console.error('Error creating backup:', error);
+            throw error;
+        }
+    },
+    
+    async restoreFromBackup(backupData) {
+        try {
+            // Validate backup
+            if (!backupData.metadata || !backupData.metadata.tables) {
+                throw new Error('Invalid backup format');
+            }
+            
+            // Restore each table
+            for (const table of backupData.metadata.tables) {
+                if (backupData[table] && backupData[table].length > 0) {
+                    // Delete existing data (be careful!)
+                    await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                    
+                    // Insert backup data
+                    const { error } = await supabase.from(table).insert(backupData[table]);
+                    if (error) throw error;
+                }
+            }
+            
+            return { success: true, message: 'Backup restored successfully' };
+        } catch (error) {
+            console.error('Error restoring backup:', error);
+            throw error;
+        }
+    }
+}
     // Auth (Admin)
     auth: {
         async login(username, password) {
