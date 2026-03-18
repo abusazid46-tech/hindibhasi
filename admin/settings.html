@@ -464,120 +464,130 @@
     </div>
 
     <script>
-        (function() {
-            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+    (function() {
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Check auth
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
             
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const storedAdmin = sessionStorage.getItem('adminInfo');
+            if (storedAdmin) {
+                const admin = JSON.parse(storedAdmin);
+                document.getElementById('adminName').textContent = admin.name;
+                document.getElementById('headerAdminName').textContent = admin.name;
+            }
             
-            // Check auth
-            document.addEventListener('DOMContentLoaded', async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                const storedAdmin = sessionStorage.getItem('adminInfo');
-                if (storedAdmin) {
-                    const admin = JSON.parse(storedAdmin);
-                    document.getElementById('adminName').textContent = admin.name;
-                    document.getElementById('headerAdminName').textContent = admin.name;
-                }
-                
-                await loadSettings();
-            });
+            await loadSettings();
+        });
 
-            async function loadSettings() {
-                try {
-                    document.getElementById('loading').style.display = 'block';
-                    document.getElementById('settingsContent').style.display = 'none';
-                    
-                    const { data, error } = await supabase
-                        .from('settings')
-                        .select('*');
-                    
-                    if (error) throw error;
-                    
-                    // Create a map of settings
-                    const settings = {};
+        async function loadSettings() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('settingsContent').style.display = 'none';
+                
+                const { data, error } = await supabase
+                    .from('settings')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                // Create a map of settings
+                const settings = {};
+                if (data) {
                     data.forEach(item => {
                         settings[item.key] = item.value;
                     });
-                    
-                    // Populate all fields
-                    document.querySelectorAll('.setting-field').forEach(field => {
-                        const id = field.id;
-                        if (settings[id] !== undefined) {
-                            field.value = settings[id];
-                        }
-                    });
-                    
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('settingsContent').style.display = 'block';
-                    
-                } catch (error) {
-                    console.error('Error loading settings:', error);
-                    showMessage('Failed to load settings: ' + error.message, 'error');
                 }
+                
+                // Populate all fields
+                document.querySelectorAll('.setting-field').forEach(field => {
+                    const id = field.id;
+                    if (settings[id] !== undefined) {
+                        field.value = settings[id];
+                    }
+                });
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('settingsContent').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                document.getElementById('loading').innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to load settings. Please refresh.';
             }
+        }
 
-            window.switchTab = function(tab) {
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+            document.getElementById(`panel-${tab}`).classList.add('active');
+        };
+
+        window.saveSettings = async function(panel) {
+            try {
+                const fields = document.querySelectorAll(`#panel-${panel} .setting-field`);
                 
-                document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
-                document.getElementById(`panel-${tab}`).classList.add('active');
-            };
-
-            window.saveSettings = async function(panel) {
-                try {
-                    const fields = document.querySelectorAll(`#panel-${panel} .setting-field`);
-                    const updates = [];
+                showMessage('Saving...', 'info');
+                
+                // Update each setting
+                for (const field of fields) {
+                    const { error } = await supabase
+                        .from('settings')
+                        .upsert(
+                            { 
+                                key: field.id, 
+                                value: field.value,
+                                updated_at: new Date().toISOString()
+                            },
+                            { 
+                                onConflict: 'key'  // This fixes the 409 error
+                            }
+                        );
                     
-                    for (const field of fields) {
-                        updates.push({
-                            key: field.id,
-                            value: field.value
-                        });
-                    }
-                    
-                    // Update each setting
-                    for (const update of updates) {
-                        const { error } = await supabase
-                            .from('settings')
-                            .upsert({ 
-                                key: update.key, 
-                                value: update.value 
-                            });
-                        
-                        if (error) throw error;
-                    }
-                    
-                    showMessage('Settings saved successfully!', 'success');
-                    
-                } catch (error) {
-                    console.error('Error saving settings:', error);
-                    showMessage('Failed to save settings: ' + error.message, 'error');
+                    if (error) throw error;
                 }
-            };
-
-            function showMessage(text, type) {
-                const msgDiv = document.getElementById('message');
-                msgDiv.className = `message ${type}`;
-                msgDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${text}`;
                 
+                showMessage('✅ Settings saved successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showMessage('❌ Error: ' + (error.message || 'Failed to save settings'), 'error');
+            }
+        };
+
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.className = `message ${type}`;
+            
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'error') icon = 'fa-exclamation-circle';
+            
+            msgDiv.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+            
+            // Auto hide after 3 seconds for success/info
+            if (type !== 'error') {
                 setTimeout(() => {
                     msgDiv.className = 'message';
-                }, 5000);
+                }, 3000);
             }
+        }
 
-            window.logout = async function() {
-                await supabase.auth.signOut();
-                sessionStorage.removeItem('adminInfo');
-                window.location.href = 'login.html';
-            };
-        })();
-    </script>
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            sessionStorage.removeItem('adminInfo');
+            window.location.href = 'login.html';
+        };
+    })();
+</script>
 </body>
 </html>
