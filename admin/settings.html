@@ -21,7 +21,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
@@ -74,7 +73,6 @@
             width: 22px;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 280px;
@@ -118,53 +116,35 @@
             gap: 8px;
         }
 
-        /* Settings Container */
         .settings-container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 30px;
-        }
-
-        /* Settings Menu */
-        .settings-menu {
-            background: white;
-            border-radius: 30px 10px 30px 10px;
-            padding: 20px;
-            height: fit-content;
-        }
-
-        .settings-menu-item {
-            padding: 15px 20px;
-            margin: 5px 0;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #666;
-        }
-
-        .settings-menu-item:hover {
-            background: #fef8f0;
-            color: #b3412e;
-        }
-
-        .settings-menu-item.active {
-            background: #b3412e;
-            color: white;
-        }
-
-        .settings-menu-item i {
-            width: 24px;
-            font-size: 18px;
-        }
-
-        /* Settings Panels */
-        .settings-panels {
             background: white;
             border-radius: 30px 10px 30px 10px;
             padding: 30px;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f3b28a;
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #b3412e;
+            color: white;
         }
 
         .settings-panel {
@@ -177,14 +157,12 @@
 
         .panel-title {
             color: #2d1f00;
-            font-size: 24px;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #b3412e;
+            font-size: 22px;
+            margin-bottom: 25px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -221,69 +199,40 @@
             background: linear-gradient(45deg, #b3412e, #c94b1f);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 15px 40px;
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 20px;
         }
 
-        .social-input-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .message {
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
         }
 
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #b3412e;
-        }
-
-        .success-message {
+        .message.success {
             background: #e8f5e9;
             color: #27ae60;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .success-message.show {
-            display: flex;
-        }
-
-        .error-message {
+        .message.error {
             background: #fee;
             color: #e74c3c;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .error-message.show {
-            display: flex;
-        }
-
-        .loading-spinner {
+        .loading {
             text-align: center;
             padding: 40px;
             color: #b3412e;
-        }
-
-        .loading-spinner i {
-            font-size: 40px;
-            margin-bottom: 10px;
         }
 
         @media (max-width: 1024px) {
@@ -296,14 +245,10 @@
             .main-content {
                 margin-left: 80px;
             }
-            .settings-container {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
             <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
@@ -312,362 +257,212 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="dashboard.html" class="menu-item">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="members.html" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Members</span>
-            </a>
-            <a href="events.html" class="menu-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Events</span>
-            </a>
-            <a href="news.html" class="menu-item">
-                <i class="fas fa-newspaper"></i>
-                <span>News</span>
-            </a>
-            <a href="gallery.html" class="menu-item">
-                <i class="fas fa-images"></i>
-                <span>Gallery</span>
-            </a>
-            <a href="donations.html" class="menu-item">
-                <i class="fas fa-hand-holding-heart"></i>
-                <span>Donations</span>
-            </a>
-            <a href="documents.html" class="menu-item">
-                <i class="fas fa-file-pdf"></i>
-                <span>Documents</span>
-            </a>
-            <a href="contacts.html" class="menu-item">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-            </a>
-            <a href="committee.html" class="menu-item">
-                <i class="fas fa-user-tie"></i>
-                <span>Committee</span>
-            </a>
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+            <a href="members.html" class="menu-item"><i class="fas fa-users"></i><span>Members</span></a>
+            <a href="events.html" class="menu-item"><i class="fas fa-calendar-alt"></i><span>Events</span></a>
+            <a href="news.html" class="menu-item"><i class="fas fa-newspaper"></i><span>News</span></a>
+            <a href="gallery.html" class="menu-item"><i class="fas fa-images"></i><span>Gallery</span></a>
+            <a href="donations.html" class="menu-item"><i class="fas fa-hand-holding-heart"></i><span>Donations</span></a>
+            <a href="documents.html" class="menu-item"><i class="fas fa-file-pdf"></i><span>Documents</span></a>
+            <a href="contacts.html" class="menu-item"><i class="fas fa-envelope"></i><span>Messages</span></a>
+            <a href="committee.html" class="menu-item"><i class="fas fa-user-tie"></i><span>Committee</span></a>
             <div class="menu-divider"></div>
-            <a href="settings.html" class="menu-item active">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <a href="#" class="menu-item" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
+            <a href="settings.html" class="menu-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="#" class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
-            <div class="page-title">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </div>
-            
+            <div class="page-title"><i class="fas fa-cog"></i><span>Settings</span></div>
             <div class="admin-info">
                 <span id="headerAdminName">Admin</span>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
 
-        <!-- Settings Container -->
         <div class="settings-container">
-            <!-- Settings Menu -->
-            <div class="settings-menu">
-                <div class="settings-menu-item active" onclick="switchPanel('general')">
-                    <i class="fas fa-building"></i>
-                    <span>General Settings</span>
-                </div>
-                <div class="settings-menu-item" onclick="switchPanel('social')">
-                    <i class="fas fa-share-alt"></i>
-                    <span>Social Media</span>
-                </div>
-                <div class="settings-menu-item" onclick="switchPanel('membership')">
-                    <i class="fas fa-id-card"></i>
-                    <span>Membership</span>
-                </div>
-                <div class="settings-menu-item" onclick="switchPanel('contact')">
-                    <i class="fas fa-address-book"></i>
-                    <span>Contact Info</span>
-                </div>
-                <div class="settings-menu-item" onclick="switchPanel('payment')">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Payment Settings</span>
-                </div>
-                <div class="settings-menu-item" onclick="switchPanel('seo')">
-                    <i class="fas fa-chart-line"></i>
-                    <span>SEO & Analytics</span>
-                </div>
-            </div>
+            <div id="message" class="message"></div>
+            <div id="loading" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading settings...</div>
 
-            <!-- Settings Panels -->
-            <div class="settings-panels" id="settingsPanels">
-                <div class="loading-spinner" id="loadingSpinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading settings...</p>
+            <div id="settingsContent" style="display: none;">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchTab('general')">General</button>
+                    <button class="tab-btn" onclick="switchTab('social')">Social Media</button>
+                    <button class="tab-btn" onclick="switchTab('membership')">Membership</button>
+                    <button class="tab-btn" onclick="switchTab('contact')">Contact</button>
+                    <button class="tab-btn" onclick="switchTab('payment')">Payment</button>
+                    <button class="tab-btn" onclick="switchTab('seo')">SEO</button>
                 </div>
 
-                <div class="success-message" id="successMessage">
-                    <i class="fas fa-check-circle"></i> Settings saved successfully!
-                </div>
-
-                <div class="error-message" id="errorMessage">
-                    <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
-                </div>
-
-                <!-- General Settings Panel -->
-                <div class="settings-panel" id="panel-general">
+                <!-- General Settings -->
+                <div id="panel-general" class="settings-panel active">
                     <h2 class="panel-title">General Settings</h2>
-                    
                     <div class="form-group">
                         <label>Organization Name</label>
-                        <input type="text" id="orgName" class="settings-input" data-key="org_name">
+                        <input type="text" id="org_name" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Short Name</label>
-                        <input type="text" id="orgShortName" class="settings-input" data-key="short_name">
+                        <input type="text" id="org_short_name" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Registration Number</label>
-                        <input type="text" id="regNumber" class="settings-input" data-key="reg_number">
+                        <input type="text" id="reg_number" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Established Year</label>
-                        <input type="text" id="estYear" class="settings-input" data-key="est_year">
+                        <input type="text" id="est_year" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Website URL</label>
-                        <input type="url" id="websiteUrl" class="settings-input" data-key="website_url">
+                        <input type="url" id="website_url" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Mission Statement</label>
-                        <textarea id="mission" rows="3" class="settings-input" data-key="mission"></textarea>
+                        <textarea id="mission" rows="3" class="setting-field"></textarea>
                     </div>
-                    
                     <div class="form-group">
                         <label>Vision Statement</label>
-                        <textarea id="vision" rows="3" class="settings-input" data-key="vision"></textarea>
+                        <textarea id="vision" rows="3" class="setting-field"></textarea>
                     </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('general')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('general')">Save General Settings</button>
                 </div>
 
-                <!-- Social Media Panel -->
-                <div class="settings-panel" id="panel-social">
+                <!-- Social Media -->
+                <div id="panel-social" class="settings-panel">
                     <h2 class="panel-title">Social Media Links</h2>
-                    
                     <div class="form-group">
                         <label>Facebook</label>
-                        <div class="social-input-group">
-                            <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
-                            <input type="url" id="facebook" class="settings-input" data-key="facebook" placeholder="https://facebook.com/your-page">
-                        </div>
+                        <input type="url" id="facebook" class="setting-field" placeholder="https://facebook.com/...">
                     </div>
-                    
                     <div class="form-group">
                         <label>Twitter</label>
-                        <div class="social-input-group">
-                            <span class="social-icon"><i class="fab fa-twitter"></i></span>
-                            <input type="url" id="twitter" class="settings-input" data-key="twitter" placeholder="https://twitter.com/your-handle">
-                        </div>
+                        <input type="url" id="twitter" class="setting-field" placeholder="https://twitter.com/...">
                     </div>
-                    
                     <div class="form-group">
                         <label>Instagram</label>
-                        <div class="social-input-group">
-                            <span class="social-icon"><i class="fab fa-instagram"></i></span>
-                            <input type="url" id="instagram" class="settings-input" data-key="instagram" placeholder="https://instagram.com/your-profile">
-                        </div>
+                        <input type="url" id="instagram" class="setting-field" placeholder="https://instagram.com/...">
                     </div>
-                    
                     <div class="form-group">
                         <label>YouTube</label>
-                        <div class="social-input-group">
-                            <span class="social-icon"><i class="fab fa-youtube"></i></span>
-                            <input type="url" id="youtube" class="settings-input" data-key="youtube" placeholder="https://youtube.com/@channel">
-                        </div>
+                        <input type="url" id="youtube" class="setting-field" placeholder="https://youtube.com/...">
                     </div>
-                    
                     <div class="form-group">
                         <label>WhatsApp Number</label>
-                        <div class="social-input-group">
-                            <span class="social-icon"><i class="fab fa-whatsapp"></i></span>
-                            <input type="text" id="whatsapp" class="settings-input" data-key="whatsapp" placeholder="+91XXXXXXXXXX">
-                        </div>
+                        <input type="text" id="whatsapp" class="setting-field" placeholder="+91...">
                     </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('social')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('social')">Save Social Media</button>
                 </div>
 
-                <!-- Membership Settings Panel -->
-                <div class="settings-panel" id="panel-membership">
+                <!-- Membership -->
+                <div id="panel-membership" class="settings-panel">
                     <h2 class="panel-title">Membership Settings</h2>
-                    
                     <div class="form-group">
                         <label>Membership Fee (₹)</label>
-                        <input type="number" id="membershipFee" class="settings-input" data-key="membership_fee" min="0">
+                        <input type="number" id="membership_fee" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Currency</label>
-                        <select id="currency" class="settings-input" data-key="currency">
+                        <select id="currency" class="setting-field">
                             <option value="INR">INR (₹)</option>
                             <option value="USD">USD ($)</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label>Membership ID Prefix</label>
-                        <input type="text" id="memberPrefix" class="settings-input" data-key="member_prefix" value="AHBBM">
+                        <label>Member ID Prefix</label>
+                        <input type="text" id="member_prefix" class="setting-field" value="AHBBM">
                     </div>
-                    
                     <div class="form-group">
-                        <label>Default Member Status</label>
-                        <select id="defaultStatus" class="settings-input" data-key="default_status">
+                        <label>Default Status</label>
+                        <select id="default_status" class="setting-field">
                             <option value="pending">Pending Approval</option>
-                            <option value="approved">Auto-Approved</option>
+                            <option value="approved">Auto Approved</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Enable Digital Membership Card</label>
-                        <select id="digitalCard" class="settings-input" data-key="digital_card">
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('membership')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('membership')">Save Membership Settings</button>
                 </div>
 
-                <!-- Contact Info Panel -->
-                <div class="settings-panel" id="panel-contact">
+                <!-- Contact -->
+                <div id="panel-contact" class="settings-panel">
                     <h2 class="panel-title">Contact Information</h2>
-                    
                     <div class="form-group">
-                        <label>Office Address</label>
-                        <textarea id="address" rows="3" class="settings-input" data-key="address"></textarea>
+                        <label>Address</label>
+                        <textarea id="address" rows="3" class="setting-field"></textarea>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Primary Phone</label>
-                            <input type="text" id="phone1" class="settings-input" data-key="phone1">
+                            <label>Phone 1</label>
+                            <input type="text" id="phone1" class="setting-field">
                         </div>
-                        
                         <div class="form-group">
-                            <label>Secondary Phone</label>
-                            <input type="text" id="phone2" class="settings-input" data-key="phone2">
+                            <label>Phone 2</label>
+                            <input type="text" id="phone2" class="setting-field">
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Primary Email</label>
-                            <input type="email" id="email1" class="settings-input" data-key="email1">
+                            <label>Email 1</label>
+                            <input type="email" id="email1" class="setting-field">
                         </div>
-                        
                         <div class="form-group">
-                            <label>Secondary Email</label>
-                            <input type="email" id="email2" class="settings-input" data-key="email2">
+                            <label>Email 2</label>
+                            <input type="email" id="email2" class="setting-field">
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label>Office Hours</label>
-                        <input type="text" id="officeHours" class="settings-input" data-key="office_hours" placeholder="Mon-Sat: 10:00 AM - 6:00 PM">
+                        <input type="text" id="office_hours" class="setting-field">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Google Maps Embed URL</label>
-                        <input type="url" id="mapsUrl" class="settings-input" data-key="maps_url">
-                    </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('contact')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('contact')">Save Contact Info</button>
                 </div>
 
-                <!-- Payment Settings Panel -->
-                <div class="settings-panel" id="panel-payment">
+                <!-- Payment -->
+                <div id="panel-payment" class="settings-panel">
                     <h2 class="panel-title">Payment Settings</h2>
-                    
                     <div class="form-group">
                         <label>Razorpay Key ID</label>
-                        <input type="text" id="razorpayKey" class="settings-input" data-key="razorpay_key" placeholder="rzp_live_xxxxxxxxxxxx">
+                        <input type="text" id="razorpay_key" class="setting-field">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Razorpay Key Secret</label>
-                        <input type="password" id="razorpaySecret" class="settings-input" data-key="razorpay_secret" placeholder="Enter secret key">
-                    </div>
-                    
                     <div class="form-group">
                         <label>Payment Mode</label>
-                        <select id="paymentMode" class="settings-input" data-key="payment_mode">
+                        <select id="payment_mode" class="setting-field">
                             <option value="test">Test Mode</option>
                             <option value="live">Live Mode</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label>Minimum Donation Amount (₹)</label>
-                        <input type="number" id="minDonation" class="settings-input" data-key="min_donation" value="51">
+                        <label>Minimum Donation (₹)</label>
+                        <input type="number" id="min_donation" class="setting-field">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Suggested Donation Amounts</label>
-                        <input type="text" id="suggestedDonations" class="settings-input" data-key="suggested_donations" placeholder="500,1000,2100,5100">
-                    </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('payment')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('payment')">Save Payment Settings</button>
                 </div>
 
-                <!-- SEO & Analytics Panel -->
-                <div class="settings-panel" id="panel-seo">
-                    <h2 class="panel-title">SEO & Analytics</h2>
-                    
+                <!-- SEO -->
+                <div id="panel-seo" class="settings-panel">
+                    <h2 class="panel-title">SEO Settings</h2>
                     <div class="form-group">
                         <label>Meta Title</label>
-                        <input type="text" id="metaTitle" class="settings-input" data-key="meta_title">
+                        <input type="text" id="meta_title" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Meta Description</label>
-                        <textarea id="metaDesc" rows="3" class="settings-input" data-key="meta_description"></textarea>
+                        <textarea id="meta_description" rows="3" class="setting-field"></textarea>
                     </div>
-                    
                     <div class="form-group">
                         <label>Meta Keywords</label>
-                        <input type="text" id="metaKeywords" class="settings-input" data-key="meta_keywords">
+                        <input type="text" id="meta_keywords" class="setting-field">
                     </div>
-                    
                     <div class="form-group">
                         <label>Google Analytics ID</label>
-                        <input type="text" id="gaId" class="settings-input" data-key="ga_id" placeholder="G-XXXXXXXXXX">
+                        <input type="text" id="ga_id" class="setting-field">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Facebook Pixel ID</label>
-                        <input type="text" id="fbPixel" class="settings-input" data-key="fb_pixel" placeholder="XXXXXXXXXXXXXXX">
-                    </div>
-                    
-                    <button class="save-btn" onclick="saveSettings('seo')">Save Changes</button>
+                    <button class="save-btn" onclick="saveSettings('seo')">Save SEO Settings</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="../js/settings.js"></script>
     <script>
         (function() {
             const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
@@ -675,9 +470,6 @@
             
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // Initialize SettingsModule
-            SettingsModule.init(supabase);
-
             // Check auth
             document.addEventListener('DOMContentLoaded', async () => {
                 const { data: { session } } = await supabase.auth.getSession();
@@ -693,82 +485,91 @@
                     document.getElementById('headerAdminName').textContent = admin.name;
                 }
                 
-                await loadAllSettings();
+                await loadSettings();
             });
 
-            async function loadAllSettings() {
-                showLoading(true);
-                
-                const result = await SettingsModule.loadSettings();
-                
-                if (result.success) {
-                    const settings = result.data;
+            async function loadSettings() {
+                try {
+                    document.getElementById('loading').style.display = 'block';
+                    document.getElementById('settingsContent').style.display = 'none';
                     
-                    // Map settings to form fields
-                    document.querySelectorAll('.settings-input').forEach(input => {
-                        const key = input.dataset.key;
-                        if (settings[key]) {
-                            input.value = settings[key];
+                    const { data, error } = await supabase
+                        .from('settings')
+                        .select('*');
+                    
+                    if (error) throw error;
+                    
+                    // Create a map of settings
+                    const settings = {};
+                    data.forEach(item => {
+                        settings[item.key] = item.value;
+                    });
+                    
+                    // Populate all fields
+                    document.querySelectorAll('.setting-field').forEach(field => {
+                        const id = field.id;
+                        if (settings[id] !== undefined) {
+                            field.value = settings[id];
                         }
                     });
                     
-                    showLoading(false);
-                } else {
-                    showError('Failed to load settings: ' + result.error);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('settingsContent').style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error loading settings:', error);
+                    showMessage('Failed to load settings: ' + error.message, 'error');
                 }
             }
 
-            window.switchPanel = function(panelId) {
-                // Update menu active state
-                document.querySelectorAll('.settings-menu-item').forEach(item => item.classList.remove('active'));
-                event.currentTarget.classList.add('active');
+            window.switchTab = function(tab) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
                 
-                // Show selected panel
                 document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
-                document.getElementById(`panel-${panelId}`).classList.add('active');
+                document.getElementById(`panel-${tab}`).classList.add('active');
             };
 
             window.saveSettings = async function(panel) {
-                // Get all inputs in the current panel
-                const panelElement = document.getElementById(`panel-${panel}`);
-                const inputs = panelElement.querySelectorAll('.settings-input');
-                
-                let success = true;
-                
-                for (const input of inputs) {
-                    const key = input.dataset.key;
-                    const value = input.value;
+                try {
+                    const fields = document.querySelectorAll(`#panel-${panel} .setting-field`);
+                    const updates = [];
                     
-                    const result = await SettingsModule.saveSetting(key, value);
-                    if (!result.success) {
-                        success = false;
-                        showError(`Failed to save ${key}: ${result.error}`);
+                    for (const field of fields) {
+                        updates.push({
+                            key: field.id,
+                            value: field.value
+                        });
                     }
-                }
-                
-                if (success) {
-                    showSuccess();
+                    
+                    // Update each setting
+                    for (const update of updates) {
+                        const { error } = await supabase
+                            .from('settings')
+                            .upsert({ 
+                                key: update.key, 
+                                value: update.value 
+                            });
+                        
+                        if (error) throw error;
+                    }
+                    
+                    showMessage('Settings saved successfully!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    showMessage('Failed to save settings: ' + error.message, 'error');
                 }
             };
 
-            function showLoading(show) {
-                document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
-                document.querySelectorAll('.settings-panel').forEach(panel => {
-                    panel.style.display = show ? 'none' : '';
-                });
-            }
-
-            function showSuccess() {
-                const msg = document.getElementById('successMessage');
-                msg.classList.add('show');
-                setTimeout(() => msg.classList.remove('show'), 3000);
-            }
-
-            function showError(text) {
-                document.getElementById('errorText').textContent = text;
-                const msg = document.getElementById('errorMessage');
-                msg.classList.add('show');
-                setTimeout(() => msg.classList.remove('show'), 5000);
+            function showMessage(text, type) {
+                const msgDiv = document.getElementById('message');
+                msgDiv.className = `message ${type}`;
+                msgDiv.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${text}`;
+                
+                setTimeout(() => {
+                    msgDiv.className = 'message';
+                }, 5000);
             }
 
             window.logout = async function() {
