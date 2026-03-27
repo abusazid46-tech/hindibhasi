@@ -1,5 +1,11 @@
-// Main application logic
+// js/app.js - Main application logic
+// This uses window.db from supabase.js
+
+// Wait for DOM to load
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, initializing...');
+    console.log('db available?', typeof window.db !== 'undefined');
+    
     // Load all dynamic content
     await Promise.all([
         loadLatestNews(),
@@ -8,15 +14,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadOfficeBearers(),
         loadHeroStats()
     ]);
+    
+    // Load saved language preference
+    const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+    setLanguage(savedLang);
+    
+    console.log('All content loaded');
 });
 
 // Load latest news
 async function loadLatestNews() {
     const container = document.getElementById('newsContainer');
-    if (!container) return;
+    if (!container) {
+        console.warn('newsContainer not found');
+        return;
+    }
     
     try {
-        const news = await db.getLatestNews(3);
+        if (typeof window.db === 'undefined') {
+            throw new Error('db not loaded');
+        }
+        
+        const news = await window.db.getLatestNews(3);
+        console.log('News loaded:', news);
         
         if (!news || news.length === 0) {
             container.innerHTML = '<p class="no-data">No news available</p>';
@@ -48,7 +68,8 @@ async function loadUpcomingEvents() {
     if (!container) return;
     
     try {
-        const events = await db.getUpcomingEvents(3);
+        const events = await window.db.getUpcomingEvents(3);
+        console.log('Events loaded:', events);
         
         if (!events || events.length === 0) {
             container.innerHTML = '<p class="no-data">No upcoming events</p>';
@@ -62,7 +83,6 @@ async function loadUpcomingEvents() {
                 </div>
                 <h3 class="event-title">${escapeHtml(item.title)}</h3>
                 <p class="event-description">${escapeHtml(truncateText(item.description, 80))}</p>
-                ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" style="display:none;">` : ''}
                 <a href="events.html?id=${item.id}" class="read-more">
                     View Details <i class="fas fa-arrow-right"></i>
                 </a>
@@ -81,7 +101,8 @@ async function loadGalleryPreview() {
     if (!container) return;
     
     try {
-        const images = await db.getGalleryPreview(4);
+        const images = await window.db.getGalleryPreview(4);
+        console.log('Gallery loaded:', images);
         
         if (!images || images.length === 0) {
             container.innerHTML = '<p class="no-data">No images available</p>';
@@ -90,7 +111,10 @@ async function loadGalleryPreview() {
         
         container.innerHTML = images.map(item => `
             <div class="media-item">
-                <img src="${item.file_url}" alt="${escapeHtml(item.title)}" loading="lazy">
+                <img src="${item.file_url || 'https://placehold.co/300x200/3498db/white?text=Image'}" 
+                     alt="${escapeHtml(item.title)}" 
+                     loading="lazy"
+                     onerror="this.src='https://placehold.co/300x200/3498db/white?text=No+Image'">
                 <p>${escapeHtml(truncateText(item.title, 30))}</p>
             </div>
         `).join('');
@@ -107,7 +131,8 @@ async function loadOfficeBearers() {
     if (!container) return;
     
     try {
-        const bearers = await db.getOfficeBearers(3);
+        const bearers = await window.db.getOfficeBearers(3);
+        console.log('Office bearers loaded:', bearers);
         
         if (!bearers || bearers.length === 0) {
             container.innerHTML = '<p class="no-data">Committee members coming soon</p>';
@@ -116,12 +141,12 @@ async function loadOfficeBearers() {
         
         container.innerHTML = bearers.map(item => `
             <div class="bearer-card">
-                <img src="${item.photo_url || 'https://via.placeholder.com/100x100?text=🕉️'}" 
+                <img src="${item.photo_url || 'https://placehold.co/100x100/b3412e/white?text=🕉️'}" 
                      alt="${escapeHtml(item.name)}"
-                     onerror="this.src='https://via.placeholder.com/100x100?text=🕉️'">
+                     onerror="this.src='https://placehold.co/100x100/b3412e/white?text=🕉️'">
                 <h4>${escapeHtml(item.name)}</h4>
                 <div class="designation">${escapeHtml(item.designation)}</div>
-                <div class="district">${escapeHtml(item.district)}</div>
+                <div class="district">${escapeHtml(item.district || 'Assam')}</div>
             </div>
         `).join('');
         
@@ -135,8 +160,8 @@ async function loadOfficeBearers() {
 async function loadHeroStats() {
     try {
         const [memberCount, donationTotal] = await Promise.all([
-            db.getApprovedMembersCount(),
-            db.getTotalDonations()
+            window.db.getApprovedMembersCount(),
+            window.db.getTotalDonations()
         ]);
         
         const memberElement = document.getElementById('memberCount');
@@ -147,7 +172,7 @@ async function loadHeroStats() {
         }
         
         if (donationElement) {
-            donationElement.textContent = `₹${donationTotal.toLocaleString('en-IN') || 0}`;
+            donationElement.textContent = `₹${(donationTotal || 0).toLocaleString('en-IN')}`;
         }
         
     } catch (error) {
@@ -158,19 +183,23 @@ async function loadHeroStats() {
 // Helper: Format date
 function formatDate(dateString) {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
+    }
 }
 
 // Helper: Truncate text
 function truncateText(text, maxLength) {
     if (!text) return '';
     if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength) + '...';
+    return text.substring(0, maxLength) + '...';
 }
 
 // Helper: Escape HTML
@@ -181,7 +210,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Language switching (enhanced)
+// Language switching
 function setLanguage(lang) {
     // Update active button
     document.querySelectorAll('.lang-option').forEach(btn => btn.classList.remove('active'));
@@ -226,12 +255,19 @@ function setLanguage(lang) {
     const t = translations[lang] || translations.en;
     
     // Update text content
-    document.getElementById('heroTitle').textContent = t.heroTitle;
-    document.getElementById('heroDesc').textContent = t.heroDesc;
-    document.getElementById('aboutTitle').textContent = t.aboutTitle;
-    document.getElementById('aboutText').textContent = t.aboutText;
-    document.getElementById('newsTitle').textContent = t.newsTitle;
-    document.getElementById('eventsTitle').textContent = t.eventsTitle;
+    const heroTitle = document.getElementById('heroTitle');
+    const heroDesc = document.getElementById('heroDesc');
+    const aboutTitle = document.getElementById('aboutTitle');
+    const aboutText = document.getElementById('aboutText');
+    const newsTitle = document.getElementById('newsTitle');
+    const eventsTitle = document.getElementById('eventsTitle');
+    
+    if (heroTitle) heroTitle.textContent = t.heroTitle;
+    if (heroDesc) heroDesc.textContent = t.heroDesc;
+    if (aboutTitle) aboutTitle.textContent = t.aboutTitle;
+    if (aboutText) aboutText.textContent = t.aboutText;
+    if (newsTitle) newsTitle.textContent = t.newsTitle;
+    if (eventsTitle) eventsTitle.textContent = t.eventsTitle;
     
     // Store language preference
     localStorage.setItem('preferredLanguage', lang);
@@ -244,15 +280,20 @@ setLanguage(savedLang);
 // Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.menu-dropdown')) {
-        document.querySelector('.dropdown-content').style.display = 'none';
+        const dropdown = document.querySelector('.dropdown-content');
+        if (dropdown) dropdown.style.display = 'none';
     }
 });
 
 // Re-open dropdown on hover (for desktop)
-document.querySelector('.menu-dropdown').addEventListener('mouseenter', () => {
-    document.querySelector('.dropdown-content').style.display = 'block';
-});
-
-document.querySelector('.menu-dropdown').addEventListener('mouseleave', () => {
-    document.querySelector('.dropdown-content').style.display = 'none';
-});
+const dropdownMenu = document.querySelector('.menu-dropdown');
+if (dropdownMenu) {
+    dropdownMenu.addEventListener('mouseenter', () => {
+        const content = document.querySelector('.dropdown-content');
+        if (content) content.style.display = 'block';
+    });
+    dropdownMenu.addEventListener('mouseleave', () => {
+        const content = document.querySelector('.dropdown-content');
+        if (content) content.style.display = 'none';
+    });
+}
