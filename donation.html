@@ -7,8 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Razorpay Checkout -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .donation-header {
@@ -203,216 +201,6 @@
             font-size: 18px;
         }
 
-        /* Payment Methods */
-        .payment-methods {
-            margin: 25px 0;
-        }
-        
-        .payment-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        
-        .payment-tab {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #f3b28a;
-            background: white;
-            border-radius: 15px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .payment-tab.active {
-            background: #27ae60;
-            border-color: #27ae60;
-            color: white;
-        }
-        
-        .payment-tab i {
-            font-size: 18px;
-        }
-
-        /* UPI Section */
-        .upi-section, .netbanking-section {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 15px;
-        }
-        
-        .upi-apps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .upi-app-btn {
-            padding: 12px;
-            border: 2px solid #f3b28a;
-            background: white;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .upi-app-btn:hover {
-            border-color: #27ae60;
-            transform: translateY(-2px);
-        }
-        
-        .upi-app-btn i {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .upi-app-btn span {
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .manual-upi {
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            text-align: center;
-        }
-        
-        .upi-id {
-            font-family: monospace;
-            font-size: 16px;
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 10px;
-            margin: 10px 0;
-            word-break: break-all;
-        }
-        
-        .copy-btn {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        /* NetBanking Section */
-        .bank-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .bank-btn {
-            padding: 12px;
-            border: 2px solid #f3b28a;
-            background: white;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .bank-btn:hover {
-            border-color: #27ae60;
-            background: #f0fff0;
-        }
-        
-        .bank-btn i {
-            font-size: 18px;
-            color: #27ae60;
-        }
-
-        /* Payment Modal */
-        .payment-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .payment-modal.show {
-            display: flex;
-        }
-        
-        .payment-modal-content {
-            background: white;
-            border-radius: 40px 10px 40px 10px;
-            padding: 40px;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .payment-amount {
-            font-size: 32px;
-            font-weight: 700;
-            color: #27ae60;
-            margin: 15px 0;
-        }
-        
-        .payment-instruction {
-            background: #fef5e7;
-            padding: 15px;
-            border-radius: 15px;
-            margin: 20px 0;
-            text-align: left;
-        }
-        
-        .payment-instruction p {
-            margin: 8px 0;
-        }
-        
-        .payment-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .payment-actions button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .confirm-payment {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .cancel-payment {
-            background: #f0f0f0;
-            color: #666;
-        }
-
         .form-group {
             margin-bottom: 20px;
         }
@@ -430,8 +218,7 @@
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group textarea {
             width: 100%;
             padding: 14px 18px;
             border: 2px solid #f3b28a;
@@ -441,8 +228,7 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .form-group textarea:focus {
             outline: none;
             border-color: #27ae60;
             box-shadow: 0 0 0 3px rgba(39,174,96,0.1);
@@ -465,6 +251,112 @@
             width: auto;
         }
 
+        /* UPI Section */
+        .upi-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .upi-id-box {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 2px dashed #27ae60;
+        }
+
+        .upi-id {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+            letter-spacing: 1px;
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code-img {
+            width: 200px;
+            height: 200px;
+            border: 3px solid #27ae60;
+            border-radius: 20px;
+            padding: 10px;
+            background: white;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .qr-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .download-qr-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .print-qr-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .utr-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .utr-section.show {
+            display: block;
+        }
+
+        .utr-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .utr-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #f3b28a;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .verify-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .donate-btn {
             width: 100%;
             padding: 16px;
@@ -475,12 +367,12 @@
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .donate-btn:hover {
@@ -579,7 +471,6 @@
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
         }
 
         .download-receipt {
@@ -609,8 +500,8 @@
                 grid-template-columns: 1fr;
             }
             
-            .payment-tabs {
-                flex-direction: column;
+            .upi-id {
+                font-size: 18px;
             }
         }
     </style>
@@ -726,62 +617,48 @@
                     <input type="number" id="customAmount" placeholder="Enter amount in ₹" min="51" step="1">
                 </div>
 
-                <!-- Payment Method Selection -->
-                <div class="payment-methods">
-                    <label style="font-weight: 600; margin-bottom: 10px; display: block;">Select Payment Method</label>
-                    <div class="payment-tabs">
-                        <div class="payment-tab active" onclick="selectPaymentMethod('razorpay')">
-                            <i class="fas fa-credit-card"></i> Card / UPI
-                        </div>
-                        <div class="payment-tab" onclick="selectPaymentMethod('upi')">
-                            <i class="fas fa-mobile-alt"></i> UPI (Direct)
-                        </div>
-                        <div class="payment-tab" onclick="selectPaymentMethod('netbanking')">
-                            <i class="fas fa-university"></i> NetBanking
-                        </div>
-                    </div>
-                </div>
-
-                <!-- UPI Direct Section -->
-                <div id="upiSection" class="upi-section" style="display: none;">
-                    <h4>Pay via UPI</h4>
+                <!-- UPI Section -->
+                <div class="upi-section">
+                    <h3 style="margin-bottom: 15px;">Pay via UPI</h3>
                     
-                    <div class="upi-apps">
-                        <div class="upi-app-btn" onclick="payWithUPI('googlepay')">
-                            <i class="fab fa-google-pay"></i>
-                            <span>Google Pay</span>
-                        </div>
-                        <div class="upi-app-btn" onclick="payWithUPI('phonepe')">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>PhonePe</span>
-                        </div>
-                        <div class="upi-app-btn" onclick="payWithUPI('paytm')">
-                            <i class="fab fa-paytm"></i>
-                            <span>Paytm</span>
-                        </div>
-                        <div class="upi-app-btn" onclick="payWithUPI('whatsapp')">
-                            <i class="fab fa-whatsapp"></i>
-                            <span>WhatsApp Pay</span>
-                        </div>
-                        <div class="upi-app-btn" onclick="payWithUPI('amazonpay')">
-                            <i class="fab fa-amazon"></i>
-                            <span>Amazon Pay</span>
-                        </div>
-                    </div>
-                    
-                    <div class="manual-upi">
-                        <p>Or pay using any UPI app with this ID:</p>
-                        <div class="upi-id">ahbbm@okhdfcbank</div>
-                        <button type="button" class="copy-btn" onclick="copyUPIID()">
+                    <div class="upi-id-box">
+                        <p style="margin-bottom: 5px; color: #666;">Scan QR Code or Pay to this UPI ID:</p>
+                        <div class="upi-id">8133908811@airtel</div>
+                        <button type="button" class="copy-btn" onclick="copyUPIID()" style="margin-top: 10px; padding: 5px 15px; background: #27ae60; color: white; border: none; border-radius: 20px; cursor: pointer;">
                             <i class="fas fa-copy"></i> Copy UPI ID
+                        </button>
+                    </div>
+                    
+                    <div class="qr-code-container" id="qrCodeContainer">
+                        <div id="qrLoader" class="qr-loader" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Generating QR Code...
+                        </div>
+                        <img id="qrImage" class="qr-code-img" style="display: none;">
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <button class="download-qr-btn" id="downloadQrBtn" onclick="downloadQRCode()" style="display: none;">
+                            <i class="fas fa-download"></i> Download QR
+                        </button>
+                        <button class="print-qr-btn" id="printQrBtn" onclick="printQRCode()" style="display: none;">
+                            <i class="fas fa-print"></i> Print
                         </button>
                     </div>
                 </div>
 
-                <!-- NetBanking Section -->
-                <div id="netbankingSection" class="netbanking-section" style="display: none;">
-                    <h4>Select Your Bank</h4>
-                    <div class="bank-grid" id="bankGrid"></div>
+                <!-- UTR Verification Section -->
+                <div class="utr-section" id="utrSection">
+                    <h4 style="margin-bottom: 10px;"><i class="fas fa-check-circle"></i> Verify Your Payment</h4>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 10px;">After payment, enter the UTR/Transaction ID from your bank/UPI app:</p>
+                    <div class="utr-input-group">
+                        <input type="text" id="utrNumber" placeholder="Enter UTR / Transaction ID" autocomplete="off">
+                        <button type="button" class="verify-btn" id="verifyBtn" onclick="verifyPayment()">
+                            <i class="fas fa-check"></i> Verify
+                        </button>
+                    </div>
+                    <p style="font-size: 12px; color: #999; margin-top: 8px;">
+                        <i class="fas fa-info-circle"></i> UTR number is the reference number you received after payment
+                    </p>
                 </div>
 
                 <div class="form-row">
@@ -811,7 +688,7 @@
                     <label>Donate anonymously (name won't be displayed)</label>
                 </div>
                 
-                <button type="submit" class="donate-btn" id="donateBtn">
+                <button type="button" class="donate-btn" id="donateBtn" onclick="initiateDonation()">
                     <i class="fas fa-hand-holding-heart"></i> Donate Now
                 </button>
             </form>
@@ -836,9 +713,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Payment Modal -->
-    <div class="payment-modal" id="paymentModal"></div>
 
     <!-- Footer -->
     <footer>
@@ -875,8 +749,9 @@
             // State
             let selectedAmount = 0;
             let currentDonation = null;
-            let currentPaymentMethod = 'razorpay';
-            let razorpayKey = 'rzp_live_xxxxxxxxxxxx'; // Replace with your Razorpay key
+            let currentQRCodeUrl = '';
+            const UPI_ID = '8133908811@airtel';
+            const PAYEE_NAME = 'AHBBM Donation';
 
             // Set amount from preset buttons
             window.setAmount = function(amount) {
@@ -885,209 +760,137 @@
                 
                 document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
                 event.target.classList.add('active');
-            };
-
-            // Select payment method
-            window.selectPaymentMethod = function(method) {
-                currentPaymentMethod = method;
                 
-                // Update active tab
-                document.querySelectorAll('.payment-tab').forEach(tab => tab.classList.remove('active'));
-                event.target.classList.add('active');
-                
-                // Hide all sections
-                document.getElementById('upiSection').style.display = 'none';
-                document.getElementById('netbankingSection').style.display = 'none';
-                
-                // Show selected section
-                if (method === 'upi') {
-                    document.getElementById('upiSection').style.display = 'block';
-                } else if (method === 'netbanking') {
-                    document.getElementById('netbankingSection').style.display = 'block';
-                    loadBanks();
+                // Regenerate QR with new amount
+                if (selectedAmount >= 51) {
+                    generateQRCode(selectedAmount);
                 }
             };
 
-            // Load banks for NetBanking
-            function loadBanks() {
-                const banks = [
-                    { code: 'SBI', name: 'State Bank of India', icon: '🏦' },
-                    { code: 'HDFC', name: 'HDFC Bank', icon: '🏦' },
-                    { code: 'ICICI', name: 'ICICI Bank', icon: '🏦' },
-                    { code: 'AXIS', name: 'Axis Bank', icon: '🏦' },
-                    { code: 'PNB', name: 'Punjab National Bank', icon: '🏦' },
-                    { code: 'BOB', name: 'Bank of Baroda', icon: '🏦' },
-                    { code: 'CANARA', name: 'Canara Bank', icon: '🏦' },
-                    { code: 'KOTAK', name: 'Kotak Mahindra Bank', icon: '🏦' },
-                    { code: 'YES', name: 'Yes Bank', icon: '🏦' }
-                ];
-                
-                const bankGrid = document.getElementById('bankGrid');
-                bankGrid.innerHTML = banks.map(bank => `
-                    <button class="bank-btn" onclick="payWithNetBanking('${bank.code}')">
-                        <i class="fas fa-university"></i>
-                        <span>${bank.name}</span>
-                    </button>
-                `).join('');
-            }
-
             // Get selected amount
             function getSelectedAmount() {
-                const customAmount = document.getElementById('customAmount').value;
-                if (customAmount && parseFloat(customAmount) >= 51) return parseFloat(customAmount);
+                const customAmount = parseFloat(document.getElementById('customAmount').value);
+                if (customAmount && customAmount >= 51) return customAmount;
                 if (selectedAmount >= 51) return selectedAmount;
                 return 0;
             }
 
-            // Pay with UPI
-            window.payWithUPI = async function(appId) {
-                const amount = getSelectedAmount();
-                if (!amount) {
-                    alert('Please select or enter a donation amount (minimum ₹51)');
-                    return;
-                }
+            // Generate QR Code
+            function generateQRCode(amount) {
+                if (!amount || amount < 51) return;
                 
-                const donorName = document.getElementById('donorName').value;
-                const donorPhone = document.getElementById('donorPhone').value;
+                const upiData = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
+                const qrCodeUrl = `https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=${encodeURIComponent(upiData)}&choe=UTF-8`;
                 
-                if (!donorName || !donorPhone) {
-                    alert('Please fill in your name and phone number');
-                    return;
-                }
+                currentQRCodeUrl = qrCodeUrl;
                 
-                if (!/^\d{10}$/.test(donorPhone)) {
-                    alert('Please enter a valid 10-digit phone number');
-                    return;
-                }
+                const loader = document.getElementById('qrLoader');
+                const qrImage = document.getElementById('qrImage');
+                const downloadBtn = document.getElementById('downloadQrBtn');
+                const printBtn = document.getElementById('printQrBtn');
                 
-                const upiId = 'ahbbm@okhdfcbank';
-                const transactionId = 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                loader.style.display = 'block';
+                qrImage.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                printBtn.style.display = 'none';
                 
-                // Create donation record
-                const donationData = {
-                    name: donorName,
-                    phone: donorPhone,
-                    email: document.getElementById('donorEmail').value || null,
-                    amount: amount,
-                    is_anonymous: document.getElementById('anonymous').checked,
-                    message: document.getElementById('donationMessage').value || null,
-                    payment_method: 'upi'
+                qrImage.onload = function() {
+                    loader.style.display = 'none';
+                    qrImage.style.display = 'block';
+                    downloadBtn.style.display = 'inline-flex';
+                    printBtn.style.display = 'inline-flex';
                 };
                 
-                const result = await DonationModule.createDonation(donationData);
-                
-                if (result.success) {
-                    currentDonation = result.data;
-                    const upiLink = `upi://pay?pa=${upiId}&pn=AHBBM%20Donation&am=${amount}&tn=${result.transactionId}&cu=INR`;
-                    
-                    // Show payment modal
-                    const modal = document.getElementById('paymentModal');
-                    modal.innerHTML = `
-                        <div class="payment-modal-content">
-                            <i class="fas fa-qrcode" style="font-size: 60px; color: #27ae60;"></i>
-                            <h3>Complete UPI Payment</h3>
-                            <div class="payment-amount">₹${amount}</div>
-                            <div class="payment-instruction">
-                                <p><i class="fas fa-phone-alt"></i> <strong>UPI ID:</strong> ${upiId}</p>
-                                <p><i class="fas fa-hashtag"></i> <strong>Transaction ID:</strong> ${result.transactionId}</p>
-                                <p><i class="fas fa-clock"></i> Complete payment within 15 minutes</p>
-                            </div>
-                            <div class="payment-actions">
-                                <button class="confirm-payment" onclick="window.open('${upiLink}', '_blank'); closePaymentModal(); showSuccessWithTransaction('${result.transactionId}', ${amount})">
-                                    <i class="fas fa-external-link-alt"></i> Open UPI App
-                                </button>
-                                <button class="cancel-payment" onclick="closePaymentModal()">Cancel</button>
-                            </div>
-                        </div>
-                    `;
-                    modal.classList.add('show');
-                }
-            };
-
-            // Pay with NetBanking
-            window.payWithNetBanking = async function(bankCode) {
-                const amount = getSelectedAmount();
-                if (!amount) {
-                    alert('Please select or enter a donation amount (minimum ₹51)');
-                    return;
-                }
-                
-                const donorName = document.getElementById('donorName').value;
-                const donorPhone = document.getElementById('donorPhone').value;
-                
-                if (!donorName || !donorPhone) {
-                    alert('Please fill in your name and phone number');
-                    return;
-                }
-                
-                const donationData = {
-                    name: donorName,
-                    phone: donorPhone,
-                    email: document.getElementById('donorEmail').value || null,
-                    amount: amount,
-                    is_anonymous: document.getElementById('anonymous').checked,
-                    message: document.getElementById('donationMessage').value || null,
-                    payment_method: 'netbanking'
+                qrImage.onerror = function() {
+                    loader.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to generate QR. Please refresh.';
                 };
                 
-                const result = await DonationModule.createDonation(donationData);
-                
-                if (result.success) {
-                    currentDonation = result.data;
-                    
-                    const modal = document.getElementById('paymentModal');
-                    modal.innerHTML = `
-                        <div class="payment-modal-content">
-                            <i class="fas fa-university" style="font-size: 60px; color: #27ae60;"></i>
-                            <h3>NetBanking Payment</h3>
-                            <div class="payment-amount">₹${amount}</div>
-                            <div class="payment-instruction">
-                                <p><i class="fas fa-hashtag"></i> <strong>Transaction ID:</strong> ${result.transactionId}</p>
-                                <p><i class="fas fa-bank"></i> <strong>Bank:</strong> ${bankCode}</p>
-                                <p><i class="fas fa-clock"></i> Complete payment through your bank portal</p>
-                            </div>
-                            <div class="payment-actions">
-                                <button class="confirm-payment" onclick="closePaymentModal(); showSuccessWithTransaction('${result.transactionId}', ${amount})">
-                                    <i class="fas fa-check"></i> I've Completed Payment
-                                </button>
-                                <button class="cancel-payment" onclick="closePaymentModal()">Cancel</button>
-                            </div>
-                        </div>
-                    `;
-                    modal.classList.add('show');
-                }
-            };
+                qrImage.src = qrCodeUrl;
+            }
 
-            window.showSuccessWithTransaction = function(transactionId, amount) {
-                DonationModule.updatePaymentStatus(transactionId, { 
-                    status: 'completed',
-                    verified_at: new Date().toISOString()
-                });
-                document.getElementById('donationAmount').textContent = DonationModule.helpers.formatCurrency(amount);
-                document.getElementById('transactionId').textContent = `Transaction ID: ${transactionId}`;
-                document.getElementById('successModal').classList.add('show');
-                
-                // Reset form
-                document.getElementById('donateForm').reset();
-                document.getElementById('donateBtn').disabled = false;
-                document.getElementById('donateBtn').innerHTML = '<i class="fas fa-hand-holding-heart"></i> Donate Now';
-                selectedAmount = 0;
-                document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
-            };
-
-            window.closePaymentModal = function() {
-                document.getElementById('paymentModal').classList.remove('show');
-            };
-
+            // Copy UPI ID
             window.copyUPIID = function() {
-                navigator.clipboard.writeText('ahbbm@okhdfcbank');
-                alert('UPI ID copied: ahbbm@okhdfcbank');
+                navigator.clipboard.writeText(UPI_ID);
+                alert('UPI ID copied: ' + UPI_ID);
             };
 
-            // Handle form submission
-            document.getElementById('donateForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
+            // Download QR Code
+            window.downloadQRCode = function() {
+                if (currentQRCodeUrl) {
+                    const link = document.createElement('a');
+                    link.href = currentQRCodeUrl;
+                    link.download = `AHBBM_Donation_QR_${Date.now()}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
+
+            // Print QR Code
+            window.printQRCode = function() {
+                const amount = getSelectedAmount();
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Donation QR Code</title>
+                            <style>
+                                body {
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    min-height: 100vh;
+                                    font-family: Arial, sans-serif;
+                                    text-align: center;
+                                }
+                                .qr-container {
+                                    text-align: center;
+                                    padding: 20px;
+                                }
+                                img {
+                                    width: 300px;
+                                    height: 300px;
+                                    margin: 20px;
+                                }
+                                .title {
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                    margin-bottom: 10px;
+                                }
+                                .amount {
+                                    font-size: 18px;
+                                    color: #27ae60;
+                                    margin: 10px 0;
+                                }
+                                .upi-id {
+                                    font-family: monospace;
+                                    font-size: 16px;
+                                    color: #666;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="qr-container">
+                                <div class="title">Asom Hindi Bhasi Brahman Mahasabha</div>
+                                <img src="${currentQRCodeUrl}" alt="QR Code">
+                                <div class="amount">Donation Amount: ₹${amount}</div>
+                                <div class="upi-id">UPI ID: ${UPI_ID}</div>
+                                <p>Scan to donate</p>
+                            </div>
+                            <script>
+                                window.onload = function() {
+                                    window.print();
+                                    setTimeout(() => window.close(), 1000);
+                                }
+                            <\/script>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            };
+
+            // Initiate donation - show UTR verification section
+            window.initiateDonation = function() {
                 const amount = getSelectedAmount();
                 if (!amount) {
                     alert('Please select or enter a donation amount (minimum ₹51)');
@@ -1107,19 +910,45 @@
                     return;
                 }
                 
-                const donateBtn = document.getElementById('donateBtn');
-                donateBtn.disabled = true;
-                donateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                // Show UTR section
+                document.getElementById('utrSection').classList.add('show');
+                document.getElementById('utrNumber').focus();
+                
+                // Scroll to UTR section
+                document.getElementById('utrSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+
+            // Verify payment with UTR number
+            window.verifyPayment = async function() {
+                const utrNumber = document.getElementById('utrNumber').value.trim();
+                
+                if (!utrNumber) {
+                    alert('Please enter the UTR/Transaction ID from your payment');
+                    return;
+                }
+                
+                const amount = getSelectedAmount();
+                const donorName = document.getElementById('donorName').value;
+                const donorPhone = document.getElementById('donorPhone').value;
+                const donorEmail = document.getElementById('donorEmail').value || null;
+                const isAnonymous = document.getElementById('anonymous').checked;
+                const message = document.getElementById('donationMessage').value || null;
+                
+                const verifyBtn = document.getElementById('verifyBtn');
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
                 
                 try {
+                    // Create donation record with UTR
                     const donationData = {
                         name: donorName,
                         phone: donorPhone,
-                        email: document.getElementById('donorEmail').value || null,
+                        email: donorEmail,
                         amount: amount,
-                        is_anonymous: document.getElementById('anonymous').checked,
-                        message: document.getElementById('donationMessage').value || null,
-                        payment_method: currentPaymentMethod === 'razorpay' ? 'razorpay' : currentPaymentMethod
+                        is_anonymous: isAnonymous,
+                        message: message,
+                        payment_method: 'upi',
+                        utr_number: utrNumber
                     };
                     
                     const result = await DonationModule.createDonation(donationData);
@@ -1128,59 +957,57 @@
                     
                     currentDonation = result.data;
                     
-                    if (currentPaymentMethod === 'razorpay') {
-                        // Razorpay Payment
-                        const options = {
-                            key: razorpayKey,
-                            amount: amount * 100,
-                            currency: 'INR',
-                            name: 'Asom Hindi Bhasi Brahman Mahasabha',
-                            description: 'Donation',
-                            image: 'https://i.ibb.co/XrStw9KC/1772529038848.png',
-                            handler: async function(response) {
-                                await DonationModule.updatePaymentStatus(result.transactionId, response);
-                                document.getElementById('donationAmount').textContent = DonationModule.helpers.formatCurrency(amount);
-                                document.getElementById('transactionId').textContent = `Transaction ID: ${result.transactionId}`;
-                                document.getElementById('successModal').classList.add('show');
-                                donateBtn.disabled = false;
-                                donateBtn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> Donate Now';
-                            },
-                            prefill: {
-                                name: donorName,
-                                email: document.getElementById('donorEmail').value || '',
-                                contact: donorPhone
-                            },
-                            notes: { transaction_id: result.transactionId },
-                            theme: { color: '#27ae60' }
-                        };
-                        
-                        const razorpay = new Razorpay(options);
-                        razorpay.open();
-                        donateBtn.disabled = false;
-                        donateBtn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> Donate Now';
-                    }
+                    // Update payment status with UTR
+                    await DonationModule.updatePaymentStatus(result.transactionId, {
+                        payment_status: 'completed',
+                        utr_number: utrNumber,
+                        verified_at: new Date().toISOString()
+                    });
+                    
+                    // Show success modal
+                    document.getElementById('donationAmount').textContent = DonationModule.helpers.formatCurrency(amount);
+                    document.getElementById('transactionId').textContent = `UTR: ${utrNumber}`;
+                    document.getElementById('successModal').classList.add('show');
+                    
+                    // Reset form
+                    document.getElementById('donateForm').reset();
+                    document.getElementById('utrSection').classList.remove('show');
+                    document.getElementById('utrNumber').value = '';
+                    document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+                    selectedAmount = 0;
+                    
+                    // Reset QR
+                    generateQRCode(0);
                     
                 } catch (error) {
-                    console.error('Payment error:', error);
-                    alert('Payment failed: ' + error.message);
-                    donateBtn.disabled = false;
-                    donateBtn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> Donate Now';
+                    console.error('Verification error:', error);
+                    alert('Verification failed: ' + error.message);
+                } finally {
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = '<i class="fas fa-check"></i> Verify';
                 }
-            });
+            };
 
+            // Download receipt
             window.downloadReceipt = function() {
                 if (currentDonation) {
                     DonationModule.downloadReceipt(currentDonation);
                 }
             };
 
-            // Close modal when clicking outside
-            document.getElementById('successModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('show');
+            // Update QR when custom amount changes
+            document.getElementById('customAmount').addEventListener('input', function() {
+                const amount = parseFloat(this.value);
+                if (amount >= 51) {
+                    generateQRCode(amount);
                 }
             });
-            document.getElementById('paymentModal').addEventListener('click', function(e) {
+
+            // Generate QR on page load with default amount
+            generateQRCode(500);
+            
+            // Close modal when clicking outside
+            document.getElementById('successModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.remove('show');
                 }
