@@ -1,10 +1,8 @@
-// js/donation.js - Donation Management Module
+// js/donation.js - Enhanced with UPI and NetBanking
 
 const DonationModule = (function() {
-    // Supabase client (will be initialized from page)
     let supabaseClient = null;
 
-    // Initialize with supabase client
     function init(client) {
         supabaseClient = client;
         console.log('✅ DonationModule initialized');
@@ -45,457 +43,317 @@ const DonationModule = (function() {
         });
     }
 
-    // Public API
-    return {
-        init,
-
-        // PUBLIC FUNCTIONS - Create donation
-        async createDonation(donationData) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                // Generate unique transaction ID
-                const transactionId = 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Insert donation record
-                const { data, error } = await supabaseClient
-                    .from('donations')
-                    .insert([{
-                        donor_name: donationData.name,
-                        donor_phone: donationData.phone,
-                        donor_email: donationData.email || null,
-                        amount: donationData.amount,
-                        payment_status: 'pending',
-                        transaction_id: transactionId,
-                        payment_method: donationData.payment_method || 'razorpay',
-                        is_anonymous: donationData.is_anonymous || false,
-                        message: donationData.message || null,
-                        created_at: new Date().toISOString()
-                    }])
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                return { 
-                    success: true, 
-                    data,
-                    transactionId 
-                };
-                
-            } catch (error) {
-                console.error('Error creating donation:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // Update payment status after successful payment
-        async updatePaymentStatus(transactionId, paymentDetails) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                const { data, error } = await supabaseClient
-                    .from('donations')
-                    .update({
-                        payment_status: 'completed',
-                        payment_details: paymentDetails,
-                        receipt_generated: false
-                    })
-                    .eq('transaction_id', transactionId)
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                return { success: true, data };
-                
-            } catch (error) {
-                console.error('Error updating payment status:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // Get donation by ID
-        async getDonationById(donationId) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                const { data, error } = await supabaseClient
-                    .from('donations')
-                    .select('*')
-                    .eq('id', donationId)
-                    .single();
-                
-                if (error) throw error;
-                return { success: true, data };
-                
-            } catch (error) {
-                console.error('Error fetching donation:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // Get donation by transaction ID
-        async getDonationByTransaction(transactionId) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                const { data, error } = await supabaseClient
-                    .from('donations')
-                    .select('*')
-                    .eq('transaction_id', transactionId)
-                    .single();
-                
-                if (error) throw error;
-                return { success: true, data };
-                
-            } catch (error) {
-                console.error('Error fetching donation:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // ADMIN FUNCTIONS
-        async getAllDonations(filters = {}, page = 1, pageSize = 20) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                let query = supabaseClient
-                    .from('donations')
-                    .select('*', { count: 'exact' });
-                
-                // Apply status filter
-                if (filters.status && filters.status !== 'all') {
-                    query = query.eq('payment_status', filters.status);
-                }
-                
-                // Apply search filter
-                if (filters.search) {
-                    query = query.or(`
-                        donor_name.ilike.%${filters.search}%,
-                        donor_email.ilike.%${filters.search}%,
-                        donor_phone.ilike.%${filters.search}%,
-                        transaction_id.ilike.%${filters.search}%
-                    `);
-                }
-                
-                // Apply date range filter
-                if (filters.from_date) {
-                    query = query.gte('created_at', filters.from_date);
-                }
-                if (filters.to_date) {
-                    query = query.lte('created_at', filters.to_date);
-                }
-                
-                // Apply amount range filter
-                if (filters.min_amount) {
-                    query = query.gte('amount', filters.min_amount);
-                }
-                if (filters.max_amount) {
-                    query = query.lte('amount', filters.max_amount);
-                }
-                
-                // Apply sorting
-                switch (filters.sort || 'newest') {
-                    case 'newest':
-                        query = query.order('created_at', { ascending: false });
-                        break;
-                    case 'oldest':
-                        query = query.order('created_at', { ascending: true });
-                        break;
-                    case 'highest':
-                        query = query.order('amount', { ascending: false });
-                        break;
-                    case 'lowest':
-                        query = query.order('amount', { ascending: true });
-                        break;
-                }
-                
-                const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
-                if (countError) throw countError;
-                
-                const from = (page - 1) * pageSize;
-                const to = from + pageSize - 1;
-                
-                const { data, error } = await query.range(from, to);
-                
-                if (error) throw error;
-                
-                return { 
-                    success: true, 
-                    data, 
-                    count, 
-                    page, 
-                    pageSize,
-                    totalPages: Math.ceil(count / pageSize)
-                };
-                
-            } catch (error) {
-                console.error('Error fetching donations:', error);
-                return { success: false, error: error.message, data: [], count: 0 };
-            }
-        },
-
-        // Get donation statistics
-        async getDonationStats(period = 'month') {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                let startDate;
-                const now = new Date();
-                
-                switch(period) {
-                    case 'today':
-                        startDate = new Date(now.setHours(0,0,0,0)).toISOString();
-                        break;
-                    case 'week':
-                        startDate = new Date(now.setDate(now.getDate() - 7)).toISOString();
-                        break;
-                    case 'month':
-                        startDate = new Date(now.setMonth(now.getMonth() - 1)).toISOString();
-                        break;
-                    case 'year':
-                        startDate = new Date(now.setFullYear(now.getFullYear() - 1)).toISOString();
-                        break;
-                    default:
-                        startDate = new Date(now.setMonth(now.getMonth() - 1)).toISOString();
-                }
-                
-                // Get completed donations in period
-                const { data, error } = await supabaseClient
-                    .from('donations')
-                    .select('*')
-                    .eq('payment_status', 'completed')
-                    .gte('created_at', startDate);
-                
-                if (error) throw error;
-                
-                const total = data.reduce((sum, d) => sum + d.amount, 0);
-                const count = data.length;
-                const avg = count > 0 ? total / count : 0;
-                const max = Math.max(...data.map(d => d.amount), 0);
-                const min = Math.min(...data.map(d => d.amount), 0);
-                
-                // Group by date for chart
-                const byDate = {};
-                data.forEach(d => {
-                    const date = d.created_at.split('T')[0];
-                    if (!byDate[date]) {
-                        byDate[date] = { count: 0, total: 0 };
-                    }
-                    byDate[date].count++;
-                    byDate[date].total += d.amount;
-                });
-                
-                const chartData = Object.entries(byDate).map(([date, stats]) => ({
-                    date,
-                    count: stats.count,
-                    total: stats.total
-                })).sort((a, b) => a.date.localeCompare(b.date));
-                
-                return {
-                    success: true,
-                    data: {
-                        total,
-                        count,
-                        avg,
-                        max,
-                        min,
-                        chartData
-                    }
-                };
-                
-            } catch (error) {
-                console.error('Error getting donation stats:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // Generate receipt HTML
-        generateReceiptHTML(donation) {
-            const receiptId = 'RCT_' + donation.transaction_id.split('_')[1];
-            const date = new Date(donation.created_at).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
+    // UPI Payment Processing
+    async function processUPIPayment(donationData, upiId) {
+        try {
+            // Create donation record first
+            const result = await this.createDonation({
+                ...donationData,
+                payment_method: 'upi'
             });
             
-            return `
-                <div style="font-family: 'Poppins', sans-serif; max-width: 700px; margin: 0 auto; background: white; padding: 40px; border: 2px solid #b3412e; border-radius: 20px;">
-                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px dashed #f3b28a; padding-bottom: 20px;">
-                        <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid gold; margin-bottom: 10px;">
-                        <h1 style="color: #b3412e; margin: 10px 0;">Asom Hindi Bhasi Brahman Mahasabha</h1>
-                        <p style="color: #666;">Tax Exemption under 80G</p>
-                    </div>
-                    
-                    <h2 style="text-align: center; color: #2d1f00; margin-bottom: 30px;">DONATION RECEIPT</h2>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                        <div>
-                            <p><strong>Receipt No:</strong> ${receiptId}</p>
-                            <p><strong>Date:</strong> ${date}</p>
-                        </div>
-                        <div>
-                            <p><strong>Transaction ID:</strong> ${donation.transaction_id}</p>
-                            <p><strong>Payment Mode:</strong> ${donation.payment_method || 'Online'}</p>
-                        </div>
-                    </div>
-                    
-                    <div style="background: #fef8f0; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
-                        <h3 style="color: #b3412e; margin-bottom: 15px;">Received with thanks from</h3>
-                        <p><strong>Name:</strong> ${donation.is_anonymous ? 'Anonymous' : donation.donor_name}</p>
-                        ${!donation.is_anonymous && donation.donor_phone ? `<p><strong>Phone:</strong> ${donation.donor_phone}</p>` : ''}
-                        ${!donation.is_anonymous && donation.donor_email ? `<p><strong>Email:</strong> ${donation.donor_email}</p>` : ''}
-                    </div>
-                    
-                    <div style="background: #f0f9f0; padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
-                        <p style="font-size: 18px; color: #666;">Amount Donated</p>
-                        <p style="font-size: 48px; font-weight: 700; color: #27ae60;">${this.helpers.formatCurrency(donation.amount)}</p>
-                        <p style="color: #666;">(Rupees ${this.numberToWords(donation.amount)} only)</p>
-                    </div>
-                    
-                    ${donation.message ? `
-                        <div style="margin-bottom: 30px;">
-                            <p><strong>Message:</strong> ${donation.message}</p>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="border-top: 2px solid #f3b28a; padding-top: 30px; display: flex; justify-content: space-between;">
-                        <div>
-                            <p style="font-weight: 600;">For Asom Hindi Bhasi Brahman Mahasabha</p>
-                            <br><br>
-                            <p>Authorized Signatory</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <p style="font-style: italic;">* This is a computer generated receipt</p>
-                            <p style="font-size: 12px; color: #999;">PAN: AAAAA0000A</p>
-                            <p style="font-size: 12px; color: #999;">80G: NO. AAA/80G/2026</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        },
-
-        // Download receipt as PDF
-        downloadReceipt(donation) {
-            const receiptHTML = this.generateReceiptHTML(donation);
+            if (!result.success) throw new Error(result.error);
             
-            const win = window.open('', '_blank');
-            win.document.write(`
-                <html>
-                    <head>
-                        <title>Donation Receipt - ${donation.transaction_id}</title>
-                        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-                        <style>
-                            body { 
-                                background: #f5f5f5; 
-                                display: flex; 
-                                justify-content: center; 
-                                align-items: center; 
-                                min-height: 100vh; 
-                                margin: 0; 
-                                padding: 20px;
-                                font-family: 'Poppins', sans-serif;
-                            }
-                            @media print {
-                                body { background: white; }
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        ${receiptHTML}
-                        <script>
-                            window.onload = function() {
-                                setTimeout(() => {
-                                    window.print();
-                                }, 500);
-                            }
-                        <\/script>
-                    </body>
-                </html>
-            `);
-            win.document.close();
-        },
-
-        // Mark receipt as generated
-        async markReceiptGenerated(donationId) {
-            try {
-                if (!supabaseClient) throw new Error('DonationModule not initialized');
-                
-                const { error } = await supabaseClient
-                    .from('donations')
-                    .update({ receipt_generated: true })
-                    .eq('id', donationId);
-                
-                if (error) throw error;
-                return { success: true };
-                
-            } catch (error) {
-                console.error('Error marking receipt:', error);
-                return { success: false, error: error.message };
-            }
-        },
-
-        // Helper: Convert number to words (for receipts)
-        numberToWords(num) {
-            const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
-                'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            // Generate UPI payment link
+            const upiLink = generateUPILink(upiId, donationData.amount, result.transactionId, donationData.name);
             
-            if (num === 0) return 'Zero';
-            
-            const numToWords = (n) => {
-                if (n < 20) return ones[n];
-                if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
-                if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + numToWords(n % 100) : '');
-                if (n < 100000) return numToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + numToWords(n % 1000) : '');
-                if (n < 10000000) return numToWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + numToWords(n % 100000) : '');
-                return numToWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + numToWords(n % 10000000) : '');
+            return {
+                success: true,
+                data: result.data,
+                transactionId: result.transactionId,
+                paymentLink: upiLink,
+                upiId: upiId
             };
             
-            const rupees = Math.floor(num);
-            const paise = Math.round((num - rupees) * 100);
-            
-            let result = numToWords(rupees) + ' Rupees';
-            if (paise > 0) {
-                result += ' and ' + numToWords(paise) + ' Paise';
-            }
-            
-            return result;
-        },
+        } catch (error) {
+            console.error('UPI payment error:', error);
+            return { success: false, error: error.message };
+        }
+    }
 
-        // Export donations to CSV
-        exportToCSV(donations) {
-            const headers = ['Transaction ID', 'Date', 'Donor Name', 'Phone', 'Email', 'Amount', 'Status', 'Payment Method', 'Anonymous', 'Message'];
-            
-            const rows = donations.map(d => [
-                d.transaction_id,
-                new Date(d.created_at).toLocaleString(),
-                d.is_anonymous ? 'Anonymous' : d.donor_name,
-                d.donor_phone || '',
-                d.donor_email || '',
-                d.amount,
-                d.payment_status,
-                d.payment_method || '',
-                d.is_anonymous ? 'Yes' : 'No',
-                d.message || ''
-            ]);
-            
-            const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-            ].join('\n');
-            
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `donations_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        },
+    // Generate UPI payment link
+    function generateUPILink(upiId, amount, transactionId, name) {
+        const payeeName = encodeURIComponent('AHBBM Donation');
+        const note = encodeURIComponent(`Donation - ${transactionId}`);
+        const currency = 'INR';
+        
+        // Format: upi://pay?pa=upiId&pn=PayeeName&am=amount&tn=Note&cu=INR
+        const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${amount}&tn=${note}&cu=${currency}`;
+        
+        return upiLink;
+    }
 
-        // Helpers
+    // Generate QR Code for UPI (using UPI URL)
+    function generateUPIQRCode(upiId, amount, transactionId) {
+        const upiUrl = generateUPILink(upiId, amount, transactionId, 'Donor');
+        // Return URL for QR code generation (you can use a QR code API)
+        return `https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=${encodeURIComponent(upiUrl)}&choe=UTF-8`;
+    }
+
+    // NetBanking Payment (Mock - will integrate with bank API)
+    async function processNetBankingPayment(donationData, bankCode) {
+        try {
+            // Create donation record
+            const result = await this.createDonation({
+                ...donationData,
+                payment_method: 'netbanking',
+                bank_code: bankCode
+            });
+            
+            if (!result.success) throw new Error(result.error);
+            
+            // In real implementation, redirect to bank payment gateway
+            // For now, return success with payment link
+            return {
+                success: true,
+                data: result.data,
+                transactionId: result.transactionId,
+                bankCode: bankCode,
+                paymentUrl: `https://payment-gateway.example.com/pay?txn=${result.transactionId}&bank=${bankCode}`
+            };
+            
+        } catch (error) {
+            console.error('NetBanking payment error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Get list of supported banks for NetBanking
+    function getSupportedBanks() {
+        return [
+            { code: 'SBI', name: 'State Bank of India', icon: '🏦' },
+            { code: 'HDFC', name: 'HDFC Bank', icon: '🏦' },
+            { code: 'ICICI', name: 'ICICI Bank', icon: '🏦' },
+            { code: 'AXIS', name: 'Axis Bank', icon: '🏦' },
+            { code: 'PNB', name: 'Punjab National Bank', icon: '🏦' },
+            { code: 'BOB', name: 'Bank of Baroda', icon: '🏦' },
+            { code: 'CANARA', name: 'Canara Bank', icon: '🏦' },
+            { code: 'KOTAK', name: 'Kotak Mahindra Bank', icon: '🏦' },
+            { code: 'YES', name: 'Yes Bank', icon: '🏦' },
+            { code: 'FEDERAL', name: 'Federal Bank', icon: '🏦' }
+        ];
+    }
+
+    // Get UPI apps list
+    function getUPIApps() {
+        return [
+            { id: 'googlepay', name: 'Google Pay', icon: 'fab fa-google-pay', scheme: 'googlepay://' },
+            { id: 'phonepe', name: 'PhonePe', icon: 'fas fa-mobile-alt', scheme: 'phonepe://' },
+            { id: 'paytm', name: 'Paytm', icon: 'fab fa-paytm', scheme: 'paytmmp://' },
+            { id: 'amazonpay', name: 'Amazon Pay', icon: 'fab fa-amazon', scheme: 'amazonpay://' },
+            { id: 'whatsapp', name: 'WhatsApp Pay', icon: 'fab fa-whatsapp', scheme: 'whatsapp://' }
+        ];
+    }
+
+    // Create donation record
+    async function createDonation(donationData) {
+        try {
+            if (!supabaseClient) throw new Error('DonationModule not initialized');
+            
+            const transactionId = 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            const { data, error } = await supabaseClient
+                .from('donations')
+                .insert([{
+                    donor_name: donationData.name,
+                    donor_phone: donationData.phone,
+                    donor_email: donationData.email || null,
+                    amount: donationData.amount,
+                    payment_status: 'pending',
+                    transaction_id: transactionId,
+                    payment_method: donationData.payment_method || 'razorpay',
+                    is_anonymous: donationData.is_anonymous || false,
+                    message: donationData.message || null,
+                    created_at: new Date().toISOString()
+                }])
+                .select()
+                .single();
+            
+            if (error) throw error;
+            
+            return { success: true, data, transactionId };
+            
+        } catch (error) {
+            console.error('Error creating donation:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Update payment status
+    async function updatePaymentStatus(transactionId, paymentDetails) {
+        try {
+            if (!supabaseClient) throw new Error('DonationModule not initialized');
+            
+            const { data, error } = await supabaseClient
+                .from('donations')
+                .update({
+                    payment_status: 'completed',
+                    payment_details: paymentDetails,
+                    receipt_generated: false
+                })
+                .eq('transaction_id', transactionId)
+                .select()
+                .single();
+            
+            if (error) throw error;
+            return { success: true, data };
+            
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Get donation by ID
+    async function getDonationById(donationId) {
+        try {
+            if (!supabaseClient) throw new Error('DonationModule not initialized');
+            
+            const { data, error } = await supabaseClient
+                .from('donations')
+                .select('*')
+                .eq('id', donationId)
+                .single();
+            
+            if (error) throw error;
+            return { success: true, data };
+            
+        } catch (error) {
+            console.error('Error fetching donation:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Generate receipt HTML
+    function generateReceiptHTML(donation) {
+        const receiptId = 'RCT_' + donation.transaction_id.split('_')[1];
+        const date = new Date(donation.created_at).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        return `
+            <div style="font-family: 'Poppins', sans-serif; max-width: 700px; margin: 0 auto; background: white; padding: 40px; border: 2px solid #b3412e; border-radius: 20px;">
+                <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px dashed #f3b28a; padding-bottom: 20px;">
+                    <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid gold; margin-bottom: 10px;">
+                    <h1 style="color: #b3412e; margin: 10px 0;">Asom Hindi Bhasi Brahman Mahasabha</h1>
+                    <p style="color: #666;">Tax Exemption under 80G</p>
+                </div>
+                
+                <h2 style="text-align: center; color: #2d1f00; margin-bottom: 30px;">DONATION RECEIPT</h2>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                    <div>
+                        <p><strong>Receipt No:</strong> ${receiptId}</p>
+                        <p><strong>Date:</strong> ${date}</p>
+                    </div>
+                    <div>
+                        <p><strong>Transaction ID:</strong> ${donation.transaction_id}</p>
+                        <p><strong>Payment Mode:</strong> ${getPaymentMethodLabel(donation.payment_method)}</p>
+                    </div>
+                </div>
+                
+                <div style="background: #fef8f0; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                    <h3 style="color: #b3412e; margin-bottom: 15px;">Received with thanks from</h3>
+                    <p><strong>Name:</strong> ${donation.is_anonymous ? 'Anonymous' : donation.donor_name}</p>
+                    ${!donation.is_anonymous && donation.donor_phone ? `<p><strong>Phone:</strong> ${donation.donor_phone}</p>` : ''}
+                    ${!donation.is_anonymous && donation.donor_email ? `<p><strong>Email:</strong> ${donation.donor_email}</p>` : ''}
+                </div>
+                
+                <div style="background: #f0f9f0; padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                    <p style="font-size: 18px; color: #666;">Amount Donated</p>
+                    <p style="font-size: 48px; font-weight: 700; color: #27ae60;">${formatCurrency(donation.amount)}</p>
+                    <p style="color: #666;">(Rupees ${numberToWords(donation.amount)} only)</p>
+                </div>
+                
+                <div style="border-top: 2px solid #f3b28a; padding-top: 30px; display: flex; justify-content: space-between;">
+                    <div>
+                        <p style="font-weight: 600;">For Asom Hindi Bhasi Brahman Mahasabha</p>
+                        <br><br>
+                        <p>Authorized Signatory</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-style: italic;">* This is a computer generated receipt</p>
+                        <p style="font-size: 12px; color: #999;">PAN: AAAAA0000A</p>
+                        <p style="font-size: 12px; color: #999;">80G: NO. AAA/80G/2026</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function getPaymentMethodLabel(method) {
+        const labels = {
+            'upi': 'UPI',
+            'netbanking': 'NetBanking',
+            'razorpay': 'Credit/Debit Card / UPI'
+        };
+        return labels[method] || method;
+    }
+
+    function numberToWords(num) {
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+            'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        if (num === 0) return 'Zero';
+        
+        const numToWords = (n) => {
+            if (n < 20) return ones[n];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+            if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + numToWords(n % 100) : '');
+            if (n < 100000) return numToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + numToWords(n % 1000) : '');
+            if (n < 10000000) return numToWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + numToWords(n % 100000) : '');
+            return numToWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + numToWords(n % 10000000) : '');
+        };
+        
+        const rupees = Math.floor(num);
+        const paise = Math.round((num - rupees) * 100);
+        
+        let result = numToWords(rupees) + ' Rupees';
+        if (paise > 0) {
+            result += ' and ' + numToWords(paise) + ' Paise';
+        }
+        
+        return result;
+    }
+
+    function downloadReceipt(donation) {
+        const receiptHTML = generateReceiptHTML(donation);
+        
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html>
+                <head>
+                    <title>Donation Receipt - ${donation.transaction_id}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+                </head>
+                <body style="background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px;">
+                    ${receiptHTML}
+                    <script>
+                        window.onload = function() {
+                            setTimeout(() => window.print(), 500);
+                        }
+                    <\/script>
+                </body>
+            </html>
+        `);
+        win.document.close();
+    }
+
+    return {
+        init,
+        processUPIPayment,
+        processNetBankingPayment,
+        createDonation,
+        updatePaymentStatus,
+        getDonationById,
+        getSupportedBanks,
+        getUPIApps,
+        generateUPIQRCode,
+        generateUPILink,
+        downloadReceipt,
         helpers: {
             escapeHtml,
             formatDate,
@@ -505,5 +363,4 @@ const DonationModule = (function() {
     };
 })();
 
-// Make module available globally
 window.DonationModule = DonationModule;
