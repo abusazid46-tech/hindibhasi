@@ -958,47 +958,59 @@ function updateRegisterButtonAmount() {
             }, 1000);
         }
 
-        function showStatusModal(status, utr) {
-            const modal = document.getElementById('statusModal');
-            const icon = document.getElementById('statusIcon');
-            const title = document.getElementById('statusTitle');
-            document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
-            const downloadBtn = document.getElementById('downloadCardBtn');
-            const finalMessageDiv = document.getElementById('finalMessage');
-            const countdownContainer = document.getElementById('countdownContainer');
-            
-            if (status === 'pending') {
-                icon.className = 'status-icon pending';
-                icon.innerHTML = '<i class="fas fa-clock"></i>';
-                title.textContent = 'Registration Submitted!';
-                document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive your membership card once verified.';
-                downloadBtn.style.display = 'none';
-                finalMessageDiv.style.display = 'none';
-            } else if (status === 'approved') {
-                icon.className = 'status-icon approved';
-                icon.innerHTML = '<i class="fas fa-check"></i>';
-                title.textContent = 'Membership Approved!';
-                document.getElementById('statusMessage').innerHTML = 'Welcome to the community! Your membership has been approved.';
-                downloadBtn.style.display = 'inline-flex';
-                if (countdownInterval) clearInterval(countdownInterval);
-                if (statusCheckInterval) clearInterval(statusCheckInterval);
-                countdownContainer.innerHTML = '';
-                finalMessageDiv.style.display = 'none';
-            }
-            modal.classList.add('show');
-        }
+    function showStatusModal(status, utr) {
+    const modal = document.getElementById('statusModal');
+    const icon = document.getElementById('statusIcon');
+    const title = document.getElementById('statusTitle');
+    const statusAmount = document.getElementById('statusAmount');
+    
+    // Set the amount dynamically from currentMembershipFee
+    if (statusAmount) {
+        statusAmount.textContent = `₹${currentMembershipFee}`;
+    }
+    
+    document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
+    const downloadBtn = document.getElementById('downloadCardBtn');
+    const finalMessageDiv = document.getElementById('finalMessage');
+    const countdownContainer = document.getElementById('countdownContainer');
+    
+    if (status === 'pending') {
+        icon.className = 'status-icon pending';
+        icon.innerHTML = '<i class="fas fa-clock"></i>';
+        title.textContent = 'Registration Submitted!';
+        document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive your membership card once verified.';
+        downloadBtn.style.display = 'none';
+        finalMessageDiv.style.display = 'none';
+    } else if (status === 'approved') {
+        icon.className = 'status-icon approved';
+        icon.innerHTML = '<i class="fas fa-check"></i>';
+        title.textContent = 'Membership Approved!';
+        document.getElementById('statusMessage').innerHTML = 'Welcome to the community! Your membership has been approved.';
+        downloadBtn.style.display = 'inline-flex';
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (statusCheckInterval) clearInterval(statusCheckInterval);
+        if (countdownContainer) countdownContainer.innerHTML = '';
+        if (finalMessageDiv) finalMessageDiv.style.display = 'none';
+    }
+    modal.classList.add('show');
+}
 
-        window.checkStatus = async function() {
-            if (!currentMemberId) { alert('No registration found'); return; }
-            const { data } = await supabase.from('members').select('status, membership_id, utr_number').eq('id', currentMemberId).single();
-            if (data?.status === 'approved') {
-                showStatusModal('approved', data.utr_number);
-            } else if (data?.status === 'rejected') {
-                alert('Your membership was rejected. Please contact support.');
-            } else {
-                alert('Status: Pending Approval. You will be notified once verified.');
-            }
-        };
+       window.checkStatus = async function() {
+    if (!currentMemberId) { alert('No registration found'); return; }
+    const { data } = await supabase.from('members').select('status, membership_id, utr_number').eq('id', currentMemberId).single();
+    if (data?.status === 'approved') {
+        // Ensure amount is set when checking status
+        const statusAmount = document.getElementById('statusAmount');
+        if (statusAmount) {
+            statusAmount.textContent = `₹${currentMembershipFee}`;
+        }
+        showStatusModal('approved', data.utr_number);
+    } else if (data?.status === 'rejected') {
+        alert('Your membership was rejected. Please contact support.');
+    } else {
+        alert('Status: Pending Approval. You will be notified once verified.');
+    }
+};
 
         window.downloadMembershipCard = async function() {
             if (!currentMemberId) return;
