@@ -554,33 +554,33 @@
                 <button type="button" class="register-btn" onclick="proceedToPayment()">
                     <i class="fas fa-id-card"></i> Register & Pay ₹49
                 </button>
+            </form>
 
-                <!-- UPI Section -->
-                <div class="upi-section" id="upiSection">
-                    <h3>Pay via UPI</h3>
-                    <div class="upi-id-box">
-                        <p>Scan QR Code or Pay to this UPI ID:</p>
-                        <div class="upi-id" id="upiIdDisplay">8133908811@airtel</div>
-                        <button type="button" class="copy-btn" onclick="copyUPIID()"><i class="fas fa-copy"></i> Copy UPI ID</button>
-                    </div>
-                    <div id="qrcode"></div>
-                    <div class="qr-actions">
-                        <button class="download-qr-btn" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download QR</button>
-                        <button class="print-qr-btn" onclick="printQRCode()"><i class="fas fa-print"></i> Print</button>
-                    </div>
+            <!-- UPI Section - Initially Hidden -->
+            <div class="upi-section" id="upiSection">
+                <h3>Pay via UPI</h3>
+                <div class="upi-id-box">
+                    <p>Scan QR Code or Pay to this UPI ID:</p>
+                    <div class="upi-id" id="upiIdDisplay">8133908811@airtel</div>
+                    <button type="button" class="copy-btn" onclick="copyUPIID()"><i class="fas fa-copy"></i> Copy UPI ID</button>
                 </div>
-
-                <!-- UTR Section -->
+                <div id="qrcode"></div>
+                <div class="qr-actions">
+                    <button class="download-qr-btn" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download QR</button>
+                    <button class="print-qr-btn" onclick="printQRCode()"><i class="fas fa-print"></i> Print</button>
+                </div>
+                
+                <!-- UTR Section (Inside UPI Section) -->
                 <div class="utr-section" id="utrSection">
-                    <h4><i class="fas fa-clock"></i> Payment Initiated!</h4>
-                    <p>Please complete the payment using the UPI ID or QR code above.<br>After payment, enter the 12-digit UTR Number:</p>
+                    <h4><i class="fas fa-clock"></i> After Payment</h4>
+                    <p>After completing the payment, enter the 12-digit UTR Number:</p>
                     <div class="utr-input-group">
                         <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="12">
                         <button class="verify-btn" onclick="submitUTR()"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
                     </div>
                     <p style="font-size: 12px; color: #999; margin-top: 10px;">UTR number is the 12-digit reference number you received after payment.</p>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -589,7 +589,7 @@
         <div class="status-content">
             <div class="status-icon" id="statusIcon"></div>
             <h2 id="statusTitle">Registration Submitted</h2>
-            <div class="status-amount" id="statusAmount">₹49</div>
+            <div class="status-amount">₹49</div>
             <div class="status-id" id="statusId"></div>
             <div class="status-message" id="statusMessage"></div>
             <div id="countdownContainer"></div>
@@ -626,7 +626,6 @@
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script src="js/members.js"></script>
-    <script src="js/settings-loader.js"></script>
     <script>
         (function() {
             const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
@@ -635,7 +634,6 @@
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             if (typeof MembersModule !== 'undefined') MembersModule.init(supabase);
-            if (typeof SettingsLoader !== 'undefined') SettingsLoader.init(supabase);
 
             let selectedFile = null;
             let currentMemberId = null;
@@ -644,30 +642,6 @@
             let isSubmitting = false;
             let isSubmittingUTR = false;
             let currentUPIId = '8133908811@airtel';
-            let currentPayeeName = 'AHBBM Membership';
-
-            // Load UPI settings
-            async function loadUPISettings() {
-                try {
-                    if (typeof SettingsLoader !== 'undefined') {
-                        const upiId = await SettingsLoader.getUPIId();
-                        const payeeName = await SettingsLoader.getUPIPayeeName();
-                        if (upiId) currentUPIId = upiId;
-                        if (payeeName) currentPayeeName = payeeName;
-                    }
-                    document.getElementById('upiIdDisplay').textContent = currentUPIId;
-                } catch (error) {
-                    console.error('Error loading UPI settings:', error);
-                }
-            }
-
-            function generateQRCode(amount) {
-                const container = document.getElementById('qrcode');
-                if (!container) return;
-                container.innerHTML = '';
-                const upiData = `upi://pay?pa=${currentUPIId}&pn=${encodeURIComponent(currentPayeeName)}&am=${amount}&cu=INR`;
-                new QRCode(container, { text: upiData, width: 200, height: 200 });
-            }
 
             window.previewPhoto = function(event) {
                 const file = event.target.files[0];
@@ -720,6 +694,15 @@
                 return true;
             }
 
+            function generateQRCode() {
+                const container = document.getElementById('qrcode');
+                if (!container) return;
+                container.innerHTML = '';
+                const upiData = `upi://pay?pa=${currentUPIId}&pn=AHBBM%20Membership&am=49&cu=INR`;
+                new QRCode(container, { text: upiData, width: 200, height: 200 });
+                console.log('QR Code generated with UPI:', currentUPIId);
+            }
+
             window.proceedToPayment = async function() {
                 if (isSubmitting) return;
                 if (!validateForm()) return;
@@ -739,9 +722,14 @@
                     
                     // Hide registration form, show UPI section
                     document.getElementById('registrationForm').style.display = 'none';
-                    document.getElementById('upiSection').classList.add('show');
-                    generateQRCode(49);
-                    document.getElementById('utrNumber').focus();
+                    const upiSection = document.getElementById('upiSection');
+                    upiSection.classList.add('show');
+                    
+                    // Generate QR code
+                    generateQRCode();
+                    
+                    // Scroll to UPI section
+                    upiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
                 } catch (error) {
                     alert('Registration failed: ' + error.message);
@@ -798,14 +786,12 @@
                 try {
                     const { error } = await supabase
                         .from('members')
-                        .update({ utr_number: utr, payment_status: 'pending' })
+                        .update({ utr_number: utr })
                         .eq('id', currentMemberId);
                     
                     if (error) throw error;
                     
                     showStatusModal('pending', utr);
-                    document.getElementById('upiSection').classList.remove('show');
-                    document.getElementById('utrSection').classList.add('show');
                     document.getElementById('utrNumber').value = '';
                     
                     startCountdownAndRedirect();
@@ -909,9 +895,14 @@
                 }, 5000);
             }
 
-            // Initialize
-            loadUPISettings();
-            
+            // UTR input validation - only numbers, max 12 digits
+            const utrInput = document.getElementById('utrNumber');
+            if (utrInput) {
+                utrInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
+                });
+            }
+
             document.getElementById('statusModal').addEventListener('click', e => {
                 if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
             });
