@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Asom Hindi Bhasi Brahman Mahasabha</title>
-    <!-- Google Fonts & Font Awesome -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Copy all the styles from the previous dashboard.html */
+        /* Copy your existing styles here - keeping the same styles */
         * {
             margin: 0;
             padding: 0;
@@ -26,7 +23,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
@@ -34,8 +30,6 @@
             position: fixed;
             height: 100vh;
             overflow-y: auto;
-            transition: all 0.3s;
-            z-index: 1000;
         }
 
         .sidebar-header {
@@ -54,12 +48,6 @@
 
         .sidebar-header h3 {
             font-size: 18px;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-header p {
-            font-size: 13px;
-            opacity: 0.8;
         }
 
         .sidebar-menu {
@@ -85,12 +73,6 @@
 
         .menu-item i {
             width: 22px;
-            font-size: 18px;
-        }
-
-        .menu-item span {
-            font-size: 14px;
-            font-weight: 500;
         }
 
         .menu-item .badge {
@@ -100,23 +82,14 @@
             padding: 2px 8px;
             border-radius: 30px;
             font-size: 12px;
-            font-weight: 600;
         }
 
-        .menu-divider {
-            height: 1px;
-            background: rgba(255,255,255,0.1);
-            margin: 15px 20px;
-        }
-
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 280px;
             padding: 30px;
         }
 
-        /* Top Bar */
         .top-bar {
             background: white;
             padding: 15px 30px;
@@ -136,41 +109,10 @@
             gap: 10px;
         }
 
-        .page-title i {
-            color: #b3412e;
-        }
-
         .admin-profile {
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .admin-info {
-            text-align: right;
-        }
-
-        .admin-name {
-            font-weight: 600;
-            color: #2d1f00;
-        }
-
-        .admin-role {
-            font-size: 13px;
-            color: #666;
-        }
-
-        .admin-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: #fce3d5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #b3412e;
-            font-size: 20px;
-            font-weight: 600;
         }
 
         .logout-btn {
@@ -180,20 +122,8 @@
             padding: 8px 15px;
             border-radius: 30px;
             cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
         }
 
-        .logout-btn:hover {
-            background: #b3412e;
-            color: white;
-            border-color: #b3412e;
-        }
-
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -207,13 +137,12 @@
             padding: 25px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
             border-left: 6px solid;
-            transition: transform 0.3s;
             cursor: pointer;
+            transition: transform 0.3s;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(180,60,20,0.15);
         }
 
         .stat-card.pending { border-left-color: #f39c12; }
@@ -231,7 +160,6 @@
         .stat-title {
             color: #666;
             font-size: 14px;
-            font-weight: 500;
         }
 
         .stat-icon {
@@ -253,22 +181,8 @@
             font-size: 32px;
             font-weight: 700;
             color: #2d1f00;
-            margin-bottom: 5px;
         }
 
-        .stat-change {
-            font-size: 13px;
-            color: #27ae60;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .stat-change.negative {
-            color: #e74c3c;
-        }
-
-        /* Charts Row */
         .charts-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -299,9 +213,6 @@
             padding: 8px 15px;
             border: 2px solid #f3b28a;
             border-radius: 30px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
         }
 
         .chart-container {
@@ -309,7 +220,6 @@
             position: relative;
         }
 
-        /* Recent Activity */
         .recent-activity {
             background: white;
             border-radius: 30px 10px 30px 10px;
@@ -325,21 +235,6 @@
             margin-bottom: 20px;
         }
 
-        .section-header h3 {
-            color: #2d1f00;
-            font-size: 18px;
-        }
-
-        .view-all {
-            color: #b3412e;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
         .activity-list {
             display: flex;
             flex-direction: column;
@@ -353,11 +248,6 @@
             padding: 15px;
             background: #fef8f0;
             border-radius: 15px;
-            transition: background 0.3s;
-        }
-
-        .activity-item:hover {
-            background: #fce3d5;
         }
 
         .activity-icon {
@@ -369,7 +259,6 @@
             align-items: center;
             justify-content: center;
             color: #b3412e;
-            font-size: 18px;
         }
 
         .activity-content {
@@ -379,18 +268,11 @@
         .activity-title {
             font-weight: 600;
             color: #2d1f00;
-            margin-bottom: 3px;
         }
 
         .activity-meta {
             font-size: 13px;
             color: #666;
-            display: flex;
-            gap: 15px;
-        }
-
-        .activity-meta i {
-            margin-right: 3px;
         }
 
         .activity-status {
@@ -415,7 +297,6 @@
             color: #3498db;
         }
 
-        /* Quick Actions */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -437,468 +318,197 @@
         .quick-action-card:hover {
             transform: translateY(-5px);
             border-color: #f28c38;
-            box-shadow: 0 10px 25px rgba(180,60,20,0.1);
         }
 
         .quick-action-card i {
             font-size: 30px;
             color: #b3412e;
-            margin-bottom: 10px;
         }
 
         .quick-action-card h4 {
             color: #2d1f00;
-            margin-bottom: 5px;
-            font-size: 16px;
         }
 
-        .quick-action-card p {
-            color: #666;
-            font-size: 13px;
-        }
-
-        /* Loading Spinner */
         .loading-spinner {
             text-align: center;
             padding: 40px;
             color: #b3412e;
         }
 
-        .loading-spinner i {
-            font-size: 40px;
-            margin-bottom: 10px;
+        .whatsapp {
+            position: fixed;
+            bottom: 20px;
+            right: 15px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            text-decoration: none;
+            z-index: 999;
         }
 
-        /* Error Message */
-        .error-message {
-            background: #fee;
-            color: #e74c3c;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        /* No Data */
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-            font-style: italic;
-        }
-
-        /* Responsive */
         @media (max-width: 1024px) {
-            .sidebar {
-                width: 80px;
-            }
-            
-            .sidebar-header h3, .sidebar-header p, .menu-item span {
-                display: none;
-            }
-            
-            .main-content {
-                margin-left: 80px;
-            }
-            
-            .menu-item {
-                justify-content: center;
-                padding: 15px;
-            }
-            
-            .menu-item i {
-                margin: 0;
-            }
-            
-            .menu-item .badge {
-                display: none;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 2000;
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-actions {
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            .top-bar {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .admin-profile {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            #menuToggle {
-                display: block !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .quick-actions {
-                grid-template-columns: 1fr;
-            }
-            
-            .activity-item {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .activity-meta {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .chart-header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .chart-header select {
-                width: 100%;
-            }
+            .sidebar { width: 80px; }
+            .sidebar-header h3, .sidebar-header p, .menu-item span { display: none; }
+            .main-content { margin-left: 80px; }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar">
         <div class="sidebar-header">
-            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/70x70?text=🕉️'">
-            <h3 id="adminName">Loading...</h3>
-            <p id="adminRole">Loading...</p>
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
+            <h3 id="adminName">Admin</h3>
+            <p>Super Admin</p>
         </div>
         
         <div class="sidebar-menu">
-            <a href="dashboard.html" class="menu-item active">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="members.html" class="menu-item">
-                <i class="fas fa-users"></i>
-                <span>Members</span>
-                <span class="badge" id="pendingBadge">0</span>
-            </a>
-            <a href="events.html" class="menu-item">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Events</span>
-            </a>
-            <a href="news.html" class="menu-item">
-                <i class="fas fa-newspaper"></i>
-                <span>News</span>
-            </a>
-            <a href="gallery.html" class="menu-item">
-                <i class="fas fa-images"></i>
-                <span>Gallery</span>
-            </a>
-            <a href="donations.html" class="menu-item">
-                <i class="fas fa-hand-holding-heart"></i>
-                <span>Donations</span>
-            </a>
-            <a href="documents.html" class="menu-item">
-                <i class="fas fa-file-pdf"></i>
-                <span>Documents</span>
-            </a>
-            <a href="contacts.html" class="menu-item">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-                <span class="badge" id="messageBadge">0</span>
-            </a>
-            
+            <a href="dashboard.html" class="menu-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
+            <a href="members.html" class="menu-item"><i class="fas fa-users"></i><span>Members</span><span class="badge" id="pendingBadge">0</span></a>
+            <a href="events.html" class="menu-item"><i class="fas fa-calendar-alt"></i><span>Events</span></a>
+            <a href="news.html" class="menu-item"><i class="fas fa-newspaper"></i><span>News</span></a>
+            <a href="gallery.html" class="menu-item"><i class="fas fa-images"></i><span>Gallery</span></a>
+            <a href="donations.html" class="menu-item"><i class="fas fa-hand-holding-heart"></i><span>Donations</span></a>
+            <a href="documents.html" class="menu-item"><i class="fas fa-file-pdf"></i><span>Documents</span></a>
+            <a href="contacts.html" class="menu-item"><i class="fas fa-envelope"></i><span>Messages</span><span class="badge" id="messageBadge">0</span></a>
             <div class="menu-divider"></div>
-            
-            <a href="committee.html" class="menu-item">
-                <i class="fas fa-user-tie"></i>
-                <span>Committee</span>
-            </a>
-            <a href="settings.html" class="menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <a href="#" class="menu-item" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
+            <a href="committee.html" class="menu-item"><i class="fas fa-user-tie"></i><span>Committee</span></a>
+            <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="#" class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Top Bar -->
         <div class="top-bar">
-            <div class="page-title">
-                <i class="fas fa-bars" onclick="toggleSidebar()" style="cursor: pointer; display: none;" id="menuToggle"></i>
-                <span>Dashboard</span>
-            </div>
-            
+            <div class="page-title"><i class="fas fa-home"></i><span>Dashboard</span></div>
             <div class="admin-profile">
-                <div class="admin-info">
-                    <div class="admin-name" id="headerAdminName">Loading...</div>
-                    <div class="admin-role" id="headerAdminRole">Loading...</div>
-                </div>
-                <div class="admin-avatar" id="adminAvatar">A</div>
-                <button class="logout-btn" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <div class="admin-info"><span id="headerAdminName">Admin</span></div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
 
-        <!-- Dynamic Content Area -->
         <div id="contentArea">
-            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card pending" onclick="window.location.href='members.html?filter=pending'">
-                    <div class="stat-header">
-                        <span class="stat-title">Pending Members</span>
-                        <div class="stat-icon"><i class="fas fa-user-clock"></i></div>
-                    </div>
+                    <div class="stat-header"><span class="stat-title">Pending Members</span><div class="stat-icon"><i class="fas fa-user-clock"></i></div></div>
                     <div class="stat-value" id="pendingMembersCount">0</div>
-                    <div class="stat-change">
-                        <i class="fas fa-clock"></i> Awaiting approval
-                    </div>
                 </div>
-                
                 <div class="stat-card members" onclick="window.location.href='members.html'">
-                    <div class="stat-header">
-                        <span class="stat-title">Total Members</span>
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    </div>
+                    <div class="stat-header"><span class="stat-title">Total Members</span><div class="stat-icon"><i class="fas fa-users"></i></div></div>
                     <div class="stat-value" id="totalMembersCount">0</div>
-                    <div class="stat-change">
-                        <i class="fas fa-arrow-up"></i> Active community
-                    </div>
                 </div>
-                
                 <div class="stat-card events" onclick="window.location.href='events.html'">
-                    <div class="stat-header">
-                        <span class="stat-title">Upcoming Events</span>
-                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                    </div>
+                    <div class="stat-header"><span class="stat-title">Upcoming Events</span><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div></div>
                     <div class="stat-value" id="upcomingEventsCount">0</div>
-                    <div class="stat-change">
-                        <i class="fas fa-calendar-check"></i> This month
-                    </div>
                 </div>
-                
                 <div class="stat-card donations" onclick="window.location.href='donations.html'">
-                    <div class="stat-header">
-                        <span class="stat-title">Monthly Donations</span>
-                        <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
-                    </div>
-                    <div class="stat-value" id="monthlyDonationsAmount">₹0</div>
-                    <div class="stat-change">
-                        <i class="fas fa-arrow-up"></i> <span id="monthlyDonationsCount">0</span> donations
-                    </div>
+                    <div class="stat-header"><span class="stat-title">Total Donations</span><div class="stat-icon"><i class="fas fa-rupee-sign"></i></div></div>
+                    <div class="stat-value" id="totalDonationsAmount">₹0</div>
                 </div>
             </div>
 
-            <!-- Charts Row -->
-            <div class="charts-row">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Member Registration Trend</h3>
-                        <select id="memberChartPeriod">
-                            <option value="7">Last 7 days</option>
-                            <option value="30" selected>Last 30 days</option>
-                            <option value="90">Last 90 days</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="memberChart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Donation Overview</h3>
-                        <select id="donationChartPeriod">
-                            <option value="7">Last 7 days</option>
-                            <option value="30" selected>Last 30 days</option>
-                            <option value="90">Last 90 days</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="donationChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
             <div class="recent-activity">
-                <div class="section-header">
-                    <h3>Recent Activity</h3>
-                    <a href="members.html" class="view-all">
-                        View All <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                
-                <div class="activity-list" id="activityList">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i> Loading activities...
-                    </div>
-                </div>
+                <div class="section-header"><h3>Recent Activity</h3><a href="members.html" class="view-all">View All</a></div>
+                <div class="activity-list" id="activityList"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
             </div>
 
-            <!-- Quick Actions -->
             <div class="quick-actions">
-                <a href="members.html?filter=pending" class="quick-action-card">
-                    <i class="fas fa-user-check"></i>
-                    <h4>Approve Members</h4>
-                    <p id="pendingCount">0 pending</p>
-                </a>
-                
-                <a href="events.html?action=new" class="quick-action-card">
-                    <i class="fas fa-calendar-plus"></i>
-                    <h4>Add Event</h4>
-                    <p>Create new event</p>
-                </a>
-                
-                <a href="news.html?action=new" class="quick-action-card">
-                    <i class="fas fa-newspaper"></i>
-                    <h4>Post News</h4>
-                    <p>Share update</p>
-                </a>
-                
-                <a href="gallery.html?action=upload" class="quick-action-card">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h4>Upload Photos</h4>
-                    <p>Add to gallery</p>
-                </a>
+                <a href="members.html?filter=pending" class="quick-action-card"><i class="fas fa-user-check"></i><h4>Approve Members</h4><p id="pendingCount">0 pending</p></a>
+                <a href="events.html?action=new" class="quick-action-card"><i class="fas fa-calendar-plus"></i><h4>Add Event</h4><p>Create new event</p></a>
+                <a href="news.html?action=new" class="quick-action-card"><i class="fas fa-newspaper"></i><h4>Post News</h4><p>Share update</p></a>
+                <a href="gallery.html?action=upload" class="quick-action-card"><i class="fas fa-cloud-upload-alt"></i><h4>Upload Photos</h4><p>Add to gallery</p></a>
             </div>
         </div>
     </div>
 
+    <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
+
     <script>
-        // Wrap everything in an IIFE to avoid global scope pollution
         (function() {
-            // Supabase configuration - declared only once inside this function
             const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
             
-            // Initialize Supabase client - only once
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // State
             let currentAdmin = null;
-            let dashboardCharts = {};
 
-            // Check authentication on load
             document.addEventListener('DOMContentLoaded', async () => {
                 await checkAuth();
-                await loadDashboardData();
+                await loadDashboardStats();
+                await loadRecentActivity();
                 await loadBadges();
-                setupRealtimeSubscriptions();
             });
 
-            // Check authentication
             async function checkAuth() {
-                try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    
-                    if (!session) {
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                    
-                    // Get admin info
-                    const storedAdmin = sessionStorage.getItem('adminInfo');
-                    if (storedAdmin) {
-                        currentAdmin = JSON.parse(storedAdmin);
-                    } else {
-                        // Try to get from database
-                        const { data: adminData, error } = await supabase
-                            .from('admins')
-                            .select('*')
-                            .eq('id', session.user.id)
-                            .single();
-                        
-                        if (!error && adminData) {
-                            currentAdmin = adminData;
-                        } else {
-                            // Create default admin object
-                            currentAdmin = {
-                                id: session.user.id,
-                                name: session.user.email?.split('@')[0] || 'Admin',
-                                email: session.user.email,
-                                role: 'super_admin'
-                            };
-                        }
-                        
-                        sessionStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
-                    }
-                    
-                    // Update UI with admin info
-                    document.getElementById('adminName').textContent = currentAdmin.name || 'Admin';
-                    document.getElementById('adminRole').textContent = (currentAdmin.role || 'super_admin').replace('_', ' ').toUpperCase();
-                    document.getElementById('headerAdminName').textContent = currentAdmin.name || 'Admin';
-                    document.getElementById('headerAdminRole').textContent = (currentAdmin.role || 'super_admin').replace('_', ' ').toUpperCase();
-                    document.getElementById('adminAvatar').textContent = (currentAdmin.name || 'A').charAt(0).toUpperCase();
-                    
-                } catch (error) {
-                    console.error('Auth check error:', error);
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'login.html';
+                    return;
                 }
-            }
-
-            // Load all dashboard data
-            async function loadDashboardData() {
-                try {
-                    // Get dashboard stats
-                    const { data: stats, error: statsError } = await supabase
-                        .from('dashboard_stats')
+                
+                const storedAdmin = sessionStorage.getItem('adminInfo');
+                if (storedAdmin) {
+                    currentAdmin = JSON.parse(storedAdmin);
+                } else {
+                    const { data: adminData } = await supabase
+                        .from('admins')
                         .select('*')
+                        .eq('id', session.user.id)
                         .single();
+                    currentAdmin = adminData || { name: session.user.email?.split('@')[0] || 'Admin' };
+                    sessionStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
+                }
+                
+                document.getElementById('adminName').textContent = currentAdmin.name || 'Admin';
+                document.getElementById('headerAdminName').textContent = currentAdmin.name || 'Admin';
+            }
+
+            async function loadDashboardStats() {
+                try {
+                    // Get pending members count
+                    const { count: pendingCount } = await supabase
+                        .from('members')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('status', 'pending');
                     
-                    if (!statsError && stats) {
-                        document.getElementById('pendingMembersCount').textContent = stats.pending_members || 0;
-                        document.getElementById('totalMembersCount').textContent = stats.total_members || 0;
-                        document.getElementById('upcomingEventsCount').textContent = stats.upcoming_events || 0;
-                        
-                        const monthlyDonations = stats.monthly_donations || 0;
-                        document.getElementById('monthlyDonationsAmount').textContent = `₹${monthlyDonations.toLocaleString('en-IN')}`;
-                        document.getElementById('monthlyDonationsCount').textContent = stats.monthly_donation_count || 0;
-                        
-                        // Update pending count in quick action
-                        document.getElementById('pendingCount').textContent = (stats.pending_members || 0) + ' pending';
-                    }
+                    document.getElementById('pendingMembersCount').textContent = pendingCount || 0;
+                    document.getElementById('pendingCount').textContent = (pendingCount || 0) + ' pending';
                     
-                    // Get recent activity
-                    await loadRecentActivity();
+                    // Get total approved members
+                    const { count: totalMembers } = await supabase
+                        .from('members')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('status', 'approved');
                     
-                    // Initialize charts
-                    initMemberChart();
-                    initDonationChart();
+                    document.getElementById('totalMembersCount').textContent = totalMembers || 0;
+                    
+                    // Get upcoming events
+                    const { count: upcomingEvents } = await supabase
+                        .from('events')
+                        .select('*', { count: 'exact', head: true })
+                        .gte('event_date', new Date().toISOString().split('T')[0]);
+                    
+                    document.getElementById('upcomingEventsCount').textContent = upcomingEvents || 0;
+                    
+                    // Get total donations (approved/completed)
+                    const { data: donations } = await supabase
+                        .from('donations')
+                        .select('amount')
+                        .in('payment_status', ['approved', 'completed']);
+                    
+                    const totalAmount = donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
+                    document.getElementById('totalDonationsAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
                     
                 } catch (error) {
-                    console.error('Error loading dashboard data:', error);
+                    console.error('Error loading stats:', error);
                 }
             }
 
-            // Load recent activity
             async function loadRecentActivity() {
                 const activityList = document.getElementById('activityList');
                 
@@ -917,43 +527,30 @@
                         .order('created_at', { ascending: false })
                         .limit(5);
                     
-                    // Combine and sort activities
                     const activities = [
                         ...(recentMembers || []).map(m => ({
-                            type: 'member',
                             icon: 'fas fa-user-plus',
                             title: `New member registration: ${m.name}`,
-                            time: new Date(m.created_at),
-                            timeStr: formatTimeAgo(m.created_at),
-                            status: m.status,
-                            statusClass: `status-${m.status}`
+                            time: new Date(m.created_at).toLocaleString(),
+                            status: m.status
                         })),
                         ...(recentContacts || []).map(c => ({
-                            type: 'contact',
                             icon: 'fas fa-envelope',
                             title: `New message from: ${c.name}`,
-                            time: new Date(c.created_at),
-                            timeStr: formatTimeAgo(c.created_at),
-                            status: c.status,
-                            statusClass: `status-${c.status}`
+                            time: new Date(c.created_at).toLocaleString(),
+                            status: c.status
                         }))
-                    ].sort((a, b) => b.time - a.time).slice(0, 5);
+                    ].slice(0, 5);
                     
                     if (activities.length > 0) {
-                        activityList.innerHTML = activities.map(activity => `
+                        activityList.innerHTML = activities.map(a => `
                             <div class="activity-item">
-                                <div class="activity-icon">
-                                    <i class="${activity.icon}"></i>
-                                </div>
+                                <div class="activity-icon"><i class="${a.icon}"></i></div>
                                 <div class="activity-content">
-                                    <div class="activity-title">${escapeHtml(activity.title)}</div>
-                                    <div class="activity-meta">
-                                        <span><i class="far fa-clock"></i> ${activity.timeStr}</span>
-                                    </div>
+                                    <div class="activity-title">${escapeHtml(a.title)}</div>
+                                    <div class="activity-meta">${a.time}</div>
                                 </div>
-                                <div class="activity-status ${activity.statusClass}">
-                                    ${activity.status}
-                                </div>
+                                <div class="activity-status status-${a.status}">${a.status}</div>
                             </div>
                         `).join('');
                     } else {
@@ -961,32 +558,13 @@
                     }
                     
                 } catch (error) {
-                    console.error('Error loading recent activity:', error);
-                    activityList.innerHTML = '<div class="error-message">Failed to load activities</div>';
+                    console.error('Error loading activity:', error);
+                    activityList.innerHTML = '<div class="error-message">Failed to load activity</div>';
                 }
             }
 
-            // Format time ago
-            function formatTimeAgo(dateString) {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffMs = now - date;
-                const diffMins = Math.floor(diffMs / 60000);
-                const diffHours = Math.floor(diffMs / 3600000);
-                const diffDays = Math.floor(diffMs / 86400000);
-                
-                if (diffMins < 1) return 'Just now';
-                if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-                if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                
-                return date.toLocaleDateString();
-            }
-
-            // Load badges
             async function loadBadges() {
                 try {
-                    // Pending members count
                     const { count: pendingCount } = await supabase
                         .from('members')
                         .select('*', { count: 'exact', head: true })
@@ -994,7 +572,6 @@
                     
                     document.getElementById('pendingBadge').textContent = pendingCount || 0;
                     
-                    // New messages count
                     const { count: messageCount } = await supabase
                         .from('contacts')
                         .select('*', { count: 'exact', head: true })
@@ -1007,234 +584,6 @@
                 }
             }
 
-            // Setup realtime subscriptions
-            function setupRealtimeSubscriptions() {
-                supabase
-                    .channel('dashboard-changes')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => {
-                        loadBadges();
-                        loadDashboardData();
-                    })
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, () => {
-                        loadBadges();
-                    })
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, () => {
-                        loadDashboardData();
-                    })
-                    .subscribe();
-            }
-
-            // Toggle sidebar on mobile
-            window.toggleSidebar = function() {
-                document.getElementById('sidebar').classList.toggle('show');
-            };
-
-            // Logout function
-            window.logout = async function() {
-                try {
-                    await supabase.auth.signOut();
-                    sessionStorage.removeItem('adminInfo');
-                    window.location.href = 'login.html';
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
-            };
-
-            // Initialize member chart
-            async function initMemberChart() {
-                const ctx = document.getElementById('memberChart').getContext('2d');
-                const period = document.getElementById('memberChartPeriod').value;
-                
-                // Destroy existing chart if any
-                if (dashboardCharts.memberChart) {
-                    dashboardCharts.memberChart.destroy();
-                }
-                
-                try {
-                    // Get registration data for the period
-                    const days = parseInt(period);
-                    const data = await getRegistrationTrend(days);
-                    
-                    dashboardCharts.memberChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: data.map(d => d.date),
-                            datasets: [{
-                                label: 'New Members',
-                                data: data.map(d => d.count),
-                                borderColor: '#b3412e',
-                                backgroundColor: 'rgba(180, 65, 46, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                pointBackgroundColor: '#b3412e',
-                                pointBorderColor: 'white',
-                                pointBorderWidth: 2,
-                                pointRadius: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    callbacks: {
-                                        label: function(context) {
-                                            return ` ${context.parsed.y} new member${context.parsed.y !== 1 ? 's' : ''}`;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1,
-                                        callback: function(value) {
-                                            if (Math.floor(value) === value) return value;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error('Error initializing member chart:', error);
-                    ctx.canvas.parentNode.innerHTML = '<div class="error-message">Failed to load chart data</div>';
-                }
-            }
-
-            // Initialize donation chart
-            async function initDonationChart() {
-                const ctx = document.getElementById('donationChart').getContext('2d');
-                const period = document.getElementById('donationChartPeriod').value;
-                
-                if (dashboardCharts.donationChart) {
-                    dashboardCharts.donationChart.destroy();
-                }
-                
-                try {
-                    const days = parseInt(period);
-                    const data = await getDonationTrend(days);
-                    
-                    dashboardCharts.donationChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.map(d => d.date),
-                            datasets: [{
-                                label: 'Donations (₹)',
-                                data: data.map(d => d.amount),
-                                backgroundColor: '#f39c12',
-                                borderRadius: 5,
-                                barPercentage: 0.7
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return ` ₹${context.parsed.y.toLocaleString('en-IN')}`;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return '₹' + value.toLocaleString('en-IN');
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error('Error initializing donation chart:', error);
-                    ctx.canvas.parentNode.innerHTML = '<div class="error-message">Failed to load chart data</div>';
-                }
-            }
-
-            // Get registration trend data
-            async function getRegistrationTrend(days) {
-                const data = [];
-                const today = new Date();
-                
-                for (let i = days - 1; i >= 0; i--) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() - i);
-                    
-                    const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-                    const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-                    
-                    const { count } = await supabase
-                        .from('members')
-                        .select('*', { count: 'exact', head: true })
-                        .gte('created_at', startOfDay)
-                        .lte('created_at', endOfDay);
-                    
-                    data.push({
-                        date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-                        count: count || 0
-                    });
-                }
-                
-                return data;
-            }
-
-            // Get donation trend data
-            async function getDonationTrend(days) {
-                const data = [];
-                const today = new Date();
-                
-                for (let i = days - 1; i >= 0; i--) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() - i);
-                    
-                    const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-                    const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
-                    
-                    const { data: donations } = await supabase
-                        .from('donations')
-                        .select('amount')
-                        .eq('payment_status', 'completed')
-                        .gte('created_at', startOfDay)
-                        .lte('created_at', endOfDay);
-                    
-                    const total = donations?.reduce((sum, d) => sum + d.amount, 0) || 0;
-                    
-                    data.push({
-                        date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-                        amount: total
-                    });
-                }
-                
-                return data;
-            }
-
-            // Chart period change handlers
-            document.getElementById('memberChartPeriod').addEventListener('change', function() {
-                initMemberChart();
-            });
-
-            document.getElementById('donationChartPeriod').addEventListener('change', function() {
-                initDonationChart();
-            });
-
-            // Helper: Escape HTML
             function escapeHtml(text) {
                 if (!text) return '';
                 const div = document.createElement('div');
@@ -1242,28 +591,11 @@
                 return div.innerHTML;
             }
 
-            // Handle window resize for charts
-            window.addEventListener('resize', function() {
-                if (dashboardCharts.memberChart) {
-                    dashboardCharts.memberChart.resize();
-                }
-                if (dashboardCharts.donationChart) {
-                    dashboardCharts.donationChart.resize();
-                }
-            });
-
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(event) {
-                const sidebar = document.getElementById('sidebar');
-                const menuToggle = document.getElementById('menuToggle');
-                
-                if (window.innerWidth <= 768 && 
-                    sidebar.classList.contains('show') && 
-                    !sidebar.contains(event.target) && 
-                    !menuToggle.contains(event.target)) {
-                    sidebar.classList.remove('show');
-                }
-            });
+            window.logout = async function() {
+                await supabase.auth.signOut();
+                sessionStorage.removeItem('adminInfo');
+                window.location.href = 'login.html';
+            };
         })();
     </script>
 </body>
