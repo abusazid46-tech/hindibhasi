@@ -35,7 +35,6 @@
             gap: 40px;
         }
 
-        /* Contact Info Cards */
         .contact-info {
             display: flex;
             flex-direction: column;
@@ -133,7 +132,6 @@
             border: 0;
         }
 
-        /* Contact Form */
         .contact-form-card {
             background: white;
             border-radius: 40px 10px 40px 10px;
@@ -238,7 +236,6 @@
             cursor: not-allowed;
         }
 
-        /* Success Message */
         .success-message {
             display: none;
             text-align: center;
@@ -277,7 +274,6 @@
             font-weight: 600;
         }
 
-        /* Office Hours */
         .office-hours {
             list-style: none;
             margin-top: 15px;
@@ -322,7 +318,7 @@
     <!-- Header -->
     <header>
         <div class="logo-area">
-            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://placehold.co/44x44/b3412e/white?text=🕉️'">
             <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
         </div>
         <div class="right-controls">
@@ -332,11 +328,7 @@
                 <button class="lang-option as">AS</button>
             </div>
             <div class="menu-dropdown">
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+                <div class="hamburger"><span></span><span></span><span></span></div>
                 <div class="dropdown-content">
                     <a href="index.html">Home</a>
                     <a href="about.html">About Us</a>
@@ -364,7 +356,7 @@
     <div class="contact-container">
         <!-- Contact Information -->
         <div class="contact-info">
-            <div class="info-card">
+            <div class="info-card" id="contactInfoCard">
                 <h2><i class="fas fa-address-card"></i> Get in Touch</h2>
                 
                 <div class="info-item">
@@ -373,7 +365,7 @@
                     </div>
                     <div class="info-content">
                         <h3>Address</h3>
-                        <p>Brahman Bhawan, MG Road<br>Guwahati - 781001, Assam</p>
+                        <p id="displayAddress">Loading...</p>
                     </div>
                 </div>
                 
@@ -383,8 +375,7 @@
                     </div>
                     <div class="info-content">
                         <h3>Phone</h3>
-                        <p><a href="tel:+919876543210">+91 98765 43210</a><br>
-                           <a href="tel:+919876543211">+91 98765 43211</a></p>
+                        <p id="displayPhones">Loading...</p>
                     </div>
                 </div>
                 
@@ -394,27 +385,19 @@
                     </div>
                     <div class="info-content">
                         <h3>Email</h3>
-                        <p><a href="mailto:info@ahbbm.org">info@ahbbm.org</a><br>
-                           <a href="mailto:support@ahbbm.org">support@ahbbm.org</a></p>
+                        <p id="displayEmails">Loading...</p>
                     </div>
                 </div>
                 
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                <div class="social-links" id="socialLinks">
+                    <!-- Social links will be populated dynamically -->
                 </div>
             </div>
 
             <div class="info-card">
                 <h2><i class="far fa-clock"></i> Office Hours</h2>
-                <ul class="office-hours">
-                    <li><span class="day">Monday - Friday</span> <span class="time">9:00 AM - 6:00 PM</span></li>
-                    <li><span class="day">Saturday</span> <span class="time">9:00 AM - 2:00 PM</span></li>
-                    <li><span class="day">Sunday</span> <span class="time">Closed</span></li>
-                    <li><span class="day">Public Holidays</span> <span class="time">Closed</span></li>
+                <ul class="office-hours" id="officeHoursList">
+                    <li><span class="day">Loading...</span> <span class="time"></span></li>
                 </ul>
                 <p style="margin-top: 15px; color: #666;"><i class="fas fa-info-circle"></i> We respond within 24-48 hours on working days.</p>
             </div>
@@ -422,7 +405,7 @@
             <div class="info-card">
                 <h2><i class="fas fa-map"></i> Find Us</h2>
                 <div class="map-container">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d227748.999734434!2d91.65679109704615!3d26.144516172753924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375a5a287f9133ff%3A0x2bbd1332436bde32!2sGuwahati%2C%20Assam!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe id="googleMap" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d227748.999734434!2d91.65679109704615!3d26.144516172753924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x375a5a287f9133ff%3A0x2bbd1332436bde32!2sGuwahati%2C%20Assam!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
                 </div>
             </div>
         </div>
@@ -519,7 +502,109 @@
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             // Initialize ContactModule
-            ContactModule.init(supabase);
+            if (typeof ContactModule !== 'undefined') {
+                ContactModule.init(supabase);
+            }
+            
+            // Initialize SettingsLoader
+            if (typeof SettingsLoader !== 'undefined') {
+                SettingsLoader.init(supabase);
+            }
+
+            // Load contact settings from database
+            async function loadContactSettings() {
+                try {
+                    // Fetch all settings
+                    const { data, error } = await supabase
+                        .from('settings')
+                        .select('*');
+                    
+                    if (error) throw error;
+                    
+                    // Create settings object
+                    const settings = {};
+                    data.forEach(item => {
+                        settings[item.key] = item.value;
+                    });
+                    
+                    // Update Address
+                    const addressEl = document.getElementById('displayAddress');
+                    if (addressEl && settings.address) {
+                        addressEl.innerHTML = settings.address.replace(/\n/g, '<br>');
+                    } else if (addressEl) {
+                        addressEl.innerHTML = 'Brahman Bhawan, MG Road<br>Guwahati - 781001, Assam';
+                    }
+                    
+                    // Update Phones
+                    const phonesEl = document.getElementById('displayPhones');
+                    if (phonesEl) {
+                        let phoneHtml = '';
+                        if (settings.phone1) phoneHtml += `<a href="tel:${settings.phone1}">${settings.phone1}</a>`;
+                        if (settings.phone2) phoneHtml += `<br><a href="tel:${settings.phone2}">${settings.phone2}</a>`;
+                        phonesEl.innerHTML = phoneHtml || 'Not available';
+                    }
+                    
+                    // Update Emails
+                    const emailsEl = document.getElementById('displayEmails');
+                    if (emailsEl) {
+                        let emailHtml = '';
+                        if (settings.email1) emailHtml += `<a href="mailto:${settings.email1}">${settings.email1}</a>`;
+                        if (settings.email2) emailHtml += `<br><a href="mailto:settings.email2}">${settings.email2}</a>`;
+                        emailsEl.innerHTML = emailHtml || 'Not available';
+                    }
+                    
+                    // Update Office Hours
+                    const officeHoursEl = document.getElementById('officeHoursList');
+                    if (officeHoursEl && settings.office_hours) {
+                        // Parse office hours from settings or use default
+                        const hoursHtml = `
+                            <li><span class="day">Monday - Friday</span> <span class="time">9:00 AM - 6:00 PM</span></li>
+                            <li><span class="day">Saturday</span> <span class="time">9:00 AM - 2:00 PM</span></li>
+                            <li><span class="day">Sunday</span> <span class="time">Closed</span></li>
+                            <li><span class="day">Public Holidays</span> <span class="time">Closed</span></li>
+                        `;
+                        officeHoursEl.innerHTML = hoursHtml;
+                    }
+                    
+                    // Update Social Links
+                    const socialLinksEl = document.getElementById('socialLinks');
+                    if (socialLinksEl) {
+                        let socialHtml = '';
+                        if (settings.facebook) socialHtml += `<a href="${settings.facebook}" class="social-link" target="_blank"><i class="fab fa-facebook-f"></i></a>`;
+                        if (settings.twitter) socialHtml += `<a href="${settings.twitter}" class="social-link" target="_blank"><i class="fab fa-twitter"></i></a>`;
+                        if (settings.instagram) socialHtml += `<a href="${settings.instagram}" class="social-link" target="_blank"><i class="fab fa-instagram"></i></a>`;
+                        if (settings.youtube) socialHtml += `<a href="${settings.youtube}" class="social-link" target="_blank"><i class="fab fa-youtube"></i></a>`;
+                        if (settings.whatsapp) socialHtml += `<a href="https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, '')}" class="social-link" target="_blank"><i class="fab fa-whatsapp"></i></a>`;
+                        socialLinksEl.innerHTML = socialHtml;
+                    }
+                    
+                    // Update Google Map if URL exists
+                    if (settings.maps_url) {
+                        const mapIframe = document.getElementById('googleMap');
+                        if (mapIframe) {
+                            mapIframe.src = settings.maps_url;
+                        }
+                    }
+                    
+                    console.log('Contact settings loaded:', settings);
+                    
+                } catch (error) {
+                    console.error('Error loading contact settings:', error);
+                    // Set default values if loading fails
+                    setDefaultContactInfo();
+                }
+            }
+            
+            function setDefaultContactInfo() {
+                const addressEl = document.getElementById('displayAddress');
+                if (addressEl) addressEl.innerHTML = 'Brahman Bhawan, MG Road<br>Guwahati - 781001, Assam';
+                
+                const phonesEl = document.getElementById('displayPhones');
+                if (phonesEl) phonesEl.innerHTML = '<a href="tel:+919876543210">+91 98765 43210</a><br><a href="tel:+919876543211">+91 98765 43211</a>';
+                
+                const emailsEl = document.getElementById('displayEmails');
+                if (emailsEl) emailsEl.innerHTML = '<a href="mailto:info@ahbbm.org">info@ahbbm.org</a><br><a href="mailto:support@ahbbm.org">support@ahbbm.org</a>';
+            }
 
             // Handle form submission
             document.getElementById('messageForm').addEventListener('submit', async function(e) {
@@ -569,6 +654,9 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
             };
+            
+            // Load contact settings on page load
+            loadContactSettings();
         })();
     </script>
 </body>
