@@ -73,18 +73,18 @@ window.db = {
     },
 
     async getTotalDonations() {
-        try {
-            const { data, error } = await window.supabaseClient
-                .from('donations')
-                .select('amount')
-                .eq('payment_status', 'completed');
-            if (error) throw error;
-            return data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
-        } catch (error) {
-            console.error('Error loading donations:', error);
-            return 0;
-        }
-    },
+    try {
+        const { data, error } = await window.supabaseClient
+            .from('donations')
+            .select('amount')
+            .eq('payment_status', 'approved');  // Change 'completed' to 'approved'
+        if (error) throw error;
+        return data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+    } catch (error) {
+        console.error('Error loading donations:', error);
+        return 0;
+    }
+},
 
     async getApprovedMembersCount() {
         try {
