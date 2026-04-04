@@ -204,7 +204,43 @@ header {
   font-size: 14px;
   opacity: 0.9;
 }
+/* Animated Pooja Booking Button */
+.pooja-booking-btn {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 14px 35px;
+    background: linear-gradient(45deg, #b3412e, #c94b1f);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid gold;
+    animation: pulse 2s infinite;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
 
+.pooja-booking-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #c94b1f, #b3412e);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+}
 /* Sections */
 .section {
   padding: 50px 16px;
