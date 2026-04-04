@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadUpcomingEvents(),
         loadGalleryPreview(),
         loadOfficeBearers(),
-        loadHeroStats()
+        loadHeroStats(),
+        loadMembershipFee()  // Load membership fee from database
     ]);
     
     // Load saved language preference
@@ -156,7 +157,7 @@ async function loadOfficeBearers() {
     }
 }
 
-// Load hero stats
+// Load hero stats (member count and donation total)
 async function loadHeroStats() {
     try {
         const [memberCount, donationTotal] = await Promise.all([
@@ -177,6 +178,40 @@ async function loadHeroStats() {
         
     } catch (error) {
         console.error('Error loading stats:', error);
+    }
+}
+
+// Load membership fee from database and update the Register button
+async function loadMembershipFee() {
+    try {
+        // Use the existing supabase client from window.supabaseClient
+        const { data, error } = await window.supabaseClient
+            .from('settings')
+            .select('value')
+            .eq('key', 'membership_fee')
+            .single();
+        
+        if (error) throw error;
+        
+        const fee = parseInt(data?.value) || 49;
+        
+        // Update the register button in CTA section
+        const registerBtn = document.getElementById('membershipRegisterBtn');
+        if (registerBtn) {
+            registerBtn.innerHTML = `Register Now (₹${fee})`;
+        }
+        
+        // Also update any other membership fee displays
+        const feeElements = document.querySelectorAll('.membership-fee');
+        feeElements.forEach(el => {
+            el.textContent = `₹${fee}`;
+        });
+        
+        console.log('Membership fee loaded:', fee);
+        
+    } catch (error) {
+        console.error('Error loading membership fee:', error);
+        // Keep default ₹49 - the HTML already has it
     }
 }
 
@@ -210,41 +245,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-
-// Load membership fee from database
-async function loadMembershipFee() {
-    try {
-        // Use the existing supabase client from window.supabaseClient
-        const { data, error } = await window.supabaseClient
-            .from('settings')
-            .select('value')
-            .eq('key', 'membership_fee')
-            .single();
-        
-        if (error) throw error;
-        
-        const fee = parseInt(data?.value) || 49;
-        
-        // Update the register button in CTA section
-        const registerBtn = document.getElementById('membershipRegisterBtn');
-        if (registerBtn) {
-            registerBtn.innerHTML = `Register Now (₹${fee})`;
-        }
-        
-        // Also update the button in the hero section if exists
-        const heroRegisterBtn = document.querySelector('.hero .btn');
-        if (heroRegisterBtn && heroRegisterBtn.textContent.includes('Register')) {
-            heroRegisterBtn.innerHTML = `Register Now (₹${fee})`;
-        }
-        
-        console.log('Membership fee loaded:', fee);
-        
-    } catch (error) {
-        console.error('Error loading membership fee:', error);
-        // Keep default ₹49 - the HTML already has it
-    }
-} 
-//Language switching
+// Language switching
 function setLanguage(lang) {
     // Update active button
     document.querySelectorAll('.lang-option').forEach(btn => btn.classList.remove('active'));
