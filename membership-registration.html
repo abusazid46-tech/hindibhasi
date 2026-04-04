@@ -268,6 +268,7 @@
             padding: 12px;
             border: 2px solid #f3b28a;
             border-radius: 12px;
+            font-size: 16px;
         }
 
         .verify-btn {
@@ -399,6 +400,10 @@
 
             .upi-id {
                 font-size: 18px;
+            }
+
+            .utr-input-group {
+                flex-direction: column;
             }
         }
     </style>
@@ -556,7 +561,7 @@
                 </button>
             </form>
 
-            <!-- UPI Section - Initially Hidden -->
+            <!-- UPI Section - Shows QR Code -->
             <div class="upi-section" id="upiSection">
                 <h3>Pay via UPI</h3>
                 <div class="upi-id-box">
@@ -570,16 +575,23 @@
                     <button class="print-qr-btn" onclick="printQRCode()"><i class="fas fa-print"></i> Print</button>
                 </div>
                 
-                <!-- UTR Section (Inside UPI Section) -->
-                <div class="utr-section" id="utrSection">
-                    <h4><i class="fas fa-clock"></i> After Payment</h4>
-                    <p>After completing the payment, enter the 12-digit UTR Number:</p>
-                    <div class="utr-input-group">
-                        <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="12">
-                        <button class="verify-btn" onclick="submitUTR()"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
-                    </div>
-                    <p style="font-size: 12px; color: #999; margin-top: 10px;">UTR number is the 12-digit reference number you received after payment.</p>
+                <!-- Show UTR Section after payment -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="verify-btn" onclick="showUTRInput()" style="background: #3498db;">
+                        <i class="fas fa-check-circle"></i> I have completed the payment
+                    </button>
                 </div>
+            </div>
+
+            <!-- UTR Section - Shows after clicking "I have completed the payment" -->
+            <div class="utr-section" id="utrSection">
+                <h4><i class="fas fa-clock"></i> Payment Initiated!</h4>
+                <p>Please complete the payment using the UPI ID or QR code above.<br>After payment, enter the 12-digit UTR Number:</p>
+                <div class="utr-input-group">
+                    <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="12">
+                    <button class="verify-btn" onclick="submitUTR()"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
+                </div>
+                <p style="font-size: 12px; color: #999; margin-top: 10px;">UTR number is the 12-digit reference number you received after payment.</p>
             </div>
         </div>
     </div>
@@ -740,6 +752,13 @@
                 }
             };
 
+            window.showUTRInput = function() {
+                document.getElementById('utrSection').classList.add('show');
+                document.getElementById('utrNumber').focus();
+                // Scroll to UTR section
+                document.getElementById('utrSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+
             window.copyUPIID = () => {
                 navigator.clipboard.writeText(currentUPIId);
                 alert('UPI ID copied: ' + currentUPIId);
@@ -779,7 +798,7 @@
                 if (!currentMemberId) { alert('No active registration'); return; }
                 
                 isSubmittingUTR = true;
-                const btn = document.querySelector('.verify-btn');
+                const btn = document.querySelector('#utrSection .verify-btn');
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
                 
