@@ -637,296 +637,403 @@
     <!-- WhatsApp Button -->
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
-    <script src="js/members.js"></script>
-    <script src="js/settings-loader.js"></script>
-    <script>
-        (function() {
-            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+<script src="js/members.js"></script>
+<script src="js/settings-loader.js"></script>
+<script>
+    (function() {
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialize modules
+        if (typeof MembersModule !== 'undefined') MembersModule.init(supabase);
+        if (typeof SettingsLoader !== 'undefined') SettingsLoader.init(supabase);
+
+        let selectedFile = null;
+        let currentMemberId = null;
+        let statusCheckInterval = null;
+        let countdownInterval = null;
+        let isSubmitting = false;
+        let isSubmittingUTR = false;
+        
+        // Dynamic settings (will be loaded from database)
+        let currentUPIId = '8133908811@airtel';
+        let currentPayeeName = 'AHBBM Membership';
+        let currentMembershipFee = 49;
+        let settingsLoaded = false;
+
+        // Load settings from database
+        async function loadPaymentSettings() {
+            try {
+                if (typeof SettingsLoader !== 'undefined') {
+                    // Wait for settings to load
+                    await SettingsLoader.loadSettings();
+                    
+                    currentUPIId = SettingsLoader.getSetting('upi_id', '8133908811@airtel');
+                    currentPayeeName = SettingsLoader.getSetting('upi_payee_name', 'AHBBM Membership');
+                    const feeFromSettings = SettingsLoader.getSetting('membership_fee', '49');
+                    currentMembershipFee = parseInt(feeFromSettings) || 49;
+                    
+                    settingsLoaded = true;
+                    console.log('Payment settings loaded:', { currentUPIId, currentPayeeName, currentMembershipFee });
+                    
+                    // Update UI with loaded settings
+                    updateUIWithSettings();
+                }
+            } catch (error) {
+                console.error('Error loading payment settings:', error);
+                // Use defaults
+                settingsLoaded = true;
+            }
+        }
+
+        // Update UI elements with loaded settings
+        function updateUIWithSettings() {
+            // Update fee display
+            const feeElements = document.querySelectorAll('.fee-amount');
+            feeElements.forEach(el => {
+                el.innerHTML = `₹${currentMembershipFee} <small>only</small>`;
+            });
             
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // Update UPI ID display
+            const upiIdElement = document.getElementById('upiIdDisplay');
+            if (upiIdElement) {
+                upiIdElement.textContent = currentUPIId;
+            }
             
-            if (typeof MembersModule !== 'undefined') MembersModule.init(supabase);
-
-            let selectedFile = null;
-            let currentMemberId = null;
-            let statusCheckInterval = null;
-            let countdownInterval = null;
-            let isSubmitting = false;
-            let isSubmittingUTR = false;
-            let currentUPIId = '8133908811@airtel';
-
-            window.previewPhoto = function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert('File size must be less than 2MB');
-                        return;
-                    }
-                    selectedFile = file;
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const preview = document.getElementById('photoPreview');
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-
-            function getFormData() {
-                return {
-                    name: document.getElementById('name').value,
-                    district: document.getElementById('district').value,
-                    village: document.getElementById('village').value,
-                    phone: document.getElementById('phone').value,
-                    email: document.getElementById('email').value,
-                    occupation: document.getElementById('occupation').value,
-                    dob: document.getElementById('dob').value,
-                    blood_group: document.getElementById('bloodGroup').value,
-                    address: document.getElementById('address').value,
-                    emergency_phone: document.getElementById('emergencyPhone').value
-                };
+            // Update any amount displays in the UPI section
+            const upiAmountElement = document.querySelector('#upiSection h3');
+            if (upiAmountElement) {
+                upiAmountElement.innerHTML = `Pay ₹${currentMembershipFee} via UPI`;
             }
+        }
 
-            function validateForm() {
-                const formData = getFormData();
-                if (!formData.name || !formData.district || !formData.village || !formData.phone) {
-                    alert('Please fill all required fields');
-                    return false;
-                }
-                if (!/^\d{10}$/.test(formData.phone)) {
-                    alert('Please enter a valid 10-digit phone number');
-                    return false;
-                }
-                const terms = document.getElementById('terms').checked;
-                if (!terms) {
-                    alert('Please accept the terms and conditions');
-                    return false;
-                }
-                return true;
-            }
+        function generateQRCode() {
+            const container = document.getElementById('qrcode');
+            if (!container) return;
+            container.innerHTML = '';
+            const upiData = `upi://pay?pa=${currentUPIId}&pn=${encodeURIComponent(currentPayeeName)}&am=${currentMembershipFee}&cu=INR`;
+            new QRCode(container, { text: upiData, width: 200, height: 200 });
+            console.log('QR Code generated with:', { upi: currentUPIId, amount: currentMembershipFee });
+        }
 
-            function generateQRCode() {
-                const container = document.getElementById('qrcode');
-                if (!container) return;
-                container.innerHTML = '';
-                const upiData = `upi://pay?pa=${currentUPIId}&pn=AHBBM%20Membership&am=49&cu=INR`;
-                new QRCode(container, { text: upiData, width: 200, height: 200 });
-                console.log('QR Code generated with UPI:', currentUPIId);
-            }
-
-            window.proceedToPayment = async function() {
-                if (isSubmitting) return;
-                if (!validateForm()) return;
-                
-                isSubmitting = true;
-                const registerBtn = document.querySelector('.register-btn');
-                registerBtn.disabled = true;
-                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                
-                try {
-                    const formData = getFormData();
-                    const result = await MembersModule.registerMember(formData, selectedFile);
-                    
-                    if (!result.success) throw new Error(result.error);
-                    
-                    currentMemberId = result.data.id;
-                    
-                    // Hide registration form, show UPI section
-                    document.getElementById('registrationForm').style.display = 'none';
-                    const upiSection = document.getElementById('upiSection');
-                    upiSection.classList.add('show');
-                    
-                    // Generate QR code
-                    generateQRCode();
-                    
-                    // Scroll to UPI section
-                    upiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                } catch (error) {
-                    alert('Registration failed: ' + error.message);
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-                } finally {
-                    isSubmitting = false;
-                }
-            };
-
-            window.showUTRInput = function() {
-                document.getElementById('utrSection').classList.add('show');
-                document.getElementById('utrNumber').focus();
-                // Scroll to UTR section
-                document.getElementById('utrSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            };
-
-            window.copyUPIID = () => {
-                navigator.clipboard.writeText(currentUPIId);
-                alert('UPI ID copied: ' + currentUPIId);
-            };
-
-            window.downloadQRCode = () => {
-                const canvas = document.querySelector('#qrcode canvas');
-                if (canvas) {
-                    const link = document.createElement('a');
-                    link.download = 'Membership_Payment_QR.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
-                } else alert('QR Code not available');
-            };
-
-            window.printQRCode = () => {
-                const canvas = document.querySelector('#qrcode canvas');
-                if (!canvas) { alert('QR Code not available'); return; }
-                const win = window.open('', '_blank');
-                win.document.write(`<html><head><title>Payment QR</title><style>body{text-align:center;padding:20px;}img{width:250px;}</style></head><body><img src="${canvas.toDataURL()}"><h2>₹49</h2><p>UPI: ${currentUPIId}</p><script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000)}<\/script></body></html>`);
-                win.document.close();
-            };
-
-            function validateUTR(utr) {
-                return /^\d{12}$/.test(utr);
-            }
-
-            window.submitUTR = async function() {
-                if (isSubmittingUTR) return;
-                
-                const utr = document.getElementById('utrNumber').value.trim();
-                if (!utr) { alert('Please enter UTR number'); return; }
-                if (!validateUTR(utr)) {
-                    alert('Please enter a valid 12-digit UTR number');
+        window.previewPhoto = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('File size must be less than 2MB');
                     return;
                 }
-                if (!currentMemberId) { alert('No active registration'); return; }
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        function getFormData() {
+            return {
+                name: document.getElementById('name').value,
+                district: document.getElementById('district').value,
+                village: document.getElementById('village').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                occupation: document.getElementById('occupation').value,
+                dob: document.getElementById('dob').value,
+                blood_group: document.getElementById('bloodGroup').value,
+                address: document.getElementById('address').value,
+                emergency_phone: document.getElementById('emergencyPhone').value
+            };
+        }
+
+        function validateForm() {
+            const formData = getFormData();
+            if (!formData.name || !formData.district || !formData.village || !formData.phone) {
+                alert('Please fill all required fields');
+                return false;
+            }
+            if (!/^\d{10}$/.test(formData.phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                return false;
+            }
+            const terms = document.getElementById('terms').checked;
+            if (!terms) {
+                alert('Please accept the terms and conditions');
+                return false;
+            }
+            return true;
+        }
+
+        window.proceedToPayment = async function() {
+            if (isSubmitting) return;
+            if (!validateForm()) return;
+            
+            // Wait for settings to load if not already
+            if (!settingsLoaded) {
+                alert('Loading payment settings, please wait...');
+                await loadPaymentSettings();
+            }
+            
+            // Check for existing registration
+            const phone = document.getElementById('phone').value;
+            const { data: existing, error: checkError } = await supabase
+                .from('members')
+                .select('id, status')
+                .eq('phone', phone)
+                .in('status', ['pending', 'approved'])
+                .maybeSingle();
+            
+            if (existing) {
+                alert(existing.status === 'approved' 
+                    ? 'You are already a registered member!' 
+                    : 'Your registration is already pending approval.');
+                return;
+            }
+            
+            isSubmitting = true;
+            const registerBtn = document.querySelector('.register-btn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const formData = getFormData();
+                const result = await MembersModule.registerMember(formData, selectedFile);
                 
-                isSubmittingUTR = true;
-                const btn = document.querySelector('#utrSection .verify-btn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                if (!result.success) throw new Error(result.error);
                 
-                try {
-                    const { error } = await supabase
-                        .from('members')
-                        .update({ utr_number: utr })
-                        .eq('id', currentMemberId);
-                    
-                    if (error) throw error;
-                    
-                    showStatusModal('pending', utr);
-                    document.getElementById('utrNumber').value = '';
-                    
-                    startCountdownAndRedirect();
-                    startStatusCheck();
-                    
-                } catch (error) {
-                    alert('Submission failed: ' + error.message);
-                } finally {
+                currentMemberId = result.data.id;
+                
+                // Hide registration form, show UPI section
+                document.getElementById('registrationForm').style.display = 'none';
+                const upiSection = document.getElementById('upiSection');
+                upiSection.classList.add('show');
+                
+                // Generate QR code with current settings
+                generateQRCode();
+                
+                // Update amount display
+                const upiHeader = document.querySelector('#upiSection h3');
+                if (upiHeader) {
+                    upiHeader.innerHTML = `Pay ₹${currentMembershipFee} via UPI`;
+                }
+                
+                // Scroll to UPI section
+                upiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = `<i class="fas fa-id-card"></i> Register & Pay ₹${currentMembershipFee}`;
+            } finally {
+                isSubmitting = false;
+            }
+        };
+
+        window.showUTRInput = function() {
+            document.getElementById('utrSection').classList.add('show');
+            document.getElementById('utrNumber').focus();
+            document.getElementById('utrSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.copyUPIID = () => {
+            navigator.clipboard.writeText(currentUPIId);
+            alert('UPI ID copied: ' + currentUPIId);
+        };
+
+        window.downloadQRCode = () => {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'Membership_Payment_QR.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            } else alert('QR Code not available');
+        };
+
+        window.printQRCode = () => {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) { alert('QR Code not available'); return; }
+            const win = window.open('', '_blank');
+            win.document.write(`<html><head><title>Payment QR</title><style>body{text-align:center;padding:20px;}img{width:250px;}</style></head><body><img src="${canvas.toDataURL()}"><h2>₹${currentMembershipFee}</h2><p>UPI: ${currentUPIId}</p><script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000)}<\/script></body></html>`);
+            win.document.close();
+        };
+
+        window.submitUTR = async function() {
+            if (isSubmittingUTR) return;
+            
+            const utr = document.getElementById('utrNumber').value.trim();
+            if (!utr) { alert('Please enter UTR number'); return; }
+            if (!/^\d{12}$/.test(utr)) {
+                alert('Please enter a valid 12-digit UTR number');
+                return;
+            }
+            if (!currentMemberId) { alert('No active registration'); return; }
+            
+            isSubmittingUTR = true;
+            const btn = document.querySelector('#utrSection .verify-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            try {
+                // Check if UTR already exists
+                const { data: existingUTR } = await supabase
+                    .from('members')
+                    .select('id')
+                    .eq('utr_number', utr)
+                    .maybeSingle();
+                
+                if (existingUTR) {
+                    alert('This UTR number has already been used.');
                     isSubmittingUTR = false;
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+                    return;
                 }
-            };
-
-            function startCountdownAndRedirect() {
-                let seconds = 60;
-                const countdownContainer = document.getElementById('countdownContainer');
-                const finalMessageDiv = document.getElementById('finalMessage');
                 
-                countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
+                const { error } = await supabase
+                    .from('members')
+                    .update({ 
+                        utr_number: utr,
+                        payment_status: 'pending',
+                        payment_method: 'upi',
+                        payment_date: new Date().toISOString(),
+                        registration_fee_paid: true,
+                        payment_amount: currentMembershipFee
+                    })
+                    .eq('id', currentMemberId);
                 
-                countdownInterval = setInterval(() => {
-                    seconds--;
-                    const countdownSpan = document.getElementById('countdown');
-                    if (countdownSpan) countdownSpan.textContent = seconds;
-                    
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                        clearInterval(statusCheckInterval);
-                        finalMessageDiv.style.display = 'block';
-                        countdownContainer.innerHTML = '';
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 3000);
-                    }
-                }, 1000);
+                if (error) throw error;
+                
+                showStatusModal('pending', utr);
+                document.getElementById('utrNumber').value = '';
+                
+                startCountdownAndRedirect();
+                startStatusCheck();
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('Submission failed: ' + error.message);
+            } finally {
+                isSubmittingUTR = false;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
             }
+        };
 
-            function showStatusModal(status, utr) {
-                const modal = document.getElementById('statusModal');
-                const icon = document.getElementById('statusIcon');
-                const title = document.getElementById('statusTitle');
-                document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
-                const downloadBtn = document.getElementById('downloadCardBtn');
-                const finalMessageDiv = document.getElementById('finalMessage');
-                const countdownContainer = document.getElementById('countdownContainer');
+        function startCountdownAndRedirect() {
+            let seconds = 60;
+            const countdownContainer = document.getElementById('countdownContainer');
+            const finalMessageDiv = document.getElementById('finalMessage');
+            
+            countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
+            
+            countdownInterval = setInterval(() => {
+                seconds--;
+                const countdownSpan = document.getElementById('countdown');
+                if (countdownSpan) countdownSpan.textContent = seconds;
                 
-                if (status === 'pending') {
-                    icon.className = 'status-icon pending';
-                    icon.innerHTML = '<i class="fas fa-clock"></i>';
-                    title.textContent = 'Registration Submitted!';
-                    document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive your membership card once verified.';
-                    downloadBtn.style.display = 'none';
-                    finalMessageDiv.style.display = 'none';
-                } else if (status === 'approved') {
-                    icon.className = 'status-icon approved';
-                    icon.innerHTML = '<i class="fas fa-check"></i>';
-                    title.textContent = 'Membership Approved!';
-                    document.getElementById('statusMessage').innerHTML = 'Welcome to the community! Your membership has been approved.';
-                    downloadBtn.style.display = 'inline-flex';
-                    if (countdownInterval) clearInterval(countdownInterval);
-                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    clearInterval(statusCheckInterval);
+                    finalMessageDiv.style.display = 'block';
                     countdownContainer.innerHTML = '';
-                    finalMessageDiv.style.display = 'none';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
                 }
-                modal.classList.add('show');
-            }
+            }, 1000);
+        }
 
-            window.checkStatus = async function() {
-                if (!currentMemberId) { alert('No registration found'); return; }
-                const { data } = await supabase.from('members').select('status, membership_id, utr_number').eq('id', currentMemberId).single();
+        function showStatusModal(status, utr) {
+            const modal = document.getElementById('statusModal');
+            const icon = document.getElementById('statusIcon');
+            const title = document.getElementById('statusTitle');
+            document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
+            const downloadBtn = document.getElementById('downloadCardBtn');
+            const finalMessageDiv = document.getElementById('finalMessage');
+            const countdownContainer = document.getElementById('countdownContainer');
+            
+            if (status === 'pending') {
+                icon.className = 'status-icon pending';
+                icon.innerHTML = '<i class="fas fa-clock"></i>';
+                title.textContent = 'Registration Submitted!';
+                document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive your membership card once verified.';
+                downloadBtn.style.display = 'none';
+                finalMessageDiv.style.display = 'none';
+            } else if (status === 'approved') {
+                icon.className = 'status-icon approved';
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                title.textContent = 'Membership Approved!';
+                document.getElementById('statusMessage').innerHTML = 'Welcome to the community! Your membership has been approved.';
+                downloadBtn.style.display = 'inline-flex';
+                if (countdownInterval) clearInterval(countdownInterval);
+                if (statusCheckInterval) clearInterval(statusCheckInterval);
+                countdownContainer.innerHTML = '';
+                finalMessageDiv.style.display = 'none';
+            }
+            modal.classList.add('show');
+        }
+
+        window.checkStatus = async function() {
+            if (!currentMemberId) { alert('No registration found'); return; }
+            const { data } = await supabase.from('members').select('status, membership_id, utr_number').eq('id', currentMemberId).single();
+            if (data?.status === 'approved') {
+                showStatusModal('approved', data.utr_number);
+            } else if (data?.status === 'rejected') {
+                alert('Your membership was rejected. Please contact support.');
+            } else {
+                alert('Status: Pending Approval. You will be notified once verified.');
+            }
+        };
+
+        window.downloadMembershipCard = async function() {
+            if (!currentMemberId) return;
+            const { data } = await supabase.from('members').select('*').eq('id', currentMemberId).single();
+            if (data && data.status === 'approved' && typeof MembersModule !== 'undefined') {
+                MembersModule.downloadMembershipCard(data);
+            } else {
+                alert('Membership card not available yet. Please wait for admin approval.');
+            }
+        };
+
+        function startStatusCheck() {
+            if (statusCheckInterval) clearInterval(statusCheckInterval);
+            statusCheckInterval = setInterval(async () => {
+                if (!currentMemberId) return;
+                const { data } = await supabase.from('members').select('status, utr_number').eq('id', currentMemberId).single();
                 if (data?.status === 'approved') {
                     showStatusModal('approved', data.utr_number);
-                } else if (data?.status === 'rejected') {
-                    alert('Your membership was rejected. Please contact support.');
-                } else {
-                    alert('Status: Pending Approval. You will be notified once verified.');
+                    clearInterval(statusCheckInterval);
+                    if (countdownInterval) clearInterval(countdownInterval);
                 }
-            };
+            }, 5000);
+        }
 
-            window.downloadMembershipCard = async function() {
-                if (!currentMemberId) return;
-                const { data } = await supabase.from('members').select('*').eq('id', currentMemberId).single();
-                if (data && data.status === 'approved' && typeof MembersModule !== 'undefined') {
-                    MembersModule.downloadMembershipCard(data);
-                } else {
-                    alert('Membership card not available yet. Please wait for admin approval.');
-                }
-            };
-
-            function startStatusCheck() {
-                if (statusCheckInterval) clearInterval(statusCheckInterval);
-                statusCheckInterval = setInterval(async () => {
-                    if (!currentMemberId) return;
-                    const { data } = await supabase.from('members').select('status, utr_number').eq('id', currentMemberId).single();
-                    if (data?.status === 'approved') {
-                        showStatusModal('approved', data.utr_number);
-                        clearInterval(statusCheckInterval);
-                        if (countdownInterval) clearInterval(countdownInterval);
-                    }
-                }, 5000);
-            }
-
-            // UTR input validation - only numbers, max 12 digits
-            const utrInput = document.getElementById('utrNumber');
-            if (utrInput) {
-                utrInput.addEventListener('input', function(e) {
-                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
-                });
-            }
-
-            document.getElementById('statusModal').addEventListener('click', e => {
-                if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+        // UTR input validation
+        const utrInput = document.getElementById('utrNumber');
+        if (utrInput) {
+            utrInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
             });
-        })();
-    </script>
+        }
+
+        // Initialize: Load settings and generate default QR
+        loadPaymentSettings().then(() => {
+            // Generate a default QR with current settings (for display)
+            if (document.getElementById('upiSection').classList.contains('show')) {
+                generateQRCode();
+            }
+        });
+
+        document.getElementById('statusModal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+        });
+    })();
+</script>
 </body>
 </html>
