@@ -73,18 +73,18 @@ window.db = {
     },
 
     async getTotalDonations() {
-    try {
-        const { data, error } = await window.supabaseClient
-            .from('donations')
-            .select('amount')
-            .eq('payment_status', 'approved');  // Change 'completed' to 'approved'
-        if (error) throw error;
-        return data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
-    } catch (error) {
-        console.error('Error loading donations:', error);
-        return 0;
-    }
-},
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('donations')
+                .select('amount')
+                .eq('payment_status', 'approved');
+            if (error) throw error;
+            return data.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+        } catch (error) {
+            console.error('Error loading donations:', error);
+            return 0;
+        }
+    },
 
     async getApprovedMembersCount() {
         try {
@@ -98,6 +98,24 @@ window.db = {
             console.error('Error loading members count:', error);
             return 0;
         }
+    },
+
+    // NEW: Get membership fee from settings
+    async getMembershipFee() {
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('settings')
+                .select('value')
+                .eq('key', 'membership_fee')
+                .single();
+            
+            if (error) throw error;
+            return parseInt(data?.value) || 49;
+        } catch (error) {
+            console.error('Error loading membership fee:', error);
+            return 49;
+        }
     }
 };
+
 console.log('✅ supabase.js loaded, db available');
