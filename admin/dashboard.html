@@ -426,177 +426,212 @@
         </div>
     </div>
 
-    <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://wa.me/8133908811" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script>
-        (function() {
-            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-            
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            
-            let currentAdmin = null;
+    (function() {
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentAdmin = null;
 
-            document.addEventListener('DOMContentLoaded', async () => {
-                await checkAuth();
-                await loadDashboardStats();
-                await loadRecentActivity();
-                await loadBadges();
-            });
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadDashboardStats();
+            await loadRecentActivity();
+            await loadBadges();
+        });
 
-            async function checkAuth() {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const storedAdmin = sessionStorage.getItem('adminInfo');
+            if (storedAdmin) {
+                currentAdmin = JSON.parse(storedAdmin);
+            } else {
+                const { data: adminData } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                currentAdmin = adminData || { name: session.user.email?.split('@')[0] || 'Admin' };
+                sessionStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
+            }
+            
+            document.getElementById('adminName').textContent = currentAdmin.name || 'Admin';
+            document.getElementById('headerAdminName').textContent = currentAdmin.name || 'Admin';
+        }
+
+        async function loadDashboardStats() {
+            try {
+                // Try to get stats from the view
+                const { data: stats, error } = await supabase
+                    .from('dashboard_stats')
+                    .select('*')
+                    .single();
                 
-                const storedAdmin = sessionStorage.getItem('adminInfo');
-                if (storedAdmin) {
-                    currentAdmin = JSON.parse(storedAdmin);
+                if (!error && stats) {
+                    document.getElementById('pendingMembersCount').textContent = stats.pending_members || 0;
+                    document.getElementById('totalMembersCount').textContent = stats.total_members || 0;
+                    document.getElementById('upcomingEventsCount').textContent = stats.upcoming_events || 0;
+                    document.getElementById('pendingCount').textContent = (stats.pending_members || 0) + ' pending';
+                    
+                    const monthlyDonations = stats.monthly_donations || 0;
+                    document.getElementById('monthlyDonationsAmount').textContent = `₹${monthlyDonations.toLocaleString('en-IN')}`;
+                    document.getElementById('monthlyDonationsCount').textContent = stats.monthly_donation_count || 0;
                 } else {
-                    const { data: adminData } = await supabase
-                        .from('admins')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-                    currentAdmin = adminData || { name: session.user.email?.split('@')[0] || 'Admin' };
-                    sessionStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
+                    await loadDashboardStatsDirect();
                 }
-                
-                document.getElementById('adminName').textContent = currentAdmin.name || 'Admin';
-                document.getElementById('headerAdminName').textContent = currentAdmin.name || 'Admin';
+            } catch (error) {
+                console.error('Error loading stats from view:', error);
+                await loadDashboardStatsDirect();
             }
+        }
 
-            async function loadDashboardStats() {
-                try {
-                    // Get pending members count
-                    const { count: pendingCount } = await supabase
-                        .from('members')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('status', 'pending');
-                    
-                    document.getElementById('pendingMembersCount').textContent = pendingCount || 0;
-                    document.getElementById('pendingCount').textContent = (pendingCount || 0) + ' pending';
-                    
-                    // Get total approved members
-                    const { count: totalMembers } = await supabase
-                        .from('members')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('status', 'approved');
-                    
-                    document.getElementById('totalMembersCount').textContent = totalMembers || 0;
-                    
-                    // Get upcoming events
-                    const { count: upcomingEvents } = await supabase
-                        .from('events')
-                        .select('*', { count: 'exact', head: true })
-                        .gte('event_date', new Date().toISOString().split('T')[0]);
-                    
-                    document.getElementById('upcomingEventsCount').textContent = upcomingEvents || 0;
-                    
-                    // Get total donations (approved/completed)
-                    const { data: donations } = await supabase
-                        .from('donations')
-                        .select('amount')
-                        .in('payment_status', ['approved', 'completed']);
-                    
-                    const totalAmount = donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
-                    document.getElementById('totalDonationsAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
-                    
-                } catch (error) {
-                    console.error('Error loading stats:', error);
-                }
-            }
-
-            async function loadRecentActivity() {
-                const activityList = document.getElementById('activityList');
+        async function loadDashboardStatsDirect() {
+            try {
+                const { count: pendingCount } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
                 
-                try {
-                    // Get recent members
-                    const { data: recentMembers } = await supabase
-                        .from('members')
-                        .select('*')
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-                    
-                    // Get recent contacts
-                    const { data: recentContacts } = await supabase
-                        .from('contacts')
-                        .select('*')
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-                    
-                    const activities = [
-                        ...(recentMembers || []).map(m => ({
-                            icon: 'fas fa-user-plus',
-                            title: `New member registration: ${m.name}`,
-                            time: new Date(m.created_at).toLocaleString(),
-                            status: m.status
-                        })),
-                        ...(recentContacts || []).map(c => ({
-                            icon: 'fas fa-envelope',
-                            title: `New message from: ${c.name}`,
-                            time: new Date(c.created_at).toLocaleString(),
-                            status: c.status
-                        }))
-                    ].slice(0, 5);
-                    
-                    if (activities.length > 0) {
-                        activityList.innerHTML = activities.map(a => `
-                            <div class="activity-item">
-                                <div class="activity-icon"><i class="${a.icon}"></i></div>
-                                <div class="activity-content">
-                                    <div class="activity-title">${escapeHtml(a.title)}</div>
-                                    <div class="activity-meta">${a.time}</div>
-                                </div>
-                                <div class="activity-status status-${a.status}">${a.status}</div>
+                document.getElementById('pendingMembersCount').textContent = pendingCount || 0;
+                document.getElementById('pendingCount').textContent = (pendingCount || 0) + ' pending';
+                
+                const { count: totalMembers } = await supabase
+                    .from('members')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'approved');
+                
+                document.getElementById('totalMembersCount').textContent = totalMembers || 0;
+                
+                const { count: upcomingEvents } = await supabase
+                    .from('events')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('event_date', new Date().toISOString().split('T')[0]);
+                
+                document.getElementById('upcomingEventsCount').textContent = upcomingEvents || 0;
+                
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
+                
+                const { data: donations } = await supabase
+                    .from('donations')
+                    .select('amount')
+                    .in('payment_status', ['approved', 'completed'])
+                    .gte('created_at', startOfMonth.toISOString());
+                
+                const totalAmount = donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;
+                document.getElementById('monthlyDonationsAmount').textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
+                document.getElementById('monthlyDonationsCount').textContent = donations?.length || 0;
+                
+            } catch (error) {
+                console.error('Error loading stats directly:', error);
+            }
+        }
+
+        async function loadRecentActivity() {
+            const activityList = document.getElementById('activityList');
+            
+            try {
+                const { data: recentMembers } = await supabase
+                    .from('members')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                const { data: recentContacts } = await supabase
+                    .from('contacts')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+                
+                const activities = [
+                    ...(recentMembers || []).map(m => ({
+                        icon: 'fas fa-user-plus',
+                        title: `New member registration: ${m.name}`,
+                        time: new Date(m.created_at).toLocaleString(),
+                        status: m.status
+                    })),
+                    ...(recentContacts || []).map(c => ({
+                        icon: 'fas fa-envelope',
+                        title: `New message from: ${c.name}`,
+                        time: new Date(c.created_at).toLocaleString(),
+                        status: c.status
+                    }))
+                ].slice(0, 5);
+                
+                if (activities.length > 0) {
+                    activityList.innerHTML = activities.map(a => `
+                        <div class="activity-item">
+                            <div class="activity-icon"><i class="${a.icon}"></i></div>
+                            <div class="activity-content">
+                                <div class="activity-title">${escapeHtml(a.title)}</div>
+                                <div class="activity-meta">${a.time}</div>
                             </div>
-                        `).join('');
-                    } else {
-                        activityList.innerHTML = '<div class="no-data">No recent activity</div>';
-                    }
-                    
-                } catch (error) {
-                    console.error('Error loading activity:', error);
-                    activityList.innerHTML = '<div class="error-message">Failed to load activity</div>';
+                            <div class="activity-status status-${a.status}">${a.status}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    activityList.innerHTML = '<div class="no-data">No recent activity</div>';
                 }
+                
+            } catch (error) {
+                console.error('Error loading activity:', error);
+                activityList.innerHTML = '<div class="error-message">Failed to load activity</div>';
             }
+        }
 
-            async function loadBadges() {
-                try {
+        async function loadBadges() {
+            try {
+                const { data: stats, error } = await supabase
+                    .from('dashboard_stats')
+                    .select('pending_members')
+                    .single();
+                
+                if (!error && stats) {
+                    document.getElementById('pendingBadge').textContent = stats.pending_members || 0;
+                } else {
                     const { count: pendingCount } = await supabase
                         .from('members')
                         .select('*', { count: 'exact', head: true })
                         .eq('status', 'pending');
                     
                     document.getElementById('pendingBadge').textContent = pendingCount || 0;
-                    
-                    const { count: messageCount } = await supabase
-                        .from('contacts')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('status', 'new');
-                    
-                    document.getElementById('messageBadge').textContent = messageCount || 0;
-                    
-                } catch (error) {
-                    console.error('Error loading badges:', error);
                 }
+                
+                const { count: messageCount } = await supabase
+                    .from('contacts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'new');
+                
+                document.getElementById('messageBadge').textContent = messageCount || 0;
+                
+            } catch (error) {
+                console.error('Error loading badges:', error);
             }
+        }
 
-            function escapeHtml(text) {
-                if (!text) return '';
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-            window.logout = async function() {
-                await supabase.auth.signOut();
-                sessionStorage.removeItem('adminInfo');
-                window.location.href = 'login.html';
-            };
-        })();
-    </script>
+        window.logout = async function() {
+            await supabase.auth.signOut();
+            sessionStorage.removeItem('adminInfo');
+            window.location.href = 'login.html';
+        };
+    })();
+</script>
 </body>
 </html>
