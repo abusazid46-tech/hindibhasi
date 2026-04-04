@@ -85,6 +85,27 @@
         .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 20px 0; }
         .donate-btn { width: 100%; padding: 16px; background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 20px; }
         
+        /* Countdown Timer Styles */
+        .countdown-timer {
+            display: inline-block;
+            background: #f39c12;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .final-message {
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
         .status-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; }
         .status-modal.show { display: flex; }
         .status-content { background: white; border-radius: 40px 10px 40px 10px; padding: 50px; max-width: 500px; width: 90%; text-align: center; }
@@ -202,12 +223,12 @@
 
             <div class="utr-section" id="utrSection">
                 <h4><i class="fas fa-clock"></i> Payment Initiated!</h4>
-                <p>Please complete the payment using the UPI ID or QR code above.<br>After payment, enter the UTR Number:</p>
+                <p>Please complete the payment using the UPI ID or QR code above.<br>After payment, enter the 12-digit UTR Number:</p>
                 <div class="utr-input-group">
-                    <input type="text" id="utrNumber" placeholder="Enter UTR / Transaction ID">
+                    <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="12" pattern="[0-9]{12}">
                     <button class="verify-btn" onclick="submitUTR()"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
                 </div>
-                <p style="font-size: 12px; color: #999; margin-top: 10px;">Your donation will be verified by admin. You'll receive a receipt after approval.</p>
+                <p style="font-size: 12px; color: #999; margin-top: 10px;">UTR number is the 12-digit reference number you received after payment.</p>
             </div>
         </div>
     </div>
@@ -219,6 +240,10 @@
             <div class="status-amount" id="statusAmount">₹0</div>
             <div class="status-id" id="statusId"></div>
             <div class="status-message" id="statusMessage"></div>
+            <div id="countdownContainer" style="margin-top: 20px;"></div>
+            <div class="final-message" id="finalMessage" style="display: none;">
+                <i class="fas fa-envelope"></i> Once approved, receipt will be sent to your email id
+            </div>
             <div class="status-actions">
                 <button class="check-status-btn" onclick="checkDonationStatus()"><i class="fas fa-sync-alt"></i> Check Status</button>
                 <button class="receipt-btn" id="receiptBtn" onclick="downloadReceipt()"><i class="fas fa-download"></i> Download Receipt</button>
@@ -242,6 +267,8 @@
             let selectedAmount = 0;
             let currentDonationId = null;
             let statusCheckInterval = null;
+            let redirectTimer = null;
+            let countdownInterval = null;
             const UPI_ID = '8133908811@airtel';
             const PAYEE_NAME = 'AHBBM Donation';
 
@@ -309,9 +336,25 @@
                 } else alert('Error: ' + result.error);
             };
 
+            // Validate 12-digit UTR
+            function validateUTR(utr) {
+                const utrPattern = /^\d{12}$/;
+                return utrPattern.test(utr);
+            }
+
             window.submitUTR = async function() {
                 const utr = document.getElementById('utrNumber').value.trim();
-                if (!utr) { alert('Enter UTR number'); return; }
+                
+                // Validate 12-digit UTR
+                if (!utr) { 
+                    alert('Please enter UTR number'); 
+                    return; 
+                }
+                if (!validateUTR(utr)) {
+                    alert('Please enter a valid 12-digit UTR number (only numbers, exactly 12 digits)');
+                    return;
+                }
+                
                 if (!currentDonationId) { alert('No active donation'); return; }
                 
                 const btn = document.querySelector('.verify-btn');
@@ -332,11 +375,40 @@
                     document.getElementById('customAmount').value = '';
                     document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
                     selectedAmount = 0;
+                    
+                    // Start countdown and auto-redirect after 60 seconds
+                    startCountdownAndRedirect();
                     startStatusCheck();
                 }
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
             };
+
+            function startCountdownAndRedirect() {
+                let seconds = 60;
+                const countdownContainer = document.getElementById('countdownContainer');
+                const finalMessageDiv = document.getElementById('finalMessage');
+                
+                countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
+                
+                countdownInterval = setInterval(() => {
+                    seconds--;
+                    const countdownSpan = document.getElementById('countdown');
+                    if (countdownSpan) countdownSpan.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        clearInterval(statusCheckInterval);
+                        // Show final message
+                        finalMessageDiv.style.display = 'block';
+                        countdownContainer.innerHTML = '';
+                        // Redirect after 3 more seconds
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 3000);
+                    }
+                }, 1000);
+            }
 
             function showStatusModal(status, amount, utr) {
                 const modal = document.getElementById('statusModal');
@@ -345,6 +417,8 @@
                 document.getElementById('statusAmount').textContent = `₹${amount}`;
                 document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
                 const receiptBtn = document.getElementById('receiptBtn');
+                const finalMessageDiv = document.getElementById('finalMessage');
+                const countdownContainer = document.getElementById('countdownContainer');
                 
                 if (status === 'pending') {
                     icon.className = 'status-icon pending';
@@ -352,12 +426,19 @@
                     title.textContent = 'Donation Submitted!';
                     document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive a receipt once verified.';
                     receiptBtn.style.display = 'none';
+                    finalMessageDiv.style.display = 'none';
                 } else if (status === 'approved') {
                     icon.className = 'status-icon approved';
                     icon.innerHTML = '<i class="fas fa-check"></i>';
                     title.textContent = 'Donation Approved!';
                     document.getElementById('statusMessage').innerHTML = 'Thank you for your generous donation!';
                     receiptBtn.style.display = 'inline-flex';
+                    // Clear any pending redirect
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    if (redirectTimer) clearTimeout(redirectTimer);
+                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                    countdownContainer.innerHTML = '';
+                    finalMessageDiv.style.display = 'none';
                 }
                 modal.classList.add('show');
             }
@@ -365,15 +446,23 @@
             window.checkDonationStatus = async function() {
                 if (!currentDonationId) { alert('No donation found'); return; }
                 const { data } = await supabase.from('donations').select('payment_status, amount, utr_number').eq('id', currentDonationId).single();
-                if (data?.payment_status === 'approved') showStatusModal('approved', data.amount, data.utr_number);
-                else alert('Status: Pending Approval');
+                if (data?.payment_status === 'approved') {
+                    showStatusModal('approved', data.amount, data.utr_number);
+                } else if (data?.payment_status === 'rejected') {
+                    alert('Your donation was rejected. Please contact support.');
+                } else {
+                    alert('Status: Pending Approval. You will be notified once verified.');
+                }
             };
 
             window.downloadReceipt = async function() {
                 if (!currentDonationId) return;
                 const { data } = await supabase.from('donations').select('*').eq('id', currentDonationId).single();
-                if (data && typeof DonationModule !== 'undefined') DonationModule.downloadReceipt(data);
-                else alert('Receipt not available');
+                if (data && data.payment_status === 'approved' && typeof DonationModule !== 'undefined') {
+                    DonationModule.downloadReceipt(data);
+                } else {
+                    alert('Receipt not available yet. Please wait for admin approval.');
+                }
             };
 
             function startStatusCheck() {
@@ -384,6 +473,8 @@
                     if (data?.payment_status === 'approved') {
                         showStatusModal('approved', data.amount, data.utr_number);
                         clearInterval(statusCheckInterval);
+                        // Stop countdown if approval comes early
+                        if (countdownInterval) clearInterval(countdownInterval);
                     }
                 }, 5000);
             }
@@ -392,8 +483,19 @@
                 const amount = parseFloat(this.value);
                 if (amount >= 51) generateQRCode(amount);
             });
+            
+            // Add UTR input validation for 12 digits only
+            const utrInput = document.getElementById('utrNumber');
+            if (utrInput) {
+                utrInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
+                });
+            }
+            
             generateQRCode(500);
-            document.getElementById('statusModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('show'); });
+            document.getElementById('statusModal').addEventListener('click', e => { 
+                if (e.target === e.currentTarget) e.currentTarget.classList.remove('show'); 
+            });
         })();
     </script>
 </body>
