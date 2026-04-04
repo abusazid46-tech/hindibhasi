@@ -144,41 +144,40 @@ const DonationModule = (function() {
             { id: 'whatsapp', name: 'WhatsApp Pay', icon: 'fab fa-whatsapp', scheme: 'whatsapp://' }
         ];
     }
-
-    // Create donation record
-    async function createDonation(donationData) {
-        try {
-            if (!supabaseClient) throw new Error('DonationModule not initialized');
-            
-            const transactionId = 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            
-            const { data, error } = await supabaseClient
-                .from('donations')
-                .insert([{
-                    donor_name: donationData.name,
-                    donor_phone: donationData.phone,
-                    donor_email: donationData.email || null,
-                    amount: donationData.amount,
-                    payment_status: 'pending',
-                    transaction_id: transactionId,
-                    payment_method: donationData.payment_method || 'razorpay',
-                    is_anonymous: donationData.is_anonymous || false,
-                    message: donationData.message || null,
-                    created_at: new Date().toISOString()
-                }])
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            return { success: true, data, transactionId };
-            
-        } catch (error) {
-            console.error('Error creating donation:', error);
-            return { success: false, error: error.message };
-        }
+// In js/donation.js - Update the createDonation function
+async function createDonation(donationData) {
+    try {
+        if (!supabaseClient) throw new Error('DonationModule not initialized');
+        
+        const transactionId = donationData.transaction_id || 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        
+        const { data, error } = await supabaseClient
+            .from('donations')
+            .insert([{
+                donor_name: donationData.name,
+                donor_phone: donationData.phone,
+                donor_email: donationData.email || null,
+                amount: donationData.amount,
+                payment_status: 'pending',
+                transaction_id: transactionId,
+                payment_method: donationData.payment_method || 'upi',
+                is_anonymous: donationData.is_anonymous || false,
+                message: donationData.message || null,
+                utr_number: donationData.utr_number || null,
+                created_at: new Date().toISOString()
+            }])
+            .select()
+            .single();
+        
+        if (error) throw error;
+        return { success: true, data, transactionId };
+        
+    } catch (error) {
+        console.error('Error creating donation:', error);
+        return { success: false, error: error.message };
     }
-
+}
+   
     // Update payment status
     async function updatePaymentStatus(transactionId, paymentDetails) {
         try {
