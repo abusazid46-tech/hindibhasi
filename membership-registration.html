@@ -689,26 +689,29 @@
         }
 
         // Update UI elements with loaded settings
-        function updateUIWithSettings() {
-            // Update fee display
-            const feeElements = document.querySelectorAll('.fee-amount');
-            feeElements.forEach(el => {
-                el.innerHTML = `₹${currentMembershipFee} <small>only</small>`;
-            });
-            
-            // Update UPI ID display
-            const upiIdElement = document.getElementById('upiIdDisplay');
-            if (upiIdElement) {
-                upiIdElement.textContent = currentUPIId;
-            }
-            
-            // Update any amount displays in the UPI section
-            const upiAmountElement = document.querySelector('#upiSection h3');
-            if (upiAmountElement) {
-                upiAmountElement.innerHTML = `Pay ₹${currentMembershipFee} via UPI`;
-            }
-        }
-
+       // Update UI elements with loaded settings
+function updateUIWithSettings() {
+    // Update fee display
+    const feeElements = document.querySelectorAll('.fee-amount');
+    feeElements.forEach(el => {
+        el.innerHTML = `₹${currentMembershipFee} <small>only</small>`;
+    });
+    
+    // Update UPI ID display
+    const upiIdElement = document.getElementById('upiIdDisplay');
+    if (upiIdElement) {
+        upiIdElement.textContent = currentUPIId;
+    }
+    
+    // Update UPI section header
+    const upiAmountElement = document.querySelector('#upiSection h3');
+    if (upiAmountElement) {
+        upiAmountElement.innerHTML = `Pay ₹${currentMembershipFee} via UPI`;
+    }
+    
+    // UPDATE REGISTER BUTTON AMOUNT
+    updateRegisterButtonAmount();
+}
         function generateQRCode() {
             const container = document.getElementById('qrcode');
             if (!container) return;
@@ -735,7 +738,13 @@
                 reader.readAsDataURL(file);
             }
         };
-
+// Update Register Button with current fee
+function updateRegisterButtonAmount() {
+    const registerBtn = document.querySelector('.register-btn');
+    if (registerBtn) {
+        registerBtn.innerHTML = `<i class="fas fa-id-card"></i> Register & Pay ₹${currentMembershipFee}`;
+    }
+}
         function getFormData() {
             return {
                 name: document.getElementById('name').value,
