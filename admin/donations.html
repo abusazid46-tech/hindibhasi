@@ -22,7 +22,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
@@ -75,7 +74,6 @@
             width: 22px;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 280px;
@@ -114,7 +112,6 @@
             gap: 8px;
         }
 
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -154,7 +151,6 @@
             margin-top: 5px;
         }
 
-        /* Chart Section */
         .chart-section {
             background: white;
             border-radius: 30px 10px 30px 10px;
@@ -186,7 +182,6 @@
             position: relative;
         }
 
-        /* Filter Bar */
         .filter-bar {
             background: white;
             border-radius: 20px;
@@ -248,7 +243,6 @@
             border-radius: 15px;
         }
 
-        /* Donations Table */
         .table-container {
             background: white;
             border-radius: 30px 10px 30px 10px;
@@ -283,7 +277,7 @@
             display: inline-block;
         }
 
-        .status-completed {
+        .status-approved {
             background: #e8f5e9;
             color: #27ae60;
         }
@@ -293,7 +287,7 @@
             color: #f39c12;
         }
 
-        .status-failed {
+        .status-rejected {
             background: #fee;
             color: #e74c3c;
         }
@@ -307,13 +301,23 @@
             margin: 0 3px;
         }
 
-        .receipt-btn {
+        .approve-btn {
             background: #27ae60;
             color: white;
         }
 
-        .view-btn {
+        .reject-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .receipt-btn {
             background: #3498db;
+            color: white;
+        }
+
+        .view-btn {
+            background: #9b59b6;
             color: white;
         }
 
@@ -339,6 +343,76 @@
             color: white;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            resize: vertical;
+        }
+
+        .confirm-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+
         @media (max-width: 1024px) {
             .sidebar {
                 width: 80px;
@@ -353,7 +427,6 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
             <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
@@ -402,7 +475,6 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="top-bar">
             <div class="page-title">
@@ -414,8 +486,7 @@
             </button>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="stats-grid" id="statsCards">
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Total Donations</span>
@@ -443,15 +514,14 @@
             
             <div class="stat-card">
                 <div class="stat-header">
-                    <span class="stat-title">This Month</span>
-                    <i class="fas fa-calendar" style="color: #27ae60;"></i>
+                    <span class="stat-title">Pending Approval</span>
+                    <i class="fas fa-clock" style="color: #f39c12;"></i>
                 </div>
-                <div class="stat-value" id="monthAmount">₹0</div>
-                <div class="stat-sub" id="monthCount">0 donations</div>
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-sub">Donations waiting</div>
             </div>
         </div>
 
-        <!-- Chart Section -->
         <div class="chart-section">
             <div class="chart-header">
                 <h3>Donation Trends</h3>
@@ -466,7 +536,6 @@
             </div>
         </div>
 
-        <!-- Filter Bar -->
         <div class="filter-bar">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -476,9 +545,9 @@
             <div class="filter-select">
                 <select id="statusFilter" onchange="applyFilters()">
                     <option value="all">All Status</option>
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
+                    <option value="pending">Pending Approval</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
                 </select>
             </div>
             
@@ -498,12 +567,11 @@
             </div>
         </div>
 
-        <!-- Donations Table -->
         <div class="table-container">
             <table class="donations-table">
                 <thead>
                     <tr>
-                        <th>Transaction ID</th>
+                        <th>UTR Number</th>
                         <th>Date</th>
                         <th>Donor</th>
                         <th>Amount</th>
@@ -522,8 +590,25 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- Approve/Reject Modal -->
+    <div class="modal" id="actionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Approve Donation</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody">
+                <p>Are you sure you want to approve this donation?</p>
+                <div class="form-group" id="rejectReasonGroup" style="display: none;">
+                    <label>Rejection Reason (visible to donor)</label>
+                    <textarea id="rejectReason" rows="3" placeholder="Enter reason for rejection..."></textarea>
+                </div>
+                <button class="confirm-btn" id="confirmBtn" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
     </div>
 
     <script src="../js/donation.js"></script>
@@ -534,10 +619,10 @@
             
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // Initialize DonationModule
-            DonationModule.init(supabase);
+            if (typeof DonationModule !== 'undefined') {
+                DonationModule.init(supabase);
+            }
 
-            // State
             let currentPage = 1;
             let totalPages = 1;
             let currentFilters = {
@@ -549,8 +634,9 @@
             };
             let searchTimeout;
             let donationChart = null;
+            let currentActionDonation = null;
+            let currentActionType = null;
 
-            // Check auth
             document.addEventListener('DOMContentLoaded', async () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
@@ -570,44 +656,61 @@
             });
 
             async function loadStats() {
-                const period = document.getElementById('chartPeriod').value;
-                const result = await DonationModule.getDonationStats(period);
+                // Get all donations for stats
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select('amount, payment_status');
                 
-                if (result.success) {
-                    const stats = result.data;
+                if (!error && data) {
+                    const completed = data.filter(d => d.payment_status === 'approved');
+                    const total = completed.reduce((sum, d) => sum + (d.amount || 0), 0);
+                    const avg = completed.length > 0 ? total / completed.length : 0;
+                    const max = completed.length > 0 ? Math.max(...completed.map(d => d.amount || 0)) : 0;
+                    const pending = data.filter(d => d.payment_status === 'pending').length;
                     
-                    document.getElementById('totalAmount').textContent = DonationModule.helpers.formatCurrency(stats.total);
-                    document.getElementById('totalCount').textContent = stats.count + ' donations';
-                    document.getElementById('avgAmount').textContent = DonationModule.helpers.formatCurrency(stats.avg);
-                    document.getElementById('maxAmount').textContent = DonationModule.helpers.formatCurrency(stats.max);
-                    
-                    // Get this month's stats separately
-                    const monthStats = await DonationModule.getDonationStats('month');
-                    if (monthStats.success) {
-                        document.getElementById('monthAmount').textContent = DonationModule.helpers.formatCurrency(monthStats.data.total);
-                        document.getElementById('monthCount').textContent = monthStats.data.count + ' donations';
-                    }
+                    document.getElementById('totalAmount').textContent = `₹${total.toLocaleString('en-IN')}`;
+                    document.getElementById('totalCount').textContent = completed.length + ' donations';
+                    document.getElementById('avgAmount').textContent = `₹${Math.round(avg).toLocaleString('en-IN')}`;
+                    document.getElementById('maxAmount').textContent = `₹${max.toLocaleString('en-IN')}`;
+                    document.getElementById('pendingCount').textContent = pending;
                 }
             }
 
             async function initChart() {
                 const period = document.getElementById('chartPeriod').value;
-                const result = await DonationModule.getDonationStats(period);
+                let days = 30;
+                if (period === 'week') days = 7;
+                if (period === 'year') days = 365;
                 
-                if (result.success && result.data.chartData) {
-                    const ctx = document.getElementById('donationChart').getContext('2d');
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - days);
+                
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select('amount, created_at')
+                    .eq('payment_status', 'approved')
+                    .gte('created_at', startDate.toISOString());
+                
+                if (!error && data) {
+                    const chartData = {};
+                    data.forEach(d => {
+                        const date = new Date(d.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                        chartData[date] = (chartData[date] || 0) + (d.amount || 0);
+                    });
                     
-                    if (donationChart) {
-                        donationChart.destroy();
-                    }
+                    const labels = Object.keys(chartData);
+                    const values = Object.values(chartData);
+                    
+                    const ctx = document.getElementById('donationChart').getContext('2d');
+                    if (donationChart) donationChart.destroy();
                     
                     donationChart = new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: result.data.chartData.map(d => d.date),
+                            labels: labels,
                             datasets: [{
                                 label: 'Donation Amount (₹)',
-                                data: result.data.chartData.map(d => d.total),
+                                data: values,
                                 borderColor: '#27ae60',
                                 backgroundColor: 'rgba(39,174,96,0.1)',
                                 tension: 0.4,
@@ -617,11 +720,7 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            }
+                            plugins: { legend: { display: false } }
                         }
                     });
                 }
@@ -630,66 +729,103 @@
             async function loadDonations() {
                 const tbody = document.getElementById('donationsTableBody');
                 
-                // Get amount filters
-                currentFilters.min_amount = document.getElementById('minAmount').value || null;
-                currentFilters.max_amount = document.getElementById('maxAmount').value || null;
+                let query = supabase
+                    .from('donations')
+                    .select('*', { count: 'exact' });
                 
-                const result = await DonationModule.getAllDonations(currentFilters, currentPage, 20);
-                
-                if (result.success) {
-                    const { data, totalPages: pages } = result;
-                    totalPages = pages;
-                    
-                    if (data && data.length > 0) {
-                        tbody.innerHTML = data.map(d => {
-                            const statusClass = `status-${d.payment_status}`;
-                            
-                            return `
-                                <tr>
-                                    <td><small>${d.transaction_id}</small></td>
-                                    <td>${DonationModule.helpers.formatDateTime(d.created_at)}</td>
-                                    <td>
-                                        ${d.is_anonymous ? '<em>Anonymous</em>' : `
-                                            <strong>${DonationModule.helpers.escapeHtml(d.donor_name)}</strong>
-                                            <br><small>${d.donor_phone}${d.donor_email ? ' | ' + d.donor_email : ''}</small>
-                                        `}
-                                    </td>
-                                    <td><strong>${DonationModule.helpers.formatCurrency(d.amount)}</strong></td>
-                                    <td><span class="status-badge ${statusClass}">${d.payment_status}</span></td>
-                                    <td>${d.payment_method || '-'}</td>
-                                    <td>
-                                        <button class="action-btn receipt-btn" onclick="downloadReceipt('${d.id}')">
-                                            <i class="fas fa-receipt"></i>
-                                        </button>
-                                        <button class="action-btn view-btn" onclick="viewDetails('${d.id}')">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('');
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No donations found</td></tr>';
-                    }
-                    
-                    renderPagination();
+                if (currentFilters.status !== 'all') {
+                    query = query.eq('payment_status', currentFilters.status);
                 }
+                
+                if (currentFilters.search) {
+                    query = query.or(`donor_name.ilike.%${currentFilters.search}%,donor_phone.ilike.%${currentFilters.search}%,donor_email.ilike.%${currentFilters.search}%,transaction_id.ilike.%${currentFilters.search}%,utr_number.ilike.%${currentFilters.search}%`);
+                }
+                
+                if (currentFilters.min_amount) {
+                    query = query.gte('amount', parseFloat(currentFilters.min_amount));
+                }
+                if (currentFilters.max_amount) {
+                    query = query.lte('amount', parseFloat(currentFilters.max_amount));
+                }
+                
+                switch (currentFilters.sort) {
+                    case 'newest': query = query.order('created_at', { ascending: false }); break;
+                    case 'oldest': query = query.order('created_at', { ascending: true }); break;
+                    case 'highest': query = query.order('amount', { ascending: false }); break;
+                    case 'lowest': query = query.order('amount', { ascending: true }); break;
+                    default: query = query.order('created_at', { ascending: false });
+                }
+                
+                const { count, error: countError } = await query.select('*', { count: 'exact', head: true });
+                if (!countError) {
+                    const totalPagesCalc = Math.ceil(count / 20);
+                    totalPages = totalPagesCalc;
+                }
+                
+                const from = (currentPage - 1) * 20;
+                const to = from + 19;
+                const { data, error } = await query.range(from, to);
+                
+                if (error) {
+                    tbody.innerHTML = '<tr><td colspan="7">Error loading donations</td></tr>';
+                    return;
+                }
+                
+                if (data && data.length > 0) {
+                    tbody.innerHTML = data.map(d => {
+                        let statusClass = 'status-pending';
+                        if (d.payment_status === 'approved') statusClass = 'status-approved';
+                        if (d.payment_status === 'rejected') statusClass = 'status-rejected';
+                        
+                        return `
+                            <tr>
+                                <td><strong>${d.utr_number || 'N/A'}</strong><br><small>${d.transaction_id?.substring(0, 15)}...</small></td>
+                                <td>${new Date(d.created_at).toLocaleDateString('en-IN')}<br><small>${new Date(d.created_at).toLocaleTimeString()}</small></td>
+                                <td>
+                                    ${d.is_anonymous ? '<em>Anonymous Donor</em>' : `
+                                        <strong>${escapeHtml(d.donor_name)}</strong>
+                                        <br><small>${d.donor_phone || ''}${d.donor_email ? '<br>' + d.donor_email : ''}</small>
+                                    `}
+                                </td>
+                                <td><strong>₹${(d.amount || 0).toLocaleString('en-IN')}</strong></td>
+                                <td><span class="status-badge ${statusClass}">${d.payment_status || 'pending'}</span></td>
+                                <td>${d.payment_method || 'UPI'}</td>
+                                <td>
+                                    ${d.payment_status === 'pending' ? `
+                                        <button class="action-btn approve-btn" onclick="openActionModal('${d.id}', 'approve')">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="action-btn reject-btn" onclick="openActionModal('${d.id}', 'reject')">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn receipt-btn" onclick="downloadReceipt('${d.id}')">
+                                        <i class="fas fa-receipt"></i> Receipt
+                                    </button>
+                                    <button class="action-btn view-btn" onclick="viewDetails('${d.id}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No donations found</td></tr>';
+                }
+                
+                renderPagination();
             }
 
             function renderPagination() {
                 const pagination = document.getElementById('pagination');
-                
                 if (totalPages <= 1) {
                     pagination.innerHTML = '';
                     return;
                 }
-                
                 let html = '';
                 for (let i = 1; i <= totalPages; i++) {
-                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                            onclick="changePage(${i})">${i}</button>`;
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
                 }
-                
                 pagination.innerHTML = html;
             }
 
@@ -702,6 +838,8 @@
                 currentFilters.status = document.getElementById('statusFilter').value;
                 currentFilters.search = document.getElementById('searchInput').value;
                 currentFilters.sort = document.getElementById('sortFilter').value;
+                currentFilters.min_amount = document.getElementById('minAmount').value;
+                currentFilters.max_amount = document.getElementById('maxAmount').value;
                 currentPage = 1;
                 loadDonations();
             };
@@ -713,43 +851,151 @@
 
             window.debounceSearch = function() {
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    applyFilters();
-                }, 500);
+                searchTimeout = setTimeout(() => applyFilters(), 500);
+            };
+
+            window.openActionModal = function(donationId, action) {
+                currentActionDonation = donationId;
+                currentActionType = action;
+                const modal = document.getElementById('actionModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const rejectReasonGroup = document.getElementById('rejectReasonGroup');
+                const confirmBtn = document.getElementById('confirmBtn');
+                
+                if (action === 'approve') {
+                    modalTitle.textContent = 'Approve Donation';
+                    rejectReasonGroup.style.display = 'none';
+                    confirmBtn.textContent = 'Approve Donation';
+                } else {
+                    modalTitle.textContent = 'Reject Donation';
+                    rejectReasonGroup.style.display = 'block';
+                    confirmBtn.textContent = 'Reject Donation';
+                }
+                modal.classList.add('show');
+            };
+
+            window.confirmAction = async function() {
+                const modal = document.getElementById('actionModal');
+                const rejectReason = document.getElementById('rejectReason').value;
+                
+                if (currentActionType === 'approve') {
+                    const { error } = await supabase
+                        .from('donations')
+                        .update({ 
+                            payment_status: 'approved',
+                            approved_at: new Date().toISOString()
+                        })
+                        .eq('id', currentActionDonation);
+                    
+                    if (error) {
+                        alert('Error: ' + error.message);
+                    } else {
+                        alert('Donation approved successfully!');
+                        closeModal();
+                        loadDonations();
+                        loadStats();
+                    }
+                } else {
+                    if (!rejectReason) {
+                        alert('Please provide a reason for rejection');
+                        return;
+                    }
+                    const { error } = await supabase
+                        .from('donations')
+                        .update({ 
+                            payment_status: 'rejected',
+                            rejected_at: new Date().toISOString(),
+                            admin_notes: rejectReason
+                        })
+                        .eq('id', currentActionDonation);
+                    
+                    if (error) {
+                        alert('Error: ' + error.message);
+                    } else {
+                        alert('Donation rejected');
+                        closeModal();
+                        loadDonations();
+                        loadStats();
+                    }
+                }
             };
 
             window.downloadReceipt = async function(donationId) {
-                const result = await DonationModule.getDonationById(donationId);
-                if (result.success) {
-                    DonationModule.downloadReceipt(result.data);
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select('*')
+                    .eq('id', donationId)
+                    .single();
+                
+                if (data && typeof DonationModule !== 'undefined') {
+                    DonationModule.downloadReceipt(data);
+                } else {
+                    alert('Receipt not available');
                 }
             };
 
             window.viewDetails = async function(donationId) {
-                const result = await DonationModule.getDonationById(donationId);
-                if (result.success) {
-                    const d = result.data;
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select('*')
+                    .eq('id', donationId)
+                    .single();
+                
+                if (data) {
                     alert(`
-Donation Details:
------------------
-Transaction ID: ${d.transaction_id}
-Date: ${DonationModule.helpers.formatDateTime(d.created_at)}
-Donor: ${d.is_anonymous ? 'Anonymous' : d.donor_name}
-Phone: ${d.donor_phone || 'N/A'}
-Email: ${d.donor_email || 'N/A'}
-Amount: ${DonationModule.helpers.formatCurrency(d.amount)}
-Status: ${d.payment_status}
-Payment Method: ${d.payment_method || 'N/A'}
-Message: ${d.message || 'No message'}
+DONATION DETAILS
+═══════════════════════
+Transaction ID: ${data.transaction_id}
+UTR Number: ${data.utr_number || 'N/A'}
+Date: ${new Date(data.created_at).toLocaleString()}
+Donor: ${data.is_anonymous ? 'Anonymous' : data.donor_name}
+Phone: ${data.donor_phone || 'N/A'}
+Email: ${data.donor_email || 'N/A'}
+Amount: ₹${(data.amount || 0).toLocaleString('en-IN')}
+Status: ${data.payment_status}
+Payment Method: ${data.payment_method || 'UPI'}
+Message: ${data.message || 'No message'}
+${data.admin_notes ? `Admin Notes: ${data.admin_notes}` : ''}
                     `);
                 }
             };
 
             window.exportDonations = async function() {
-                const result = await DonationModule.getAllDonations({}, 1, 1000);
-                if (result.success) {
-                    DonationModule.exportToCSV(result.data);
+                const { data, error } = await supabase
+                    .from('donations')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (data && data.length > 0) {
+                    const headers = ['UTR Number', 'Transaction ID', 'Date', 'Donor Name', 'Phone', 'Email', 'Amount', 'Status', 'Payment Method', 'Anonymous', 'Message'];
+                    const rows = data.map(d => [
+                        d.utr_number || '',
+                        d.transaction_id,
+                        new Date(d.created_at).toLocaleString(),
+                        d.is_anonymous ? 'Anonymous' : d.donor_name,
+                        d.donor_phone || '',
+                        d.donor_email || '',
+                        d.amount,
+                        d.payment_status,
+                        d.payment_method || 'UPI',
+                        d.is_anonymous ? 'Yes' : 'No',
+                        d.message || ''
+                    ]);
+                    
+                    const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `donations_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
                 }
+            };
+
+            window.closeModal = function() {
+                document.getElementById('actionModal').classList.remove('show');
+                document.getElementById('rejectReason').value = '';
             };
 
             window.logout = async function() {
@@ -757,6 +1003,13 @@ Message: ${d.message || 'No message'}
                 sessionStorage.removeItem('adminInfo');
                 window.location.href = 'login.html';
             };
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
         })();
     </script>
 </body>
