@@ -456,6 +456,23 @@
                         <small>Name that appears when users scan the QR code</small>
                     </div>
                     
+<div class="form-group">
+    <label>Membership Registration Fee (₹)</label>
+    <input type="number" id="membership_fee" class="setting-field" placeholder="49" min="0">
+    <small>Amount for new member registration</small>
+</div>
+
+<div class="form-group">
+    <label>UPI ID for Membership</label>
+    <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname">
+    <small>UPI ID for receiving membership payments</small>
+</div>
+
+<div class="form-group">
+    <label>UPI Payee Name</label>
+    <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name">
+    <small>Name that appears when users scan QR code</small>
+</div>
                     <button class="save-btn" onclick="saveSettings('payment')">Save Payment Settings</button>
                 </div>
 
