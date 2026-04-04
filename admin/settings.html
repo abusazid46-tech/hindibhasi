@@ -437,7 +437,17 @@
                     </div>
                     <button class="save-btn" onclick="saveSettings('payment')">Save Payment Settings</button>
                 </div>
+<div class="form-group">
+    <label>UPI ID for Donations</label>
+    <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname" value="8133908811@airtel">
+    <small style="color: #666;">This UPI ID will be displayed on the donation page for users to pay</small>
+</div>
 
+<div class="form-group">
+    <label>UPI Payee Name</label>
+    <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name" value="AHBBM Donation">
+    <small style="color: #666;">Name that appears when users scan the QR code</small>
+</div>
                 <!-- SEO -->
                 <div id="panel-seo" class="settings-panel">
                     <h2 class="panel-title">SEO Settings</h2>
