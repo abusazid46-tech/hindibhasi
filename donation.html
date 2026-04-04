@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .donation-header {
@@ -35,7 +37,6 @@
             gap: 30px;
         }
 
-        /* Impact Cards */
         .impact-section {
             background: white;
             border-radius: 40px 10px 40px 10px;
@@ -122,21 +123,6 @@
             object-fit: cover;
         }
 
-        .testimonial-author div {
-            flex: 1;
-        }
-
-        .testimonial-author h4 {
-            color: #2d1f00;
-            margin-bottom: 3px;
-        }
-
-        .testimonial-author p {
-            color: #999;
-            font-size: 12px;
-        }
-
-        /* Donation Form */
         .donation-form-card {
             background: white;
             border-radius: 40px 10px 40px 10px;
@@ -170,13 +156,7 @@
             transition: all 0.3s;
         }
 
-        .amount-btn:hover {
-            background: #27ae60;
-            color: white;
-            border-color: #27ae60;
-        }
-
-        .amount-btn.active {
+        .amount-btn:hover, .amount-btn.active {
             background: #27ae60;
             color: white;
             border-color: #27ae60;
@@ -201,57 +181,6 @@
             font-size: 18px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2d1f00;
-            font-weight: 500;
-        }
-
-        .form-group label i {
-            color: #27ae60;
-            margin-right: 5px;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #f3b28a;
-            border-radius: 15px;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #27ae60;
-            box-shadow: 0 0 0 3px rgba(39,174,96,0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .checkbox-group input {
-            width: auto;
-        }
-
-        /* UPI Section */
         .upi-section {
             background: #f8f9fa;
             border-radius: 20px;
@@ -276,14 +205,38 @@
             letter-spacing: 1px;
         }
 
+        .copy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
         .qr-code-container {
             text-align: center;
             margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        .qr-code-img {
-            width: 200px;
-            height: 200px;
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        #qrcode canvas,
+        #qrcode img {
+            width: 200px !important;
+            height: 200px !important;
             border: 3px solid #27ae60;
             border-radius: 20px;
             padding: 10px;
@@ -319,7 +272,7 @@
         .utr-section {
             margin-top: 20px;
             padding: 20px;
-            background: white;
+            background: #f0f9f0;
             border-radius: 15px;
             display: none;
         }
@@ -352,9 +305,37 @@
             font-weight: 600;
         }
 
-        .verify-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d1f00;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #f3b28a;
+            border-radius: 15px;
+            font-size: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
         }
 
         .donate-btn {
@@ -367,22 +348,7 @@
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
             margin-top: 20px;
-        }
-
-        .donate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(39,174,96,0.3);
-        }
-
-        .donate-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
         }
 
         .secure-badge {
@@ -395,12 +361,6 @@
             font-size: 14px;
         }
 
-        .secure-badge i {
-            color: #27ae60;
-            font-size: 20px;
-        }
-
-        /* Success Modal */
         .success-modal {
             display: none;
             position: fixed;
@@ -441,65 +401,42 @@
             font-size: 40px;
         }
 
-        .success-content h2 {
-            color: #2d1f00;
-            margin-bottom: 15px;
-        }
-
-        .success-content p {
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
         .success-amount {
             font-size: 36px;
             font-weight: 700;
             color: #27ae60;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
         .success-actions {
             display: flex;
             gap: 15px;
             justify-content: center;
-        }
-
-        .success-actions button {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
+            margin-top: 20px;
         }
 
         .download-receipt {
             background: #27ae60;
             color: white;
-        }
-
-        .return-home {
-            background: #f0f0f0;
-            color: #666;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
             .donation-container {
                 grid-template-columns: 1fr;
             }
-            
             .impact-grid {
                 grid-template-columns: 1fr;
             }
-            
             .amount-presets {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
             .upi-id {
                 font-size: 18px;
             }
@@ -507,10 +444,9 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="logo-area">
-            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo">
             <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
         </div>
         <div class="right-controls">
@@ -542,55 +478,36 @@
         </div>
     </header>
 
-    <!-- Donation Header -->
     <div class="donation-header">
         <h1>Support Our Cause</h1>
         <p>Your donation helps us serve the community better</p>
     </div>
 
-    <!-- Donation Container -->
     <div class="donation-container">
-        <!-- Impact Section -->
         <div class="impact-section">
             <h2 class="impact-title">Your Impact</h2>
-            
             <div class="impact-grid">
                 <div class="impact-card">
                     <div class="impact-icon"><i class="fas fa-utensils"></i></div>
                     <div class="impact-number">₹500</div>
                     <div class="impact-label">Feeds 10 people</div>
                 </div>
-                
                 <div class="impact-card">
                     <div class="impact-icon"><i class="fas fa-graduation-cap"></i></div>
                     <div class="impact-number">₹1,000</div>
                     <div class="impact-label">Supports 1 student</div>
                 </div>
-                
                 <div class="impact-card">
                     <div class="impact-icon"><i class="fas fa-hand-holding-heart"></i></div>
                     <div class="impact-number">₹2,100</div>
                     <div class="impact-label">Medical aid for 1 family</div>
                 </div>
-                
                 <div class="impact-card">
                     <div class="impact-icon"><i class="fas fa-temple"></i></div>
                     <div class="impact-number">₹5,100</div>
                     <div class="impact-label">Temple maintenance</div>
                 </div>
             </div>
-
-            <div class="testimonial">
-                <p class="testimonial-text">"I've been donating to the Mahasabha for 5 years. They're transparent about how every rupee is used for community welfare."</p>
-                <div class="testimonial-author">
-                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop" alt="Rajesh Sharma">
-                    <div>
-                        <h4>Rajesh Sharma</h4>
-                        <p>Regular Donor</p>
-                    </div>
-                </div>
-            </div>
-
             <div class="secure-badge">
                 <span><i class="fas fa-lock"></i> Secure Payment</span>
                 <span><i class="fas fa-shield-alt"></i> 80G Tax Exemption</span>
@@ -598,128 +515,112 @@
             </div>
         </div>
 
-        <!-- Donation Form -->
-        <div class="donation-form-card" id="donationForm">
+        <div class="donation-form-card">
             <h2 class="form-title">Make a Donation</h2>
             
-            <form id="donateForm">
-                <div class="amount-presets">
-                    <button type="button" class="amount-btn" onclick="setAmount(500)">₹500</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(1000)">₹1,000</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(2100)">₹2,100</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(5100)">₹5,100</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(11000)">₹11,000</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(21000)">₹21,000</button>
+            <div class="amount-presets">
+                <button type="button" class="amount-btn" onclick="setAmount(500)">₹500</button>
+                <button type="button" class="amount-btn" onclick="setAmount(1000)">₹1,000</button>
+                <button type="button" class="amount-btn" onclick="setAmount(2100)">₹2,100</button>
+                <button type="button" class="amount-btn" onclick="setAmount(5100)">₹5,100</button>
+                <button type="button" class="amount-btn" onclick="setAmount(11000)">₹11,000</button>
+                <button type="button" class="amount-btn" onclick="setAmount(21000)">₹21,000</button>
+            </div>
+            
+            <div class="custom-amount">
+                <label>Or Enter Custom Amount</label>
+                <input type="number" id="customAmount" placeholder="Enter amount in ₹" min="51" step="1">
+            </div>
+
+            <div class="upi-section">
+                <h3 style="margin-bottom: 15px;">Pay via UPI</h3>
+                <div class="upi-id-box">
+                    <p style="margin-bottom: 5px;">Scan QR Code or Pay to this UPI ID:</p>
+                    <div class="upi-id">8133908811@airtel</div>
+                    <button type="button" class="copy-btn" onclick="copyUPIID()">
+                        <i class="fas fa-copy"></i> Copy UPI ID
+                    </button>
                 </div>
                 
-                <div class="custom-amount">
-                    <label>Or Enter Custom Amount</label>
-                    <input type="number" id="customAmount" placeholder="Enter amount in ₹" min="51" step="1">
-                </div>
-
-                <!-- UPI Section -->
-                <div class="upi-section">
-                    <h3 style="margin-bottom: 15px;">Pay via UPI</h3>
-                    
-                    <div class="upi-id-box">
-                        <p style="margin-bottom: 5px; color: #666;">Scan QR Code or Pay to this UPI ID:</p>
-                        <div class="upi-id">8133908811@airtel</div>
-                        <button type="button" class="copy-btn" onclick="copyUPIID()" style="margin-top: 10px; padding: 5px 15px; background: #27ae60; color: white; border: none; border-radius: 20px; cursor: pointer;">
-                            <i class="fas fa-copy"></i> Copy UPI ID
-                        </button>
-                    </div>
-                    
-                    <div class="qr-code-container" id="qrCodeContainer">
-                        <div id="qrLoader" class="qr-loader" style="text-align: center; padding: 20px;">
-                            <i class="fas fa-spinner fa-spin"></i> Generating QR Code...
-                        </div>
-                        <img id="qrImage" class="qr-code-img" style="display: none;">
-                    </div>
-                    
-                    <div class="qr-actions">
-                        <button class="download-qr-btn" id="downloadQrBtn" onclick="downloadQRCode()" style="display: none;">
-                            <i class="fas fa-download"></i> Download QR
-                        </button>
-                        <button class="print-qr-btn" id="printQrBtn" onclick="printQRCode()" style="display: none;">
-                            <i class="fas fa-print"></i> Print
-                        </button>
-                    </div>
-                </div>
-
-                <!-- UTR Verification Section -->
-                <div class="utr-section" id="utrSection">
-                    <h4 style="margin-bottom: 10px;"><i class="fas fa-check-circle"></i> Verify Your Payment</h4>
-                    <p style="font-size: 14px; color: #666; margin-bottom: 10px;">After payment, enter the UTR/Transaction ID from your bank/UPI app:</p>
-                    <div class="utr-input-group">
-                        <input type="text" id="utrNumber" placeholder="Enter UTR / Transaction ID" autocomplete="off">
-                        <button type="button" class="verify-btn" id="verifyBtn" onclick="verifyPayment()">
-                            <i class="fas fa-check"></i> Verify
-                        </button>
-                    </div>
-                    <p style="font-size: 12px; color: #999; margin-top: 8px;">
-                        <i class="fas fa-info-circle"></i> UTR number is the reference number you received after payment
-                    </p>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> Your Name *</label>
-                        <input type="text" id="donorName" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-phone"></i> Phone *</label>
-                        <input type="tel" id="donorPhone" required pattern="[0-9]{10}">
-                    </div>
+                <div class="qr-code-container">
+                    <div id="qrcode"></div>
                 </div>
                 
+                <div class="qr-actions">
+                    <button class="download-qr-btn" onclick="downloadQRCode()">
+                        <i class="fas fa-download"></i> Download QR
+                    </button>
+                    <button class="print-qr-btn" onclick="printQRCode()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+
+            <div class="utr-section" id="utrSection">
+                <h4><i class="fas fa-check-circle"></i> Verify Your Payment</h4>
+                <p style="font-size: 14px; color: #666;">After payment, enter the UTR/Transaction ID:</p>
+                <div class="utr-input-group">
+                    <input type="text" id="utrNumber" placeholder="Enter UTR / Transaction ID">
+                    <button type="button" class="verify-btn" onclick="verifyPayment()">
+                        <i class="fas fa-check"></i> Verify
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-row">
                 <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email (for receipt)</label>
-                    <input type="email" id="donorEmail">
+                    <label><i class="fas fa-user"></i> Your Name *</label>
+                    <input type="text" id="donorName" required>
                 </div>
-                
                 <div class="form-group">
-                    <label><i class="fas fa-comment"></i> Message (optional)</label>
-                    <textarea id="donationMessage" rows="3" placeholder="Write a message..."></textarea>
+                    <label><i class="fas fa-phone"></i> Phone *</label>
+                    <input type="tel" id="donorPhone" required pattern="[0-9]{10}">
                 </div>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="anonymous">
-                    <label>Donate anonymously (name won't be displayed)</label>
-                </div>
-                
-                <button type="button" class="donate-btn" id="donateBtn" onclick="initiateDonation()">
-                    <i class="fas fa-hand-holding-heart"></i> Donate Now
-                </button>
-            </form>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email (for receipt)</label>
+                <input type="email" id="donorEmail">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Message</label>
+                <textarea id="donationMessage" rows="3" placeholder="Write a message..."></textarea>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="anonymous">
+                <label>Donate anonymously</label>
+            </div>
+            
+            <button type="button" class="donate-btn" onclick="initiateDonation()">
+                <i class="fas fa-hand-holding-heart"></i> Donate Now
+            </button>
         </div>
     </div>
 
-    <!-- Success Modal -->
     <div class="success-modal" id="successModal">
         <div class="success-content">
             <div class="success-icon"><i class="fas fa-check"></i></div>
             <h2>Thank You for Your Donation!</h2>
-            <p>Your generosity will help us make a difference in the community.</p>
             <div class="success-amount" id="donationAmount">₹0</div>
             <p id="transactionId"></p>
             <div class="success-actions">
                 <button class="download-receipt" onclick="downloadReceipt()">
                     <i class="fas fa-download"></i> Download Receipt
                 </button>
-                <button class="return-home" onclick="window.location.href='index.html'">
+                <button class="download-receipt" onclick="window.location.href='index.html'" style="background: #3498db;">
                     <i class="fas fa-home"></i> Home
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-section">
                 <h3>Asom Hindi Bhasi Brahman Mahasabha</h3>
-                <p>Working for cultural preservation and community welfare</p>
+                <p>Working for cultural preservation and community welfare since 1985</p>
             </div>
             <div class="footer-section">
                 <h4>Quick Links</h4>
@@ -732,7 +633,6 @@
         </div>
     </footer>
 
-    <!-- WhatsApp Button -->
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script src="js/donation.js"></script>
@@ -743,17 +643,42 @@
             
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // Initialize DonationModule
-            DonationModule.init(supabase);
+            if (typeof DonationModule !== 'undefined') {
+                DonationModule.init(supabase);
+            }
 
-            // State
             let selectedAmount = 0;
             let currentDonation = null;
-            let currentQRCodeUrl = '';
+            let qrcode = null;
             const UPI_ID = '8133908811@airtel';
             const PAYEE_NAME = 'AHBBM Donation';
 
-            // Set amount from preset buttons
+            // Generate QR Code using QRCode.js library
+            function generateQRCode(amount) {
+                if (!amount || amount < 51) return;
+                
+                const qrContainer = document.getElementById('qrcode');
+                if (!qrContainer) return;
+                
+                // Clear previous QR
+                qrContainer.innerHTML = '';
+                
+                // Create UPI payment URL
+                const upiData = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
+                
+                // Generate new QR code
+                qrcode = new QRCode(qrContainer, {
+                    text: upiData,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                console.log('QR Code generated for amount:', amount);
+            }
+
             window.setAmount = function(amount) {
                 selectedAmount = amount;
                 document.getElementById('customAmount').value = amount;
@@ -761,13 +686,11 @@
                 document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
                 event.target.classList.add('active');
                 
-                // Regenerate QR with new amount
                 if (selectedAmount >= 51) {
                     generateQRCode(selectedAmount);
                 }
             };
 
-            // Get selected amount
             function getSelectedAmount() {
                 const customAmount = parseFloat(document.getElementById('customAmount').value);
                 if (customAmount && customAmount >= 51) return customAmount;
@@ -775,59 +698,39 @@
                 return 0;
             }
 
-            // Generate QR Code
-            function generateQRCode(amount) {
-                if (!amount || amount < 51) return;
-                
-                const upiData = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
-                const qrCodeUrl = `https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=${encodeURIComponent(upiData)}&choe=UTF-8`;
-                
-                currentQRCodeUrl = qrCodeUrl;
-                
-                const loader = document.getElementById('qrLoader');
-                const qrImage = document.getElementById('qrImage');
-                const downloadBtn = document.getElementById('downloadQrBtn');
-                const printBtn = document.getElementById('printQrBtn');
-                
-                loader.style.display = 'block';
-                qrImage.style.display = 'none';
-                downloadBtn.style.display = 'none';
-                printBtn.style.display = 'none';
-                
-                qrImage.onload = function() {
-                    loader.style.display = 'none';
-                    qrImage.style.display = 'block';
-                    downloadBtn.style.display = 'inline-flex';
-                    printBtn.style.display = 'inline-flex';
-                };
-                
-                qrImage.onerror = function() {
-                    loader.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to generate QR. Please refresh.';
-                };
-                
-                qrImage.src = qrCodeUrl;
-            }
-
-            // Copy UPI ID
             window.copyUPIID = function() {
-                navigator.clipboard.writeText(UPI_ID);
-                alert('UPI ID copied: ' + UPI_ID);
+                navigator.clipboard.writeText(UPI_ID).then(() => {
+                    alert('UPI ID copied: ' + UPI_ID);
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = UPI_ID;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('UPI ID copied: ' + UPI_ID);
+                });
             };
 
-            // Download QR Code
             window.downloadQRCode = function() {
-                if (currentQRCodeUrl) {
+                const qrCanvas = document.querySelector('#qrcode canvas');
+                if (qrCanvas) {
                     const link = document.createElement('a');
-                    link.href = currentQRCodeUrl;
-                    link.download = `AHBBM_Donation_QR_${Date.now()}.png`;
-                    document.body.appendChild(link);
+                    link.download = `AHBBM_Donation_QR.png`;
+                    link.href = qrCanvas.toDataURL();
                     link.click();
-                    document.body.removeChild(link);
+                } else {
+                    alert('QR Code not available. Please wait for it to generate.');
                 }
             };
 
-            // Print QR Code
             window.printQRCode = function() {
+                const qrCanvas = document.querySelector('#qrcode canvas');
+                if (!qrCanvas) {
+                    alert('QR Code not available');
+                    return;
+                }
+                
                 const amount = getSelectedAmount();
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
@@ -842,40 +745,48 @@
                                     min-height: 100vh;
                                     font-family: Arial, sans-serif;
                                     text-align: center;
+                                    margin: 0;
+                                    padding: 20px;
                                 }
                                 .qr-container {
                                     text-align: center;
                                     padding: 20px;
+                                    border: 2px solid #27ae60;
+                                    border-radius: 20px;
+                                    background: white;
                                 }
-                                img {
-                                    width: 300px;
-                                    height: 300px;
+                                .qr-container img {
+                                    width: 250px;
+                                    height: 250px;
                                     margin: 20px;
                                 }
                                 .title {
                                     font-size: 20px;
                                     font-weight: bold;
-                                    margin-bottom: 10px;
+                                    color: #b3412e;
                                 }
                                 .amount {
-                                    font-size: 18px;
+                                    font-size: 24px;
                                     color: #27ae60;
+                                    font-weight: bold;
                                     margin: 10px 0;
                                 }
                                 .upi-id {
                                     font-family: monospace;
                                     font-size: 16px;
-                                    color: #666;
+                                    background: #f0f0f0;
+                                    padding: 8px;
+                                    border-radius: 8px;
                                 }
                             </style>
                         </head>
                         <body>
                             <div class="qr-container">
                                 <div class="title">Asom Hindi Bhasi Brahman Mahasabha</div>
-                                <img src="${currentQRCodeUrl}" alt="QR Code">
-                                <div class="amount">Donation Amount: ₹${amount}</div>
+                                <img src="${qrCanvas.toDataURL()}" alt="QR Code">
+                                <div class="amount">₹${amount}</div>
                                 <div class="upi-id">UPI ID: ${UPI_ID}</div>
-                                <p>Scan to donate</p>
+                                <p>Scan to donate via any UPI app</p>
                             </div>
                             <script>
                                 window.onload = function() {
@@ -889,7 +800,6 @@
                 printWindow.document.close();
             };
 
-            // Initiate donation - show UTR verification section
             window.initiateDonation = function() {
                 const amount = getSelectedAmount();
                 if (!amount) {
@@ -910,20 +820,15 @@
                     return;
                 }
                 
-                // Show UTR section
                 document.getElementById('utrSection').classList.add('show');
                 document.getElementById('utrNumber').focus();
-                
-                // Scroll to UTR section
-                document.getElementById('utrSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
             };
 
-            // Verify payment with UTR number
             window.verifyPayment = async function() {
                 const utrNumber = document.getElementById('utrNumber').value.trim();
                 
                 if (!utrNumber) {
-                    alert('Please enter the UTR/Transaction ID from your payment');
+                    alert('Please enter the UTR/Transaction ID');
                     return;
                 }
                 
@@ -934,12 +839,11 @@
                 const isAnonymous = document.getElementById('anonymous').checked;
                 const message = document.getElementById('donationMessage').value || null;
                 
-                const verifyBtn = document.getElementById('verifyBtn');
+                const verifyBtn = document.querySelector('.verify-btn');
                 verifyBtn.disabled = true;
                 verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
                 
                 try {
-                    // Create donation record with UTR
                     const donationData = {
                         name: donorName,
                         phone: donorPhone,
@@ -957,30 +861,25 @@
                     
                     currentDonation = result.data;
                     
-                    // Update payment status with UTR
                     await DonationModule.updatePaymentStatus(result.transactionId, {
                         payment_status: 'completed',
                         utr_number: utrNumber,
                         verified_at: new Date().toISOString()
                     });
                     
-                    // Show success modal
                     document.getElementById('donationAmount').textContent = DonationModule.helpers.formatCurrency(amount);
-                    document.getElementById('transactionId').textContent = `UTR: ${utrNumber}`;
+                    document.getElementById('transactionId').innerHTML = `<strong>UTR:</strong> ${utrNumber}`;
                     document.getElementById('successModal').classList.add('show');
                     
                     // Reset form
-                    document.getElementById('donateForm').reset();
+                    document.getElementById('donateForm')?.reset();
                     document.getElementById('utrSection').classList.remove('show');
                     document.getElementById('utrNumber').value = '';
                     document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
                     selectedAmount = 0;
-                    
-                    // Reset QR
-                    generateQRCode(0);
+                    generateQRCode(500);
                     
                 } catch (error) {
-                    console.error('Verification error:', error);
                     alert('Verification failed: ' + error.message);
                 } finally {
                     verifyBtn.disabled = false;
@@ -988,25 +887,24 @@
                 }
             };
 
-            // Download receipt
             window.downloadReceipt = function() {
-                if (currentDonation) {
+                if (currentDonation && typeof DonationModule !== 'undefined') {
                     DonationModule.downloadReceipt(currentDonation);
                 }
             };
 
-            // Update QR when custom amount changes
+            // Initialize
             document.getElementById('customAmount').addEventListener('input', function() {
                 const amount = parseFloat(this.value);
                 if (amount >= 51) {
                     generateQRCode(amount);
                 }
             });
-
-            // Generate QR on page load with default amount
+            
+            // Generate default QR
             generateQRCode(500);
             
-            // Close modal when clicking outside
+            // Close modal on outside click
             document.getElementById('successModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.remove('show');
