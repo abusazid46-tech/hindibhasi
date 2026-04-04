@@ -256,71 +256,152 @@
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <script src="js/donation.js"></script>
-    <script>
-        (function() {
-            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-            
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            if (typeof DonationModule !== 'undefined') DonationModule.init(supabase);
+<script src="js/settings-loader.js"></script>
+<script>
+    (function() {
+        const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialize modules
+        if (typeof DonationModule !== 'undefined') DonationModule.init(supabase);
+        if (typeof SettingsLoader !== 'undefined') SettingsLoader.init(supabase);
 
-            let selectedAmount = 0;
-            let currentDonationId = null;
-            let statusCheckInterval = null;
-            let redirectTimer = null;
-            let countdownInterval = null;
-            const UPI_ID = '8133908811@airtel';
-            const PAYEE_NAME = 'AHBBM Donation';
+        let selectedAmount = 0;
+        let currentDonationId = null;
+        let statusCheckInterval = null;
+        let redirectTimer = null;
+        let countdownInterval = null;
+        let isSubmitting = false;
+        let isSubmittingUTR = false;
+        let currentUPIId = '8133908811@airtel'; // Default fallback
+        let currentPayeeName = 'AHBBM Donation'; // Default fallback
 
-            function generateQRCode(amount) {
-                if (!amount || amount < 51) return;
-                const container = document.getElementById('qrcode');
-                if (!container) return;
-                container.innerHTML = '';
-                const upiData = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
-                new QRCode(container, { text: upiData, width: 200, height: 200 });
-            }
-
-            window.setAmount = function(amount) {
-                selectedAmount = amount;
-                document.getElementById('customAmount').value = amount;
-                document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
-                if (selectedAmount >= 51) generateQRCode(selectedAmount);
-            };
-
-            function getSelectedAmount() {
-                const custom = parseFloat(document.getElementById('customAmount').value);
-                if (custom && custom >= 51) return custom;
-                if (selectedAmount >= 51) return selectedAmount;
-                return 0;
-            }
-
-            window.copyUPIID = () => { navigator.clipboard.writeText(UPI_ID); alert('UPI ID copied: ' + UPI_ID); };
-            
-            window.downloadQRCode = () => {
-                const canvas = document.querySelector('#qrcode canvas');
-                if (canvas) { const link = document.createElement('a'); link.download = 'Donation_QR.png'; link.href = canvas.toDataURL(); link.click(); }
-                else alert('QR Code not available');
-            };
-            
-            window.printQRCode = () => {
-                const canvas = document.querySelector('#qrcode canvas');
-                if (!canvas) { alert('QR Code not available'); return; }
-                const amount = getSelectedAmount();
-                const win = window.open('', '_blank');
-                win.document.write(`<html><head><title>Donation QR</title><style>body{text-align:center;padding:20px;}img{width:250px;}</style></head><body><img src="${canvas.toDataURL()}"><h2>₹${amount}</h2><p>UPI: ${UPI_ID}</p><script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000)}<\/script></body></html>`);
-                win.document.close();
-            };
-
-            window.proceedToPayment = async function() {
-                const amount = getSelectedAmount();
-                if (!amount) { alert('Please select a donation amount (minimum ₹51)'); return; }
-                const name = document.getElementById('donorName').value;
-                const phone = document.getElementById('donorPhone').value;
-                if (!name || !phone) { alert('Please fill name and phone'); return; }
-                if (!/^\d{10}$/.test(phone)) { alert('Enter valid 10-digit phone'); return; }
+        // Load UPI settings from database
+        async function loadUPISettings() {
+            try {
+                // Try to get from settings loader
+                if (typeof SettingsLoader !== 'undefined') {
+                    const upiId = await SettingsLoader.getUPIId();
+                    const payeeName = await SettingsLoader.getUPIPayeeName();
+                    if (upiId) currentUPIId = upiId;
+                    if (payeeName) currentPayeeName = payeeName;
+                } else {
+                    // Fallback: direct query
+                    const { data: upiData } = await supabase
+                        .from('settings')
+                        .select('value')
+                        .eq('key', 'upi_id')
+                        .single();
+                    
+                    const { data: nameData } = await supabase
+                        .from('settings')
+                        .select('value')
+                        .eq('key', 'upi_payee_name')
+                        .single();
+                    
+                    if (upiData?.value) currentUPIId = upiData.value;
+                    if (nameData?.value) currentPayeeName = nameData.value;
+                }
                 
+                console.log('UPI Settings loaded:', { currentUPIId, currentPayeeName });
+                
+                // Update the displayed UPI ID on the page
+                const upiIdElement = document.querySelector('.upi-id');
+                if (upiIdElement) upiIdElement.textContent = currentUPIId;
+                
+                // Regenerate QR with new UPI ID
+                const amount = getSelectedAmount();
+                if (amount >= 51) generateQRCode(amount);
+                
+            } catch (error) {
+                console.error('Error loading UPI settings:', error);
+            }
+        }
+
+        function generateQRCode(amount) {
+            if (!amount || amount < 51) return;
+            const container = document.getElementById('qrcode');
+            if (!container) return;
+            container.innerHTML = '';
+            const upiData = `upi://pay?pa=${currentUPIId}&pn=${encodeURIComponent(currentPayeeName)}&am=${amount}&cu=INR`;
+            new QRCode(container, { text: upiData, width: 200, height: 200 });
+        }
+
+        window.setAmount = function(amount) {
+            selectedAmount = amount;
+            document.getElementById('customAmount').value = amount;
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            if (selectedAmount >= 51) generateQRCode(selectedAmount);
+        };
+
+        function getSelectedAmount() {
+            const custom = parseFloat(document.getElementById('customAmount').value);
+            if (custom && custom >= 51) return custom;
+            if (selectedAmount >= 51) return selectedAmount;
+            return 0;
+        }
+
+        window.copyUPIID = () => { 
+            navigator.clipboard.writeText(currentUPIId); 
+            alert('UPI ID copied: ' + currentUPIId); 
+        };
+        
+        window.downloadQRCode = () => {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (canvas) { 
+                const link = document.createElement('a'); 
+                link.download = 'Donation_QR.png'; 
+                link.href = canvas.toDataURL(); 
+                link.click(); 
+            } else alert('QR Code not available');
+        };
+        
+        window.printQRCode = () => {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) { alert('QR Code not available'); return; }
+            const amount = getSelectedAmount();
+            const win = window.open('', '_blank');
+            win.document.write(`<html><head><title>Donation QR</title><style>body{text-align:center;padding:20px;}img{width:250px;}</style></head><body><img src="${canvas.toDataURL()}"><h2>₹${amount}</h2><p>UPI: ${currentUPIId}</p><script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000)}<\/script></body></html>`);
+            win.document.close();
+        };
+
+        window.proceedToPayment = async function() {
+            if (isSubmitting) return;
+            
+            const amount = getSelectedAmount();
+            if (!amount) { alert('Please select a donation amount (minimum ₹51)'); return; }
+            const name = document.getElementById('donorName').value;
+            const phone = document.getElementById('donorPhone').value;
+            if (!name || !phone) { alert('Please fill name and phone'); return; }
+            if (!/^\d{10}$/.test(phone)) { alert('Enter valid 10-digit phone'); return; }
+            
+            // Check for existing pending donation
+            const { data: existing } = await supabase
+                .from('donations')
+                .select('id, payment_status')
+                .eq('donor_phone', phone)
+                .eq('payment_status', 'pending')
+                .maybeSingle();
+            
+            if (existing) {
+                const useExisting = confirm('You have a pending donation. Would you like to continue with that?');
+                if (useExisting) {
+                    currentDonationId = existing.id;
+                    document.getElementById('utrSection').classList.add('show');
+                    document.getElementById('utrNumber').focus();
+                    return;
+                }
+            }
+            
+            isSubmitting = true;
+            const donateBtn = document.querySelector('.donate-btn');
+            donateBtn.disabled = true;
+            donateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
                 const transactionId = 'DON_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                 const result = await DonationModule.createDonation({
                     name, phone, email: document.getElementById('donorEmail').value || null,
@@ -333,170 +414,187 @@
                     currentDonationId = result.data.id;
                     document.getElementById('utrSection').classList.add('show');
                     document.getElementById('utrNumber').focus();
-                } else alert('Error: ' + result.error);
-            };
-
-            // Validate 12-digit UTR
-            function validateUTR(utr) {
-                const utrPattern = /^\d{12}$/;
-                return utrPattern.test(utr);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                isSubmitting = false;
+                donateBtn.disabled = false;
+                donateBtn.innerHTML = '<i class="fas fa-hand-holding-heart"></i> Proceed to Pay';
             }
+        };
 
-            window.submitUTR = async function() {
-                const utr = document.getElementById('utrNumber').value.trim();
+        function validateUTR(utr) {
+            return /^\d{12}$/.test(utr);
+        }
+
+        window.submitUTR = async function() {
+            if (isSubmittingUTR) return;
+            
+            const utr = document.getElementById('utrNumber').value.trim();
+            if (!utr) { alert('Please enter UTR number'); return; }
+            if (!validateUTR(utr)) {
+                alert('Please enter a valid 12-digit UTR number');
+                return;
+            }
+            if (!currentDonationId) { alert('No active donation'); return; }
+            
+            isSubmittingUTR = true;
+            const btn = document.querySelector('.verify-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            try {
+                const { error } = await supabase
+                    .from('donations')
+                    .update({ utr_number: utr })
+                    .eq('id', currentDonationId);
                 
-                // Validate 12-digit UTR
-                if (!utr) { 
-                    alert('Please enter UTR number'); 
-                    return; 
-                }
-                if (!validateUTR(utr)) {
-                    alert('Please enter a valid 12-digit UTR number (only numbers, exactly 12 digits)');
-                    return;
-                }
+                if (error) throw error;
                 
-                if (!currentDonationId) { alert('No active donation'); return; }
+                showStatusModal('pending', getSelectedAmount(), utr);
+                document.getElementById('utrSection').classList.remove('show');
+                document.getElementById('utrNumber').value = '';
+                resetForm();
+                startCountdownAndRedirect();
+                startStatusCheck();
                 
-                const btn = document.querySelector('.verify-btn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-                
-                const { error } = await supabase.from('donations').update({ utr_number: utr }).eq('id', currentDonationId);
-                if (error) alert('Submission failed: ' + error.message);
-                else {
-                    showStatusModal('pending', getSelectedAmount(), utr);
-                    document.getElementById('utrSection').classList.remove('show');
-                    document.getElementById('utrNumber').value = '';
-                    document.getElementById('donorName').value = '';
-                    document.getElementById('donorPhone').value = '';
-                    document.getElementById('donorEmail').value = '';
-                    document.getElementById('donationMessage').value = '';
-                    document.getElementById('anonymous').checked = false;
-                    document.getElementById('customAmount').value = '';
-                    document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
-                    selectedAmount = 0;
-                    
-                    // Start countdown and auto-redirect after 60 seconds
-                    startCountdownAndRedirect();
-                    startStatusCheck();
-                }
+            } catch (error) {
+                alert('Submission failed: ' + error.message);
+            } finally {
+                isSubmittingUTR = false;
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
-            };
-
-            function startCountdownAndRedirect() {
-                let seconds = 60;
-                const countdownContainer = document.getElementById('countdownContainer');
-                const finalMessageDiv = document.getElementById('finalMessage');
-                
-                countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
-                
-                countdownInterval = setInterval(() => {
-                    seconds--;
-                    const countdownSpan = document.getElementById('countdown');
-                    if (countdownSpan) countdownSpan.textContent = seconds;
-                    
-                    if (seconds <= 0) {
-                        clearInterval(countdownInterval);
-                        clearInterval(statusCheckInterval);
-                        // Show final message
-                        finalMessageDiv.style.display = 'block';
-                        countdownContainer.innerHTML = '';
-                        // Redirect after 3 more seconds
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 3000);
-                    }
-                }, 1000);
             }
+        };
 
-            function showStatusModal(status, amount, utr) {
-                const modal = document.getElementById('statusModal');
-                const icon = document.getElementById('statusIcon');
-                const title = document.getElementById('statusTitle');
-                document.getElementById('statusAmount').textContent = `₹${amount}`;
-                document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
-                const receiptBtn = document.getElementById('receiptBtn');
-                const finalMessageDiv = document.getElementById('finalMessage');
-                const countdownContainer = document.getElementById('countdownContainer');
+        function resetForm() {
+            document.getElementById('donorName').value = '';
+            document.getElementById('donorPhone').value = '';
+            document.getElementById('donorEmail').value = '';
+            document.getElementById('donationMessage').value = '';
+            document.getElementById('anonymous').checked = false;
+            document.getElementById('customAmount').value = '';
+            document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+            selectedAmount = 0;
+        }
+
+        function startCountdownAndRedirect() {
+            let seconds = 60;
+            const countdownContainer = document.getElementById('countdownContainer');
+            const finalMessageDiv = document.getElementById('finalMessage');
+            
+            countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
+            
+            countdownInterval = setInterval(() => {
+                seconds--;
+                const countdownSpan = document.getElementById('countdown');
+                if (countdownSpan) countdownSpan.textContent = seconds;
                 
-                if (status === 'pending') {
-                    icon.className = 'status-icon pending';
-                    icon.innerHTML = '<i class="fas fa-clock"></i>';
-                    title.textContent = 'Donation Submitted!';
-                    document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive a receipt once verified.';
-                    receiptBtn.style.display = 'none';
-                    finalMessageDiv.style.display = 'none';
-                } else if (status === 'approved') {
-                    icon.className = 'status-icon approved';
-                    icon.innerHTML = '<i class="fas fa-check"></i>';
-                    title.textContent = 'Donation Approved!';
-                    document.getElementById('statusMessage').innerHTML = 'Thank you for your generous donation!';
-                    receiptBtn.style.display = 'inline-flex';
-                    // Clear any pending redirect
-                    if (countdownInterval) clearInterval(countdownInterval);
-                    if (redirectTimer) clearTimeout(redirectTimer);
-                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    clearInterval(statusCheckInterval);
+                    finalMessageDiv.style.display = 'block';
                     countdownContainer.innerHTML = '';
-                    finalMessageDiv.style.display = 'none';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
                 }
-                modal.classList.add('show');
-            }
+            }, 1000);
+        }
 
-            window.checkDonationStatus = async function() {
-                if (!currentDonationId) { alert('No donation found'); return; }
+        function showStatusModal(status, amount, utr) {
+            const modal = document.getElementById('statusModal');
+            const icon = document.getElementById('statusIcon');
+            const title = document.getElementById('statusTitle');
+            document.getElementById('statusAmount').textContent = `₹${amount}`;
+            document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
+            const receiptBtn = document.getElementById('receiptBtn');
+            const finalMessageDiv = document.getElementById('finalMessage');
+            const countdownContainer = document.getElementById('countdownContainer');
+            
+            if (status === 'pending') {
+                icon.className = 'status-icon pending';
+                icon.innerHTML = '<i class="fas fa-clock"></i>';
+                title.textContent = 'Donation Submitted!';
+                document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive a receipt once verified.';
+                receiptBtn.style.display = 'none';
+                finalMessageDiv.style.display = 'none';
+            } else if (status === 'approved') {
+                icon.className = 'status-icon approved';
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                title.textContent = 'Donation Approved!';
+                document.getElementById('statusMessage').innerHTML = 'Thank you for your generous donation!';
+                receiptBtn.style.display = 'inline-flex';
+                if (countdownInterval) clearInterval(countdownInterval);
+                if (redirectTimer) clearTimeout(redirectTimer);
+                if (statusCheckInterval) clearInterval(statusCheckInterval);
+                countdownContainer.innerHTML = '';
+                finalMessageDiv.style.display = 'none';
+            }
+            modal.classList.add('show');
+        }
+
+        window.checkDonationStatus = async function() {
+            if (!currentDonationId) { alert('No donation found'); return; }
+            const { data } = await supabase.from('donations').select('payment_status, amount, utr_number').eq('id', currentDonationId).single();
+            if (data?.payment_status === 'approved') {
+                showStatusModal('approved', data.amount, data.utr_number);
+            } else if (data?.payment_status === 'rejected') {
+                alert('Your donation was rejected. Please contact support.');
+            } else {
+                alert('Status: Pending Approval. You will be notified once verified.');
+            }
+        };
+
+        window.downloadReceipt = async function() {
+            if (!currentDonationId) return;
+            const { data } = await supabase.from('donations').select('*').eq('id', currentDonationId).single();
+            if (data && data.payment_status === 'approved' && typeof DonationModule !== 'undefined') {
+                DonationModule.downloadReceipt(data);
+            } else {
+                alert('Receipt not available yet. Please wait for admin approval.');
+            }
+        };
+
+        function startStatusCheck() {
+            if (statusCheckInterval) clearInterval(statusCheckInterval);
+            statusCheckInterval = setInterval(async () => {
+                if (!currentDonationId) return;
                 const { data } = await supabase.from('donations').select('payment_status, amount, utr_number').eq('id', currentDonationId).single();
                 if (data?.payment_status === 'approved') {
                     showStatusModal('approved', data.amount, data.utr_number);
-                } else if (data?.payment_status === 'rejected') {
-                    alert('Your donation was rejected. Please contact support.');
-                } else {
-                    alert('Status: Pending Approval. You will be notified once verified.');
+                    clearInterval(statusCheckInterval);
+                    if (countdownInterval) clearInterval(countdownInterval);
                 }
-            };
+            }, 5000);
+        }
 
-            window.downloadReceipt = async function() {
-                if (!currentDonationId) return;
-                const { data } = await supabase.from('donations').select('*').eq('id', currentDonationId).single();
-                if (data && data.payment_status === 'approved' && typeof DonationModule !== 'undefined') {
-                    DonationModule.downloadReceipt(data);
-                } else {
-                    alert('Receipt not available yet. Please wait for admin approval.');
-                }
-            };
-
-            function startStatusCheck() {
-                if (statusCheckInterval) clearInterval(statusCheckInterval);
-                statusCheckInterval = setInterval(async () => {
-                    if (!currentDonationId) return;
-                    const { data } = await supabase.from('donations').select('payment_status, amount, utr_number').eq('id', currentDonationId).single();
-                    if (data?.payment_status === 'approved') {
-                        showStatusModal('approved', data.amount, data.utr_number);
-                        clearInterval(statusCheckInterval);
-                        // Stop countdown if approval comes early
-                        if (countdownInterval) clearInterval(countdownInterval);
-                    }
-                }, 5000);
-            }
-
-            document.getElementById('customAmount').addEventListener('input', function() {
-                const amount = parseFloat(this.value);
-                if (amount >= 51) generateQRCode(amount);
+        // Initialize
+        document.getElementById('customAmount').addEventListener('input', function() {
+            const amount = parseFloat(this.value);
+            if (amount >= 51) generateQRCode(amount);
+        });
+        
+        // UTR input validation
+        const utrInput = document.getElementById('utrNumber');
+        if (utrInput) {
+            utrInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
             });
-            
-            // Add UTR input validation for 12 digits only
-            const utrInput = document.getElementById('utrNumber');
-            if (utrInput) {
-                utrInput.addEventListener('input', function(e) {
-                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
-                });
-            }
-            
+        }
+        
+        // Load UPI settings and initialize
+        loadUPISettings().then(() => {
             generateQRCode(500);
-            document.getElementById('statusModal').addEventListener('click', e => { 
-                if (e.target === e.currentTarget) e.currentTarget.classList.remove('show'); 
-            });
-        })();
-    </script>
+        });
+        
+        document.getElementById('statusModal').addEventListener('click', e => { 
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('show'); 
+        });
+    })();
+</script>
 </body>
 </html>
