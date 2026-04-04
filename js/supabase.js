@@ -100,19 +100,4 @@ window.db = {
         }
     }
 };
-async getMembershipFee() {
-    try {
-        const { data, error } = await window.supabaseClient
-            .from('settings')
-            .select('value')
-            .eq('key', 'membership_fee')
-            .single();
-        
-        if (error) throw error;
-        return parseInt(data?.value) || 49;
-    } catch (error) {
-        console.error('Error loading membership fee:', error);
-        return 49;
-    }
-},
 console.log('✅ supabase.js loaded, db available');
