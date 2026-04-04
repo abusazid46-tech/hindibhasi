@@ -235,6 +235,13 @@
             color: #b3412e;
         }
 
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
         @media (max-width: 1024px) {
             .sidebar {
                 width: 80px;
@@ -417,7 +424,7 @@
                     <button class="save-btn" onclick="saveSettings('contact')">Save Contact Info</button>
                 </div>
 
-                <!-- Payment -->
+                <!-- Payment Settings (WITH UPI FIELDS INSIDE) -->
                 <div id="panel-payment" class="settings-panel">
                     <h2 class="panel-title">Payment Settings</h2>
                     <div class="form-group">
@@ -435,19 +442,23 @@
                         <label>Minimum Donation (₹)</label>
                         <input type="number" id="min_donation" class="setting-field">
                     </div>
+                    
+                    <!-- UPI Settings - NOW INSIDE THE PAYMENT PANEL -->
+                    <div class="form-group">
+                        <label>UPI ID for Donations</label>
+                        <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname">
+                        <small>This UPI ID will be displayed on the donation page for users to pay</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>UPI Payee Name</label>
+                        <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name">
+                        <small>Name that appears when users scan the QR code</small>
+                    </div>
+                    
                     <button class="save-btn" onclick="saveSettings('payment')">Save Payment Settings</button>
                 </div>
-<div class="form-group">
-    <label>UPI ID for Donations</label>
-    <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname" value="8133908811@airtel">
-    <small style="color: #666;">This UPI ID will be displayed on the donation page for users to pay</small>
-</div>
 
-<div class="form-group">
-    <label>UPI Payee Name</label>
-    <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name" value="AHBBM Donation">
-    <small style="color: #666;">Name that appears when users scan the QR code</small>
-</div>
                 <!-- SEO -->
                 <div id="panel-seo" class="settings-panel">
                     <h2 class="panel-title">SEO Settings</h2>
@@ -511,14 +522,16 @@
                     
                     // Create a map of settings
                     const settings = {};
-                    data.forEach(item => {
-                        settings[item.key] = item.value;
-                    });
+                    if (data) {
+                        data.forEach(item => {
+                            settings[item.key] = item.value;
+                        });
+                    }
                     
                     // Populate all fields
                     document.querySelectorAll('.setting-field').forEach(field => {
                         const id = field.id;
-                        if (settings[id] !== undefined) {
+                        if (settings[id] !== undefined && settings[id] !== null) {
                             field.value = settings[id];
                         }
                     });
@@ -543,22 +556,15 @@
             window.saveSettings = async function(panel) {
                 try {
                     const fields = document.querySelectorAll(`#panel-${panel} .setting-field`);
-                    const updates = [];
                     
                     for (const field of fields) {
-                        updates.push({
-                            key: field.id,
-                            value: field.value
-                        });
-                    }
-                    
-                    // Update each setting
-                    for (const update of updates) {
                         const { error } = await supabase
                             .from('settings')
                             .upsert({ 
-                                key: update.key, 
-                                value: update.value 
+                                key: field.id, 
+                                value: field.value 
+                            }, { 
+                                onConflict: 'key' 
                             });
                         
                         if (error) throw error;
