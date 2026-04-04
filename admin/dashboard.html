@@ -528,16 +528,17 @@
                     
                     // Total Donations (approved or completed)
                     const { data: donations, error: donationsError } = await supabase
-                        .from('donations')
-                        .select('amount')
-                        .in('payment_status', ['approved', 'completed']);
-                    
-                    if (!donationsError && donations) {
-                        const totalAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
-                        const donationsEl = document.getElementById('totalDonationsAmount');
-                        if (donationsEl) donationsEl.textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
-                    }
-                    
+    .from('donations')
+    .select('amount');
+    
+if (!donationsError && donations && donations.length > 0) {
+    const totalAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const donationsEl = document.getElementById('totalDonationsAmount');
+    if (donationsEl) donationsEl.textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
+} else {
+    const donationsEl = document.getElementById('totalDonationsAmount');
+    if (donationsEl) donationsEl.textContent = '₹0';
+}
                 } catch (error) {
                     console.error('Error loading stats:', error);
                 }
