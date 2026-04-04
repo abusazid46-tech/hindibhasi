@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .registration-header {
@@ -14,6 +15,11 @@
             color: white;
             padding: 60px 20px;
             text-align: center;
+        }
+
+        .registration-header h1 {
+            font-size: clamp(28px, 6vw, 42px);
+            margin-bottom: 10px;
         }
 
         .registration-container {
@@ -147,6 +153,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
+            margin-top: 20px;
         }
 
         .register-btn:hover {
@@ -158,37 +165,226 @@
             cursor: not-allowed;
         }
 
-        .payment-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #f3b28a;
-            display: none;
-        }
-
-        .payment-section.show {
-            display: block;
-        }
-
-        .success-message {
-            text-align: center;
-            padding: 40px;
-            background: #e8f5e9;
+        /* UPI Section */
+        .upi-section {
+            background: #f8f9fa;
             border-radius: 20px;
-            color: #2e7d32;
+            padding: 25px;
+            margin: 20px 0;
             display: none;
         }
 
-        .success-message.show {
+        .upi-section.show {
             display: block;
         }
 
-        .success-message i {
-            font-size: 60px;
+        .upi-id-box {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
             margin-bottom: 20px;
+            border: 2px dashed #27ae60;
         }
 
-        .district-select {
+        .upi-id {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .copy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        #qrcode canvas {
+            width: 200px !important;
+            height: 200px !important;
+            border: 3px solid #27ae60;
+            border-radius: 20px;
+            padding: 10px;
+            background: white;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .qr-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .download-qr-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .print-qr-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        /* UTR Section */
+        .utr-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 15px;
+            display: none;
+            border-left: 4px solid #f39c12;
+        }
+
+        .utr-section.show {
+            display: block;
+        }
+
+        .utr-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .utr-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #f3b28a;
+            border-radius: 12px;
+        }
+
+        .verify-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Status Modal */
+        .status-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .status-modal.show {
+            display: flex;
+        }
+
+        .status-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 50px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 40px;
+        }
+
+        .status-icon.pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-icon.approved {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #27ae60;
+            margin: 15px 0;
+        }
+
+        .countdown-timer {
+            display: inline-block;
+            background: #f39c12;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .final-message {
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .status-actions button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .check-status-btn {
+            background: #3498db;
+            color: white;
+        }
+
+        .download-card-btn {
+            background: #27ae60;
+            color: white;
+            display: none;
+        }
+
+        .home-btn {
+            background: #f0f0f0;
+            color: #666;
         }
 
         @media (max-width: 768px) {
@@ -200,6 +396,10 @@
                 flex-direction: column;
                 text-align: center;
             }
+
+            .upi-id {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -207,7 +407,7 @@
     <!-- Header -->
     <header>
         <div class="logo-area">
-            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://via.placeholder.com/44x44?text=🕉️'">
+            <img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo" onerror="this.src='https://placehold.co/44x44/b3412e/white?text=🕉️'">
             <h2>Asom Hindi Bhasi Brahman Mahasabha</h2>
         </div>
         <div class="right-controls">
@@ -217,11 +417,7 @@
                 <button class="lang-option as">AS</button>
             </div>
             <div class="menu-dropdown">
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+                <div class="hamburger"><span></span><span></span><span></span></div>
                 <div class="dropdown-content">
                     <a href="index.html">Home</a>
                     <a href="about.html">About Us</a>
@@ -230,7 +426,9 @@
                     <a href="events.html">Events</a>
                     <a href="news.html">News</a>
                     <a href="gallery.html">Gallery</a>
+                    <a href="videos.html">Videos</a>
                     <a href="donation.html">Donate</a>
+                    <a href="documents.html">Documents</a>
                     <a href="contact.html">Contact</a>
                 </div>
             </div>
@@ -257,17 +455,8 @@
                 </div>
             </div>
 
-            <!-- Success Message -->
-            <div class="success-message" id="successMessage">
-                <i class="fas fa-check-circle"></i>
-                <h2>Registration Successful!</h2>
-                <p>Thank you for registering. Your application is pending admin approval.</p>
-                <p>You will receive your membership card after verification.</p>
-                <button class="btn" onclick="window.location.href='members.html'">View Member Directory</button>
-            </div>
-
             <!-- Registration Form -->
-            <form id="registrationForm" onsubmit="handleRegistration(event)">
+            <form id="registrationForm">
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Full Name *</label>
@@ -283,7 +472,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label><i class="fas fa-map-marker-alt"></i> District *</label>
-                        <select id="district" required class="district-select">
+                        <select id="district" required>
                             <option value="">Select District</option>
                             <option value="Kamrup">Kamrup</option>
                             <option value="Nagaon">Nagaon</option>
@@ -362,19 +551,55 @@
                 </div>
 
                 <!-- Register Button -->
-                <button type="submit" class="register-btn" id="registerBtn">
+                <button type="button" class="register-btn" onclick="proceedToPayment()">
                     <i class="fas fa-id-card"></i> Register & Pay ₹49
                 </button>
-            </form>
 
-            <!-- Payment Section (Razorpay will be integrated here) -->
-            <div class="payment-section" id="paymentSection">
-                <h3>Complete Payment</h3>
-                <p>Processing payment of ₹49</p>
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Redirecting to payment gateway...</p>
+                <!-- UPI Section -->
+                <div class="upi-section" id="upiSection">
+                    <h3>Pay via UPI</h3>
+                    <div class="upi-id-box">
+                        <p>Scan QR Code or Pay to this UPI ID:</p>
+                        <div class="upi-id" id="upiIdDisplay">8133908811@airtel</div>
+                        <button type="button" class="copy-btn" onclick="copyUPIID()"><i class="fas fa-copy"></i> Copy UPI ID</button>
+                    </div>
+                    <div id="qrcode"></div>
+                    <div class="qr-actions">
+                        <button class="download-qr-btn" onclick="downloadQRCode()"><i class="fas fa-download"></i> Download QR</button>
+                        <button class="print-qr-btn" onclick="printQRCode()"><i class="fas fa-print"></i> Print</button>
+                    </div>
                 </div>
+
+                <!-- UTR Section -->
+                <div class="utr-section" id="utrSection">
+                    <h4><i class="fas fa-clock"></i> Payment Initiated!</h4>
+                    <p>Please complete the payment using the UPI ID or QR code above.<br>After payment, enter the 12-digit UTR Number:</p>
+                    <div class="utr-input-group">
+                        <input type="text" id="utrNumber" placeholder="Enter 12-digit UTR Number" maxlength="12">
+                        <button class="verify-btn" onclick="submitUTR()"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
+                    </div>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">UTR number is the 12-digit reference number you received after payment.</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="status-modal" id="statusModal">
+        <div class="status-content">
+            <div class="status-icon" id="statusIcon"></div>
+            <h2 id="statusTitle">Registration Submitted</h2>
+            <div class="status-amount" id="statusAmount">₹49</div>
+            <div class="status-id" id="statusId"></div>
+            <div class="status-message" id="statusMessage"></div>
+            <div id="countdownContainer"></div>
+            <div class="final-message" id="finalMessage" style="display: none;">
+                <i class="fas fa-envelope"></i> Once approved, membership card will be sent to your email
+            </div>
+            <div class="status-actions">
+                <button class="check-status-btn" onclick="checkStatus()"><i class="fas fa-sync-alt"></i> Check Status</button>
+                <button class="download-card-btn" id="downloadCardBtn" onclick="downloadMembershipCard()"><i class="fas fa-id-card"></i> Download Card</button>
+                <button class="home-btn" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Home</button>
             </div>
         </div>
     </div>
@@ -400,131 +625,297 @@
     <!-- WhatsApp Button -->
     <a href="https://wa.me/919876543210" class="whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <script src="js/members.js"></script>
+    <script src="js/settings-loader.js"></script>
     <script>
-<!-- At the bottom of membership-registration.html -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/members.js"></script>
-<script>
-    // Supabase configuration
-    const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Initialize MembersModule
-    MembersModule.init(supabase);
-
-    let selectedFile = null;
-    let registeredMemberId = null;
-
-    // Preview photo before upload
-    window.previewPhoto = function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                alert('File size must be less than 2MB');
-                return;
-            }
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
             
-            selectedFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('photoPreview');
-                preview.src = e.target.result;
-                preview.style.display = 'block';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            if (typeof MembersModule !== 'undefined') MembersModule.init(supabase);
+            if (typeof SettingsLoader !== 'undefined') SettingsLoader.init(supabase);
+
+            let selectedFile = null;
+            let currentMemberId = null;
+            let statusCheckInterval = null;
+            let countdownInterval = null;
+            let isSubmitting = false;
+            let isSubmittingUTR = false;
+            let currentUPIId = '8133908811@airtel';
+            let currentPayeeName = 'AHBBM Membership';
+
+            // Load UPI settings
+            async function loadUPISettings() {
+                try {
+                    if (typeof SettingsLoader !== 'undefined') {
+                        const upiId = await SettingsLoader.getUPIId();
+                        const payeeName = await SettingsLoader.getUPIPayeeName();
+                        if (upiId) currentUPIId = upiId;
+                        if (payeeName) currentPayeeName = payeeName;
+                    }
+                    document.getElementById('upiIdDisplay').textContent = currentUPIId;
+                } catch (error) {
+                    console.error('Error loading UPI settings:', error);
+                }
+            }
+
+            function generateQRCode(amount) {
+                const container = document.getElementById('qrcode');
+                if (!container) return;
+                container.innerHTML = '';
+                const upiData = `upi://pay?pa=${currentUPIId}&pn=${encodeURIComponent(currentPayeeName)}&am=${amount}&cu=INR`;
+                new QRCode(container, { text: upiData, width: 200, height: 200 });
+            }
+
+            window.previewPhoto = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        return;
+                    }
+                    selectedFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('photoPreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
             };
-            reader.readAsDataURL(file);
-        }
-    };
 
-    // Handle registration form submission using module
-    window.handleRegistration = async function(event) {
-        event.preventDefault();
-        
-        const registerBtn = document.getElementById('registerBtn');
-        registerBtn.disabled = true;
-        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        
-        try {
-            // Get form data
-            const formData = {
-                name: document.getElementById('name').value,
-                district: document.getElementById('district').value,
-                village: document.getElementById('village').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                occupation: document.getElementById('occupation').value,
-                dob: document.getElementById('dob').value,
-                blood_group: document.getElementById('bloodGroup').value,
-                address: document.getElementById('address').value,
-                emergency_phone: document.getElementById('emergencyPhone').value
+            function getFormData() {
+                return {
+                    name: document.getElementById('name').value,
+                    district: document.getElementById('district').value,
+                    village: document.getElementById('village').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    occupation: document.getElementById('occupation').value,
+                    dob: document.getElementById('dob').value,
+                    blood_group: document.getElementById('bloodGroup').value,
+                    address: document.getElementById('address').value,
+                    emergency_phone: document.getElementById('emergencyPhone').value
+                };
+            }
+
+            function validateForm() {
+                const formData = getFormData();
+                if (!formData.name || !formData.district || !formData.village || !formData.phone) {
+                    alert('Please fill all required fields');
+                    return false;
+                }
+                if (!/^\d{10}$/.test(formData.phone)) {
+                    alert('Please enter a valid 10-digit phone number');
+                    return false;
+                }
+                const terms = document.getElementById('terms').checked;
+                if (!terms) {
+                    alert('Please accept the terms and conditions');
+                    return false;
+                }
+                return true;
+            }
+
+            window.proceedToPayment = async function() {
+                if (isSubmitting) return;
+                if (!validateForm()) return;
+                
+                isSubmitting = true;
+                const registerBtn = document.querySelector('.register-btn');
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                try {
+                    const formData = getFormData();
+                    const result = await MembersModule.registerMember(formData, selectedFile);
+                    
+                    if (!result.success) throw new Error(result.error);
+                    
+                    currentMemberId = result.data.id;
+                    
+                    // Hide registration form, show UPI section
+                    document.getElementById('registrationForm').style.display = 'none';
+                    document.getElementById('upiSection').classList.add('show');
+                    generateQRCode(49);
+                    document.getElementById('utrNumber').focus();
+                    
+                } catch (error) {
+                    alert('Registration failed: ' + error.message);
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
+                } finally {
+                    isSubmitting = false;
+                }
             };
-            
-            // Validate required fields
-            if (!formData.name || !formData.district || !formData.village || !formData.phone) {
-                alert('Please fill all required fields');
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-                return;
-            }
-            
-            // Validate phone number
-            if (!/^\d{10}$/.test(formData.phone)) {
-                alert('Please enter a valid 10-digit phone number');
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-                return;
-            }
-            
-            // Register member using module
-            const result = await MembersModule.registerMember(formData, selectedFile);
-            
-            if (!result.success) {
-                throw new Error(result.error);
-            }
-            
-            registeredMemberId = result.data.id;
-            
-            // Show payment section
-            document.getElementById('paymentSection').classList.add('show');
-            
-            // Simulate payment (replace with actual Razorpay)
-            setTimeout(() => {
-                completePayment();
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Registration error:', error);
-            alert('Registration failed: ' + error.message);
-            
-            registerBtn.disabled = false;
-            registerBtn.innerHTML = '<i class="fas fa-id-card"></i> Register & Pay ₹49';
-        }
-    };
 
-    // Complete payment using module
-    async function completePayment() {
-        try {
-            // Mock transaction ID
-            const transactionId = 'TXN' + Date.now();
-            
-            // Update payment status using module
-            const result = await MembersModule.updatePaymentStatus(registeredMemberId, transactionId);
-            
-            if (result.success) {
-                // Hide form and show success message
-                document.getElementById('registrationForm').style.display = 'none';
-                document.getElementById('paymentSection').classList.remove('show');
-                document.getElementById('successMessage').classList.add('show');
-            } else {
-                throw new Error(result.error);
+            window.copyUPIID = () => {
+                navigator.clipboard.writeText(currentUPIId);
+                alert('UPI ID copied: ' + currentUPIId);
+            };
+
+            window.downloadQRCode = () => {
+                const canvas = document.querySelector('#qrcode canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'Membership_Payment_QR.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                } else alert('QR Code not available');
+            };
+
+            window.printQRCode = () => {
+                const canvas = document.querySelector('#qrcode canvas');
+                if (!canvas) { alert('QR Code not available'); return; }
+                const win = window.open('', '_blank');
+                win.document.write(`<html><head><title>Payment QR</title><style>body{text-align:center;padding:20px;}img{width:250px;}</style></head><body><img src="${canvas.toDataURL()}"><h2>₹49</h2><p>UPI: ${currentUPIId}</p><script>window.onload=function(){window.print();setTimeout(()=>window.close(),1000)}<\/script></body></html>`);
+                win.document.close();
+            };
+
+            function validateUTR(utr) {
+                return /^\d{12}$/.test(utr);
             }
+
+            window.submitUTR = async function() {
+                if (isSubmittingUTR) return;
+                
+                const utr = document.getElementById('utrNumber').value.trim();
+                if (!utr) { alert('Please enter UTR number'); return; }
+                if (!validateUTR(utr)) {
+                    alert('Please enter a valid 12-digit UTR number');
+                    return;
+                }
+                if (!currentMemberId) { alert('No active registration'); return; }
+                
+                isSubmittingUTR = true;
+                const btn = document.querySelector('.verify-btn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                
+                try {
+                    const { error } = await supabase
+                        .from('members')
+                        .update({ utr_number: utr, payment_status: 'pending' })
+                        .eq('id', currentMemberId);
+                    
+                    if (error) throw error;
+                    
+                    showStatusModal('pending', utr);
+                    document.getElementById('upiSection').classList.remove('show');
+                    document.getElementById('utrSection').classList.add('show');
+                    document.getElementById('utrNumber').value = '';
+                    
+                    startCountdownAndRedirect();
+                    startStatusCheck();
+                    
+                } catch (error) {
+                    alert('Submission failed: ' + error.message);
+                } finally {
+                    isSubmittingUTR = false;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+                }
+            };
+
+            function startCountdownAndRedirect() {
+                let seconds = 60;
+                const countdownContainer = document.getElementById('countdownContainer');
+                const finalMessageDiv = document.getElementById('finalMessage');
+                
+                countdownContainer.innerHTML = `<div class="countdown-timer"><i class="fas fa-hourglass-half"></i> Redirecting in <span id="countdown">60</span> seconds...</div>`;
+                
+                countdownInterval = setInterval(() => {
+                    seconds--;
+                    const countdownSpan = document.getElementById('countdown');
+                    if (countdownSpan) countdownSpan.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        clearInterval(statusCheckInterval);
+                        finalMessageDiv.style.display = 'block';
+                        countdownContainer.innerHTML = '';
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 3000);
+                    }
+                }, 1000);
+            }
+
+            function showStatusModal(status, utr) {
+                const modal = document.getElementById('statusModal');
+                const icon = document.getElementById('statusIcon');
+                const title = document.getElementById('statusTitle');
+                document.getElementById('statusId').innerHTML = `<strong>UTR:</strong> ${utr}`;
+                const downloadBtn = document.getElementById('downloadCardBtn');
+                const finalMessageDiv = document.getElementById('finalMessage');
+                const countdownContainer = document.getElementById('countdownContainer');
+                
+                if (status === 'pending') {
+                    icon.className = 'status-icon pending';
+                    icon.innerHTML = '<i class="fas fa-clock"></i>';
+                    title.textContent = 'Registration Submitted!';
+                    document.getElementById('statusMessage').innerHTML = 'Waiting for admin approval.<br>You will receive your membership card once verified.';
+                    downloadBtn.style.display = 'none';
+                    finalMessageDiv.style.display = 'none';
+                } else if (status === 'approved') {
+                    icon.className = 'status-icon approved';
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    title.textContent = 'Membership Approved!';
+                    document.getElementById('statusMessage').innerHTML = 'Welcome to the community! Your membership has been approved.';
+                    downloadBtn.style.display = 'inline-flex';
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                    countdownContainer.innerHTML = '';
+                    finalMessageDiv.style.display = 'none';
+                }
+                modal.classList.add('show');
+            }
+
+            window.checkStatus = async function() {
+                if (!currentMemberId) { alert('No registration found'); return; }
+                const { data } = await supabase.from('members').select('status, membership_id, utr_number').eq('id', currentMemberId).single();
+                if (data?.status === 'approved') {
+                    showStatusModal('approved', data.utr_number);
+                } else if (data?.status === 'rejected') {
+                    alert('Your membership was rejected. Please contact support.');
+                } else {
+                    alert('Status: Pending Approval. You will be notified once verified.');
+                }
+            };
+
+            window.downloadMembershipCard = async function() {
+                if (!currentMemberId) return;
+                const { data } = await supabase.from('members').select('*').eq('id', currentMemberId).single();
+                if (data && data.status === 'approved' && typeof MembersModule !== 'undefined') {
+                    MembersModule.downloadMembershipCard(data);
+                } else {
+                    alert('Membership card not available yet. Please wait for admin approval.');
+                }
+            };
+
+            function startStatusCheck() {
+                if (statusCheckInterval) clearInterval(statusCheckInterval);
+                statusCheckInterval = setInterval(async () => {
+                    if (!currentMemberId) return;
+                    const { data } = await supabase.from('members').select('status, utr_number').eq('id', currentMemberId).single();
+                    if (data?.status === 'approved') {
+                        showStatusModal('approved', data.utr_number);
+                        clearInterval(statusCheckInterval);
+                        if (countdownInterval) clearInterval(countdownInterval);
+                    }
+                }, 5000);
+            }
+
+            // Initialize
+            loadUPISettings();
             
-        } catch (error) {
-            console.error('Payment update error:', error);
-            alert('Payment recorded but there was an error. Please contact admin.');
-        }
-    }
-</script>
+            document.getElementById('statusModal').addEventListener('click', e => {
+                if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+            });
+        })();
+    </script>
 </body>
 </html>
