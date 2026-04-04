@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pooja Bookings - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #f5f5f5; display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #b3412e 0%, #8b2c1d 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid gold; }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { padding: 12px 25px; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; transition: all 0.3s; border-left: 4px solid transparent; }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: gold; }
+        .menu-item i { width: 22px; }
+
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
+        .top-bar { background: white; padding: 15px 30px; border-radius: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; color: #2d1f00; display: flex; align-items: center; gap: 10px; }
+        .filter-bar { background: white; border-radius: 20px; padding: 20px; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        .search-box { flex: 2; min-width: 250px; position: relative; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        .search-box input { width: 100%; padding: 12px 15px 12px 45px; border: 2px solid #f3b28a; border-radius: 15px; }
+        .filter-select { flex: 1; min-width: 150px; }
+        .filter-select select { width: 100%; padding: 12px 15px; border: 2px solid #f3b28a; border-radius: 15px; background: white; }
+
+        .table-container { background: white; border-radius: 30px 10px 30px 10px; padding: 25px; overflow-x: auto; }
+        .bookings-table { width: 100%; border-collapse: collapse; }
+        .bookings-table th { text-align: left; padding: 15px 10px; color: #2d1f00; border-bottom: 3px solid #b3412e; }
+        .bookings-table td { padding: 15px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+
+        .status-badge { padding: 5px 12px; border-radius: 30px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-pending { background: #fef5e7; color: #f39c12; }
+        .status-confirmed { background: #e8f5e9; color: #27ae60; }
+        .status-completed { background: #e8f0fe; color: #3498db; }
+        .status-cancelled { background: #fee; color: #e74c3c; }
+
+        .action-btn { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; margin: 2px; }
+        .confirm-btn { background: #27ae60; color: white; }
+        .complete-btn { background: #3498db; color: white; }
+        .cancel-btn { background: #e74c3c; color: white; }
+        .view-btn { background: #9b59b6; color: white; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 40px 10px 40px 10px; padding: 40px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; }
+        .detail-row { margin-bottom: 15px; }
+        .detail-label { font-weight: 600; color: #666; display: block; margin-bottom: 5px; }
+        .detail-value { background: #f5f5f5; padding: 10px; border-radius: 10px; }
+
+        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 25px; }
+        .page-btn { width: 40px; height: 40px; border: 2px solid #b3412e; background: white; border-radius: 10px; cursor: pointer; }
+        .page-btn.active { background: #b3412e; color: white; }
+
+        @media (max-width: 1024px) { .sidebar { width: 80px; } .sidebar-header h3, .menu-item span { display: none; } .main-content { margin-left: 80px; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header"><img src="https://i.ibb.co/XrStw9KC/1772529038848.png" alt="Logo"><h3>Admin</h3></div>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+            <a href="members.html" class="menu-item"><i class="fas fa-users"></i><span>Members</span></a>
+            <a href="events.html" class="menu-item"><i class="fas fa-calendar-alt"></i><span>Events</span></a>
+            <a href="news.html" class="menu-item"><i class="fas fa-newspaper"></i><span>News</span></a>
+            <a href="gallery.html" class="menu-item"><i class="fas fa-images"></i><span>Gallery</span></a>
+            <a href="donations.html" class="menu-item"><i class="fas fa-hand-holding-heart"></i><span>Donations</span></a>
+            <a href="pooja-bookings.html" class="menu-item active"><i class="fas fa-pray"></i><span>Pooja Bookings</span></a>
+            <a href="documents.html" class="menu-item"><i class="fas fa-file-pdf"></i><span>Documents</span></a>
+            <a href="contacts.html" class="menu-item"><i class="fas fa-envelope"></i><span>Messages</span></a>
+            <a href="committee.html" class="menu-item"><i class="fas fa-user-tie"></i><span>Committee</span></a>
+            <div class="menu-divider"></div>
+            <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="#" class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar"><div class="page-title"><i class="fas fa-pray"></i><span>Pooja Bookings</span></div></div>
+
+        <div class="filter-bar">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by name, phone, booking ID..."></div>
+            <div class="filter-select"><select id="statusFilter"><option value="all">All Status</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
+            <div class="filter-select"><select id="paymentFilter"><option value="all">All Payments</option><option value="pending">Payment Pending</option><option value="completed">Payment Completed</option></select></div>
+        </div>
+
+        <div class="table-container">
+            <table class="bookings-table">
+                <thead><tr><th>Booking ID</th><th>Date</th><th>Devotee</th><th>Pooja</th><th>Amount</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+                <tbody id="bookingsTableBody"><tr><td colspan="8" style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal" id="detailsModal"><div class="modal-content"><div class="modal-header"><h2>Booking Details</h2><button class="close-btn" onclick="closeModal()">&times;</button></div><div id="modalContent"></div></div></div>
+
+    <script src="../js/pooja.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoc2xtcGNjcXJmZ3NhcWh3d25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTU0ODEsImV4cCI6MjA4OTIzMTQ4MX0.D3CJvzcSkaFZivDJtIXdKgFO3jUPBOq8i80Vz98eYcw';
+            
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            PoojaModule.init(supabase);
+
+            let currentPage = 1;
+            let totalPages = 1;
+            let currentFilters = { status: 'all', payment_status: 'all', search: '' };
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) { window.location.href = 'login.html'; return; }
+                await loadBookings();
+            });
+
+            async function loadBookings() {
+                currentFilters.status = document.getElementById('statusFilter').value;
+                currentFilters.payment_status = document.getElementById('paymentFilter').value;
+                currentFilters.search = document.getElementById('searchInput').value;
+                
+                const result = await PoojaModule.getAllBookings(currentFilters, currentPage, 15);
+                if (result.success) {
+                    const tbody = document.getElementById('bookingsTableBody');
+                    totalPages = result.totalPages;
+                    
+                    if (result.data.length > 0) {
+                        tbody.innerHTML = result.data.map(b => `
+                            <tr>
+                                <td><strong>${b.booking_id}</strong></td>
+                                <td>${new Date(b.booking_date).toLocaleDateString()}<br><small>${b.time_slot_time}</small></td>
+                                <td>${escapeHtml(b.user_name)}<br><small>${b.phone}</small></td>
+                                <td>${escapeHtml(b.pooja_type_name)}</td>
+                                <td>₹${b.total_amount}</td>
+                                <td><span class="status-badge status-${b.booking_status}">${b.booking_status}</span></td>
+                                <td><span class="status-badge ${b.payment_status === 'completed' ? 'status-confirmed' : 'status-pending'}">${b.payment_status}</span></td>
+                                <td>
+                                    <button class="action-btn view-btn" onclick="viewDetails('${b.booking_id}')"><i class="fas fa-eye"></i></button>
+                                    ${b.booking_status === 'pending' ? `<button class="action-btn confirm-btn" onclick="updateStatus('${b.booking_id}', 'confirmed')"><i class="fas fa-check"></i> Confirm</button>` : ''}
+                                    ${b.booking_status === 'confirmed' ? `<button class="action-btn complete-btn" onclick="updateStatus('${b.booking_id}', 'completed')"><i class="fas fa-check-double"></i> Complete</button>` : ''}
+                                    <button class="action-btn cancel-btn" onclick="updateStatus('${b.booking_id}', 'cancelled')"><i class="fas fa-times"></i> Cancel</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">No bookings found</td></tr>';
+                    }
+                    renderPagination();
+                }
+            }
+
+            function renderPagination() {
+                const pagination = document.getElementById('pagination');
+                if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+                let html = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                }
+                pagination.innerHTML = html;
+            }
+
+            window.changePage = (page) => { currentPage = page; loadBookings(); };
+            window.applyFilters = () => { currentPage = 1; loadBookings(); };
+            window.debounceSearch = () => { clearTimeout(window.searchTimeout); window.searchTimeout = setTimeout(() => applyFilters(), 500); };
+
+            window.viewDetails = async (bookingId) => {
+                const result = await PoojaModule.getBookingById(bookingId);
+                if (result.success) {
+                    const b = result.data;
+                    document.getElementById('modalContent').innerHTML = `
+                        <div class="detail-row"><span class="detail-label">Booking ID</span><div class="detail-value">${b.booking_id}</div></div>
+                        <div class="detail-row"><span class="detail-label">Devotee Name</span><div class="detail-value">${escapeHtml(b.user_name)}</div></div>
+                        <div class="detail-row"><span class="detail-label">Gotra / Rashi</span><div class="detail-value">${b.gotra || 'N/A'} / ${b.rashi || 'N/A'}</div></div>
+                        <div class="detail-row"><span class="detail-label">Contact</span><div class="detail-value">📞 ${b.phone}<br>✉️ ${b.email || 'N/A'}</div></div>
+                        <div class="detail-row"><span class="detail-label">Address</span><div class="detail-value">${escapeHtml(b.address)}</div></div>
+                        <div class="detail-row"><span class="detail-label">Pooja Details</span><div class="detail-value"><strong>Type:</strong> ${b.pooja_type_name}<br><strong>Venue:</strong> ${b.venue === 'home' ? '🏠 At Home' : '🛕 At Temple Center'}<br><strong>Date:</strong> ${new Date(b.booking_date).toLocaleDateString()}<br><strong>Time:</strong> ${b.time_slot_time}<br><strong>Samagri:</strong> ${b.samagri_by_organization ? 'Provided by Organization' : 'To be arranged by devotee'}</div></div>
+                        <div class="detail-row"><span class="detail-label">Payment</span><div class="detail-value"><strong>Amount:</strong> ₹${b.total_amount}<br><strong>Status:</strong> ${b.payment_status}<br><strong>UTR:</strong> ${b.utr_number || 'N/A'}</div></div>
+                        <div class="detail-row"><span class="detail-label">Booking Status</span><div class="detail-value"><span class="status-badge status-${b.booking_status}">${b.booking_status}</span></div></div>
+                    `;
+                    document.getElementById('detailsModal').classList.add('show');
+                }
+            };
+
+            window.updateStatus = async (bookingId, status) => {
+                if (!confirm(`Are you sure you want to ${status} this booking?`)) return;
+                const result = await PoojaModule.updateBookingStatus(bookingId, status);
+                if (result.success) {
+                    alert(`Booking ${status} successfully!`);
+                    loadBookings();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            };
+
+            window.closeModal = () => { document.getElementById('detailsModal').classList.remove('show'); };
+            window.logout = async () => { await supabase.auth.signOut(); sessionStorage.removeItem('adminInfo'); window.location.href = 'login.html'; };
+
+            document.getElementById('searchInput').addEventListener('keyup', debounceSearch);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('paymentFilter').addEventListener('change', applyFilters);
+
+            function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        })();
+    </script>
+</body>
+</html>
