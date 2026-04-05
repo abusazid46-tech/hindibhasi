@@ -106,6 +106,7 @@
             padding: 15px;
             background: #f0f9f0;
             border-radius: 15px;
+            flex-wrap: wrap;
         }
 
         .samagri-checkbox input {
@@ -120,6 +121,9 @@
         .samagri-link {
             color: #b3412e;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .book-btn {
@@ -177,6 +181,16 @@
             color: #27ae60;
         }
 
+        .copy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
         #qrcode {
             display: flex;
             justify-content: center;
@@ -203,6 +217,7 @@
             padding: 12px;
             border: 2px solid #f3b28a;
             border-radius: 12px;
+            font-size: 16px;
         }
 
         .verify-btn {
@@ -263,16 +278,42 @@
             margin-top: 15px;
         }
 
+        .final-message {
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .status-actions button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .check-status-btn { background: #3498db; color: white; }
+        .receipt-btn { background: #27ae60; color: white; display: none; }
+        .home-btn { background: #f0f0f0; color: #666; }
+
+        footer { background: #251008; color: #e2c7b3; padding: 40px 20px 20px; text-align: center; margin-top: 50px; }
+        .whatsapp { position: fixed; bottom: 20px; right: 15px; background: #25D366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; z-index: 999; }
+
         @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .booking-card {
-                padding: 25px;
-            }
-            .upi-id {
-                font-size: 18px;
-            }
+            .form-row { grid-template-columns: 1fr; }
+            .booking-card { padding: 25px; }
+            .upi-id { font-size: 18px; }
+            .utr-input-group { flex-direction: column; }
         }
     </style>
 </head>
@@ -385,7 +426,7 @@
                 <div class="samagri-checkbox">
                     <input type="checkbox" id="samagriByOrg">
                     <label>📦 संस्था द्वारा सामग्री आपूर्ति (Organization to provide pooja samagri) - <span id="samagriPrice">+₹0</span></label>
-                    <a href="#" id="samagriListLink" class="samagri-link" target="_blank"><i class="fas fa-download"></i> सामग्री सूची</a>
+                    <a href="#" id="samagriListLink" class="samagri-link" target="_blank" style="display: none;"><i class="fas fa-download"></i> सामग्री सूची</a>
                 </div>
 
                 <!-- Price Display -->
@@ -450,12 +491,17 @@
 
             let currentBooking = null;
             let currentBookingId = null;
-            let selectedPoojaType = null;
             let poojaTypes = [];
             let timeSlots = [];
             let statusCheckInterval = null;
             let countdownInterval = null;
             let currentUPIId = '8133908811@airtel';
+
+            // Set min date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const minDate = tomorrow.toISOString().split('T')[0];
+            document.getElementById('date').min = minDate;
 
             // Load pooja types
             async function loadPoojaTypes() {
@@ -465,12 +511,12 @@
                     const select = document.getElementById('poojaType');
                     select.innerHTML = '<option value="">Select Pooja Type</option>';
                     poojaTypes.forEach(pt => {
-                        select.innerHTML += `<option value="${pt.id}" data-price="${pt.base_price}" data-samagri="${pt.samagri_price}" data-samagri-list="${pt.samagri_list_url || ''}">${pt.name} - ₹${pt.base_price}</option>`;
+                        select.innerHTML += `<option value="${pt.id}" data-price="${pt.base_price}" data-samagri="${pt.samagri_price}" data-samagri-url="${pt.samagri_list_url || ''}">${pt.name} - ₹${pt.base_price}</option>`;
                     });
                 }
             }
 
-            // Load time slots
+            // Load time slots from database
             async function loadTimeSlots() {
                 const result = await PoojaModule.getTimeSlots();
                 if (result.success) {
@@ -500,9 +546,10 @@
             function updateSamagriLink() {
                 const select = document.getElementById('poojaType');
                 const selectedOption = select.options[select.selectedIndex];
-                const samagriListUrl = selectedOption?.dataset?.samagriList;
+                const samagriListUrl = selectedOption?.dataset?.samagriUrl;
                 const link = document.getElementById('samagriListLink');
-                if (samagriListUrl) {
+                
+                if (samagriListUrl && samagriListUrl !== '') {
                     link.href = samagriListUrl;
                     link.style.display = 'inline-flex';
                 } else {
@@ -514,6 +561,17 @@
             async function checkAvailableSlots() {
                 const date = document.getElementById('date').value;
                 if (!date) return;
+                
+                // Validate date is not today or past
+                const selectedDate = new Date(date);
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+                
+                if (selectedDate <= todayDate) {
+                    alert('Please select a date from tomorrow onwards');
+                    document.getElementById('date').value = '';
+                    return;
+                }
                 
                 const result = await PoojaModule.getAvailableSlots(date);
                 if (result.success) {
@@ -536,6 +594,7 @@
             });
             document.getElementById('samagriByOrg').addEventListener('change', () => calculateTotal());
             document.getElementById('date').addEventListener('change', () => checkAvailableSlots());
+            document.getElementById('date').addEventListener('blur', () => checkAvailableSlots());
 
             function generateQRCode(amount) {
                 const container = document.getElementById('qrcode');
@@ -685,10 +744,6 @@
             // Initialize
             loadPoojaTypes();
             loadTimeSlots();
-            
-            // Set min date to today
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').min = today;
         })();
     </script>
 </body>
