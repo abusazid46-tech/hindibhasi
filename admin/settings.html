@@ -235,6 +235,116 @@
             color: #b3412e;
         }
 
+        /* Time Slots Table */
+        .time-slots-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .time-slots-table th,
+        .time-slots-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .time-slots-table th {
+            background: #fef8f0;
+            font-weight: 600;
+            color: #2d1f00;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-inactive {
+            background: #fee;
+            color: #e74c3c;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 0 3px;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 40px 10px 40px 10px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox input {
+            width: auto;
+        }
+
         small {
             display: block;
             margin-top: 5px;
@@ -263,22 +373,22 @@
             <p>Super Admin</p>
         </div>
         
-       
-<div class="sidebar-menu">
-            <a href="dashboard.html" class="menu-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
-            <a href="members.html" class="menu-item"><i class="fas fa-users"></i><span>Members</span><span class="badge" id="pendingBadge">0</span></a>
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
+            <a href="members.html" class="menu-item"><i class="fas fa-users"></i><span>Members</span></a>
             <a href="events.html" class="menu-item"><i class="fas fa-calendar-alt"></i><span>Events</span></a>
             <a href="news.html" class="menu-item"><i class="fas fa-newspaper"></i><span>News</span></a>
-            <a href="pooja-bookings.html" class="menu-item"><i class="fas fa-pray"></i><span>Pooja Bookings</span></a>
             <a href="gallery.html" class="menu-item"><i class="fas fa-images"></i><span>Gallery</span></a>
             <a href="donations.html" class="menu-item"><i class="fas fa-hand-holding-heart"></i><span>Donations</span></a>
             <a href="documents.html" class="menu-item"><i class="fas fa-file-pdf"></i><span>Documents</span></a>
-            <a href="contacts.html" class="menu-item"><i class="fas fa-envelope"></i><span>Messages</span><span class="badge" id="messageBadge">0</span></a>
+            <a href="contacts.html" class="menu-item"><i class="fas fa-envelope"></i><span>Messages</span></a>
+            <a href="pooja-bookings.html" class="menu-item"><i class="fas fa-pray"></i><span>Pooja Bookings</span></a>
+            <a href="pooja-types.html" class="menu-item"><i class="fas fa-list"></i><span>Pooja Types</span></a>
             <div class="menu-divider"></div>
             <a href="committee.html" class="menu-item"><i class="fas fa-user-tie"></i><span>Committee</span></a>
-            <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="settings.html" class="menu-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
             <a href="#" class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
-        </div>		
+        </div>
     </div>
 
     <div class="main-content">
@@ -301,6 +411,7 @@
                     <button class="tab-btn" onclick="switchTab('membership')">Membership</button>
                     <button class="tab-btn" onclick="switchTab('contact')">Contact</button>
                     <button class="tab-btn" onclick="switchTab('payment')">Payment</button>
+                    <button class="tab-btn" onclick="switchTab('timeslots')">Time Slots</button>
                     <button class="tab-btn" onclick="switchTab('seo')">SEO</button>
                 </div>
 
@@ -426,7 +537,7 @@
                     <button class="save-btn" onclick="saveSettings('contact')">Save Contact Info</button>
                 </div>
 
-                <!-- Payment Settings (WITH UPI FIELDS INSIDE) -->
+                <!-- Payment -->
                 <div id="panel-payment" class="settings-panel">
                     <h2 class="panel-title">Payment Settings</h2>
                     <div class="form-group">
@@ -444,38 +555,28 @@
                         <label>Minimum Donation (₹)</label>
                         <input type="number" id="min_donation" class="setting-field">
                     </div>
-                    
-                    <!-- UPI Settings - NOW INSIDE THE PAYMENT PANEL -->
                     <div class="form-group">
                         <label>UPI ID for Donations</label>
-                        <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname">
-                        <small>This UPI ID will be displayed on the donation page for users to pay</small>
+                        <input type="text" id="upi_id" class="setting-field">
+                        <small>This UPI ID will be displayed on the donation page</small>
                     </div>
-
                     <div class="form-group">
                         <label>UPI Payee Name</label>
-                        <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name">
-                        <small>Name that appears when users scan the QR code</small>
+                        <input type="text" id="upi_payee_name" class="setting-field">
+                        <small>Name that appears when users scan QR code</small>
                     </div>
-                    
-<div class="form-group">
-    <label>Membership Registration Fee (₹)</label>
-    <input type="number" id="membership_fee" class="setting-field" placeholder="49" min="0">
-    <small>Amount for new member registration</small>
-</div>
-
-<div class="form-group">
-    <label>UPI ID for Membership</label>
-    <input type="text" id="upi_id" class="setting-field" placeholder="example@bankname">
-    <small>UPI ID for receiving membership payments</small>
-</div>
-
-<div class="form-group">
-    <label>UPI Payee Name</label>
-    <input type="text" id="upi_payee_name" class="setting-field" placeholder="Organization Name">
-    <small>Name that appears when users scan QR code</small>
-</div>
                     <button class="save-btn" onclick="saveSettings('payment')">Save Payment Settings</button>
+                </div>
+
+                <!-- Time Slots Management -->
+                <div id="panel-timeslots" class="settings-panel">
+                    <h2 class="panel-title">Time Slot Management</h2>
+                    <div id="timeSlotsList">
+                        <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading time slots...</div>
+                    </div>
+                    <button class="save-btn" onclick="addTimeSlot()" style="margin-top: 20px;">
+                        <i class="fas fa-plus"></i> Add Time Slot
+                    </button>
                 </div>
 
                 <!-- SEO -->
@@ -503,6 +604,34 @@
         </div>
     </div>
 
+    <!-- Time Slot Modal -->
+    <div class="modal" id="timeSlotModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="timeSlotModalTitle">Add Time Slot</h2>
+                <button class="close-btn" onclick="closeTimeSlotModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Time (HH:MM:SS)</label>
+                <input type="time" id="slotTime" step="1" required>
+                <small>Example: 08:00:00 for 8 AM</small>
+            </div>
+            <div class="form-group">
+                <label>Display Label (Optional)</label>
+                <input type="text" id="slotLabel" placeholder="e.g., Morning 8:00 AM">
+            </div>
+            <div class="form-group">
+                <label>Display Order</label>
+                <input type="number" id="slotOrder" min="0" value="0">
+            </div>
+            <div class="form-group checkbox">
+                <input type="checkbox" id="slotActive" checked>
+                <label>Active</label>
+            </div>
+            <button class="save-btn" onclick="saveTimeSlot()">Save Time Slot</button>
+        </div>
+    </div>
+
     <script>
         (function() {
             const SUPABASE_URL = 'https://rhslmpccqrfgsaqhwwnl.supabase.co';
@@ -510,7 +639,8 @@
             
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            // Check auth
+            let editingSlotId = null;
+
             document.addEventListener('DOMContentLoaded', async () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
@@ -526,6 +656,7 @@
                 }
                 
                 await loadSettings();
+                await loadTimeSlots();
             });
 
             async function loadSettings() {
@@ -539,15 +670,11 @@
                     
                     if (error) throw error;
                     
-                    // Create a map of settings
                     const settings = {};
-                    if (data) {
-                        data.forEach(item => {
-                            settings[item.key] = item.value;
-                        });
-                    }
+                    data.forEach(item => {
+                        settings[item.key] = item.value;
+                    });
                     
-                    // Populate all fields
                     document.querySelectorAll('.setting-field').forEach(field => {
                         const id = field.id;
                         if (settings[id] !== undefined && settings[id] !== null) {
@@ -563,6 +690,116 @@
                     showMessage('Failed to load settings: ' + error.message, 'error');
                 }
             }
+
+            async function loadTimeSlots() {
+                const container = document.getElementById('timeSlotsList');
+                try {
+                    const { data, error } = await supabase
+                        .from('time_slots')
+                        .select('*')
+                        .order('display_order');
+                    
+                    if (error) throw error;
+                    
+                    if (data && data.length > 0) {
+                        container.innerHTML = `
+                            <table class="time-slots-table">
+                                <thead>
+                                    <tr><th>Time</th><th>Label</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${data.map(slot => `
+                                        <tr>
+                                            <td>${slot.slot_time}</td>
+                                            <td>${slot.slot_label || '-'}</td>
+                                            <td>${slot.display_order}</td>
+                                            <td>${slot.is_active ? '<span class="status-active">Active</span>' : '<span class="status-inactive">Inactive</span>'}</td>
+                                            <td>
+                                                <button class="action-btn edit-btn" onclick="editTimeSlot('${slot.id}')"><i class="fas fa-edit"></i></button>
+                                                <button class="action-btn delete-btn" onclick="deleteTimeSlot('${slot.id}')"><i class="fas fa-trash"></i></button>
+                                              </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    } else {
+                        container.innerHTML = '<p style="text-align:center; padding:40px;">No time slots configured. Add your first time slot.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading time slots:', error);
+                    container.innerHTML = '<p class="error-message">Failed to load time slots</p>';
+                }
+            }
+
+            window.addTimeSlot = function() {
+                editingSlotId = null;
+                document.getElementById('timeSlotModalTitle').textContent = 'Add Time Slot';
+                document.getElementById('slotTime').value = '';
+                document.getElementById('slotLabel').value = '';
+                document.getElementById('slotOrder').value = '0';
+                document.getElementById('slotActive').checked = true;
+                document.getElementById('timeSlotModal').classList.add('show');
+            };
+
+            window.editTimeSlot = function(id) {
+                editingSlotId = id;
+                (async () => {
+                    const { data } = await supabase.from('time_slots').select('*').eq('id', id).single();
+                    if (data) {
+                        document.getElementById('timeSlotModalTitle').textContent = 'Edit Time Slot';
+                        document.getElementById('slotTime').value = data.slot_time;
+                        document.getElementById('slotLabel').value = data.slot_label || '';
+                        document.getElementById('slotOrder').value = data.display_order;
+                        document.getElementById('slotActive').checked = data.is_active;
+                        document.getElementById('timeSlotModal').classList.add('show');
+                    }
+                })();
+            };
+
+            window.saveTimeSlot = async function() {
+                const slotData = {
+                    slot_time: document.getElementById('slotTime').value,
+                    slot_label: document.getElementById('slotLabel').value || null,
+                    display_order: parseInt(document.getElementById('slotOrder').value),
+                    is_active: document.getElementById('slotActive').checked
+                };
+                
+                if (!slotData.slot_time) {
+                    alert('Please select a time');
+                    return;
+                }
+                
+                let result;
+                if (editingSlotId) {
+                    result = await supabase.from('time_slots').update(slotData).eq('id', editingSlotId);
+                } else {
+                    result = await supabase.from('time_slots').insert([slotData]);
+                }
+                
+                if (result.error) {
+                    alert('Error: ' + result.error.message);
+                } else {
+                    alert(editingSlotId ? 'Time slot updated!' : 'Time slot added!');
+                    closeTimeSlotModal();
+                    loadTimeSlots();
+                }
+            };
+
+            window.deleteTimeSlot = async function(id) {
+                if (!confirm('Are you sure you want to delete this time slot?')) return;
+                const { error } = await supabase.from('time_slots').delete().eq('id', id);
+                if (error) {
+                    alert('Error: ' + error.message);
+                } else {
+                    alert('Time slot deleted');
+                    loadTimeSlots();
+                }
+            };
+
+            window.closeTimeSlotModal = function() {
+                document.getElementById('timeSlotModal').classList.remove('show');
+            };
 
             window.switchTab = function(tab) {
                 document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
